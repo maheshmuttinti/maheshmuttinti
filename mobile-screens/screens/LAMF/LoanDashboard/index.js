@@ -14,13 +14,16 @@ import {LoanApplicationsList} from './components/LoanApplicationsList';
 export default function ({navigation}) {
   const theme = useTheme();
   const [applications, setApplications] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useLayoutBackButtonAction();
 
   useFocusEffect(
     useCallback(() => {
       (async () => {
+        setIsLoading(true);
         await loanApplications();
+        setIsLoading(false);
       })();
     }, []),
   );
@@ -32,13 +35,10 @@ export default function ({navigation}) {
         item => item?.lien_marking_status === 'success',
       );
 
-      console.log(
-        'lienMarkingSuccessLoanApplications',
-        lienMarkingSuccessLoanApplications?.length,
-      );
-
       setApplications(lienMarkingSuccessLoanApplications);
     } catch (error) {
+      setIsLoading(false);
+
       return error;
     }
   };
@@ -63,6 +63,7 @@ export default function ({navigation}) {
         <LoanApplicationsList
           applications={applications}
           navigation={navigation}
+          isLoading={isLoading}
         />
         <View style={{paddingTop: 16}}>
           <Card

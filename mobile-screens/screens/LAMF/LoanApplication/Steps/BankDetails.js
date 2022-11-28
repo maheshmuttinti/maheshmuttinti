@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
+import {View, Text} from 'react-native';
 import {useTheme} from 'theme';
 import {BaseButton, BaseTextInput, Card, Heading} from 'uin';
 import useBetaForm from '@reusejs/react-form-hook';
@@ -16,6 +16,7 @@ import isEmpty from 'lodash/isEmpty';
 import TickCircle from 'assets/icons/tickCircle';
 import {prettifyJSON} from 'utils';
 import {WarningCard} from '../components/WarningCard';
+import Toast from 'react-native-toast-message';
 
 const BankDetails = ({applicationId, currentStep, setStep}) => {
   const theme = useTheme();
@@ -29,8 +30,10 @@ const BankDetails = ({applicationId, currentStep, setStep}) => {
   const [bankDetails, setBankDetails] = useState({});
   const [applicationData, setApplicationData] = useState({});
   const [loading, setLoading] = useState(false);
+  const [isFetchingBranchName, setIsFetchingBranchName] = useState(false);
   const [bankValidationError, setBankValidationError] = useState(null);
   const [isFieldsEmpty, setFieldsEmpty] = useState(true);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   const prefillData = () => {
     if (applicationData?.loan_application_data?.bank_details) {
@@ -125,6 +128,7 @@ const BankDetails = ({applicationId, currentStep, setStep}) => {
         setBankDetails({});
       }
     } catch (error) {
+      setIsFetchingBranchName(false);
       if (error === 'not matched') {
         setBankDetails({});
       }
@@ -134,7 +138,11 @@ const BankDetails = ({applicationId, currentStep, setStep}) => {
   useEffect(() => {
     if (ifsc !== '') {
       const debounceTimer = setTimeout(() => {
-        (async () => await handleFetchBranchName(ifsc))();
+        (async () => {
+          setIsFetchingBranchName(true);
+          await handleFetchBranchName(ifsc);
+          setIsFetchingBranchName(false);
+        })();
       }, 200);
       return () => clearTimeout(debounceTimer);
     }
@@ -209,7 +217,14 @@ const BankDetails = ({applicationId, currentStep, setStep}) => {
         loanPayload.loan_application_step = 'bank_verification';
 
         await updateApplication(applicationId, loanPayload);
+        setSuccessMessage('Bank Details verified successfully.');
+        Toast.show({
+          type: 'bankDetailsSuccessToast',
+          position: 'bottom',
+          visibilityTime: 2000,
+        });
         await handleCallLMSAPIs();
+
         setStep(currentStep + 1);
         setLoading(false);
       } else {
@@ -222,136 +237,191 @@ const BankDetails = ({applicationId, currentStep, setStep}) => {
       return error;
     }
   };
-  return (
-    <View style={{paddingTop: 8, flex: 1}}>
-      <Heading
-        style={{
-          color: theme.colors.text,
-          fontFamily: theme.fonts.regular,
-          ...theme.fontSizes.heading5,
-          fontWeight: theme.fontWeights.veryBold,
-        }}>
-        Bank Details
-      </Heading>
-      {bankValidationError && (
-        <View style={{paddingTop: 16}}>
-          <WarningCard message={bankValidationError} />
-        </View>
-      )}
-      <View style={{paddingTop: 24}}>
-        <BaseTextInput
-          placeholder="Enter IFSC CODE"
-          label="IFSC CODE"
-          onChangeText={async v => {
-            form.setField('ifsc', v);
-            setIfsc(v);
-          }}
-          labelStyles={{
-            color: theme.colors.primaryBlue,
-            ...theme.fontSizes.small,
-          }}
-          value={form.getField('ifsc')}
-          error={form.errors.get('ifsc')}
-          onFieldBlur={() => makeIfscCapital()}
-        />
-      </View>
-      {bankDetails?.BANKCODE && (
-        <View
-          style={{flexDirection: 'row', alignItems: 'center', paddingTop: 12}}>
-          <TickCircle />
-          <Heading
-            style={{
-              color: theme.colors.text,
-              fontFamily: theme.fonts.bold,
-              paddingLeft: 4,
-              ...theme.fontSizes.medium,
-            }}>{`${bankDetails?.BANK}, ${bankDetails?.BRANCH}`}</Heading>
-        </View>
-      )}
-      <View style={{paddingTop: 16}}>
+
+  const toastConfig = {
+    bankDetailsSuccessToast: () =>
+      successMessage && (
         <Card
           style={{
-            backgroundColor: theme.colors.primaryBlue100,
-            paddingLeft: 10.25,
-            paddingVertical: 12,
-            paddingRight: 9,
+            backgroundColor: 'rgba(0, 255, 0, 0.5)',
+            paddingLeft: 17.25,
+            marginHorizontal: 17,
+            position: 'absolute',
+            bottom: 100,
+            borderRadius: 8,
+            paddingVertical: 16,
             flexDirection: 'row',
             alignItems: 'center',
           }}>
-          <InfoIcon fill={theme.colors.primary} />
-          <Heading
+          <View>
+            <InfoIcon fill={theme.colors.success} />
+          </View>
+          <Text
             style={{
               ...theme.fontSizes.small,
               fontWeight: theme.fontWeights.moreBold,
-              color: theme.colors.primary,
+              color: theme.colors.text,
+              fontFamily: theme.fonts.regular,
               paddingLeft: 17.25,
-              marginRight: 18,
+              marginRight: 52,
             }}>
-            Please check if the bank details are correct. Else re-enter the IFSC
-            code
-          </Heading>
+            {successMessage}
+          </Text>
         </Card>
-      </View>
-      <View style={{paddingTop: 16}}>
-        <BaseTextInput
-          keyboardType="numeric"
-          placeholder="Enter your account number"
-          label="BANK ACCOUNT NUMBER"
-          onChangeText={v => {
-            form.setField('bank_account_number', v.trim());
-          }}
-          labelStyles={{
-            color: theme.colors.primaryBlue,
-            ...theme.fontSizes.small,
-          }}
-          value={form.getField('bank_account_number')}
-          error={form.errors.get('bank_account_number')}
-        />
-      </View>
-      <View style={{paddingTop: 16}}>
-        <BaseTextInput
-          keyboardType="numeric"
-          placeholder="Re-enter your account number"
-          label="CONFIRM ACCOUNT NUMBER"
-          onChangeText={v => {
-            form.setField('confirm_account_number', v.trim());
-          }}
-          labelStyles={{
-            color: theme.colors.primaryBlue,
-            ...theme.fontSizes.small,
-          }}
-          value={form.getField('confirm_account_number')}
-          error={form.errors.get('confirm_account_number')}
-        />
-      </View>
-      <View style={{paddingTop: 16}}>
-        <BaseTextInput
-          placeholder="Enter Name"
-          label="NAME ON BANK ACCOUNT"
-          onChangeText={v => {
-            form.setField('name', v);
-          }}
-          labelStyles={{
-            color: theme.colors.primaryBlue,
-            ...theme.fontSizes.small,
-          }}
-          value={form.getField('name')}
-          error={form.errors.get('name')}
-        />
-      </View>
+      ),
+  };
+  return (
+    <>
+      <View style={{paddingTop: 8, flex: 1}}>
+        <Heading
+          style={{
+            color: theme.colors.text,
+            fontFamily: theme.fonts.regular,
+            ...theme.fontSizes.heading5,
+            fontWeight: theme.fontWeights.veryBold,
+          }}>
+          Bank Details
+        </Heading>
+        {bankValidationError && (
+          <View style={{paddingTop: 16}}>
+            <WarningCard message={bankValidationError} />
+          </View>
+        )}
+        <View style={{paddingTop: 24}}>
+          <BaseTextInput
+            placeholder="Enter IFSC CODE"
+            label="IFSC CODE"
+            onChangeText={async v => {
+              form.setField('ifsc', v);
+              setIfsc(v);
+            }}
+            labelStyles={{
+              color: theme.colors.primaryBlue,
+              ...theme.fontSizes.small,
+            }}
+            value={form.getField('ifsc')}
+            error={form.errors.get('ifsc')}
+            onFieldBlur={() => makeIfscCapital()}
+          />
+        </View>
+        {isFetchingBranchName ? (
+          <>
+            <Heading
+              style={{
+                color: theme.colors.text,
+                fontFamily: theme.fonts.bold,
+                paddingLeft: 4,
+                paddingTop: 12,
+                ...theme.fontSizes.medium,
+              }}>
+              Loading Branch Name...
+            </Heading>
+          </>
+        ) : (
+          bankDetails?.BANKCODE && (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingTop: 12,
+              }}>
+              <TickCircle />
+              <Heading
+                style={{
+                  color: theme.colors.text,
+                  fontFamily: theme.fonts.bold,
+                  paddingLeft: 4,
+                  ...theme.fontSizes.medium,
+                }}>{`${bankDetails?.BANK}, ${bankDetails?.BRANCH}`}</Heading>
+            </View>
+          )
+        )}
+        <View style={{paddingTop: 16}}>
+          <Card
+            style={{
+              backgroundColor: theme.colors.primaryBlue100,
+              paddingLeft: 10.25,
+              paddingVertical: 12,
+              paddingRight: 9,
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}>
+            <InfoIcon fill={theme.colors.primary} />
+            <Heading
+              style={{
+                ...theme.fontSizes.small,
+                fontWeight: theme.fontWeights.moreBold,
+                color: theme.colors.primary,
+                paddingLeft: 17.25,
+                marginRight: 18,
+              }}>
+              Please check if the bank details are correct. Else re-enter the
+              IFSC code
+            </Heading>
+          </Card>
+        </View>
+        <View style={{paddingTop: 16}}>
+          <BaseTextInput
+            keyboardType="numeric"
+            placeholder="Enter your account number"
+            label="BANK ACCOUNT NUMBER"
+            onChangeText={v => {
+              form.setField('bank_account_number', v.trim());
+            }}
+            labelStyles={{
+              color: theme.colors.primaryBlue,
+              ...theme.fontSizes.small,
+            }}
+            value={form.getField('bank_account_number')}
+            error={form.errors.get('bank_account_number')}
+          />
+        </View>
+        <View style={{paddingTop: 16}}>
+          <BaseTextInput
+            keyboardType="numeric"
+            placeholder="Re-enter your account number"
+            label="CONFIRM ACCOUNT NUMBER"
+            onChangeText={v => {
+              form.setField('confirm_account_number', v.trim());
+            }}
+            labelStyles={{
+              color: theme.colors.primaryBlue,
+              ...theme.fontSizes.small,
+            }}
+            value={form.getField('confirm_account_number')}
+            error={form.errors.get('confirm_account_number')}
+          />
+        </View>
+        <View style={{paddingTop: 16}}>
+          <BaseTextInput
+            placeholder="Enter Name"
+            label="NAME ON BANK ACCOUNT"
+            onChangeText={v => {
+              form.setField('name', v);
+            }}
+            labelStyles={{
+              color: theme.colors.primaryBlue,
+              ...theme.fontSizes.small,
+            }}
+            value={form.getField('name')}
+            error={form.errors.get('name')}
+          />
+        </View>
 
-      <View style={{paddingTop: 32, paddingBottom: 24}}>
-        <BaseButton
-          onPress={async () => {
-            await handleSubmit();
-          }}
-          disable={isFieldsEmpty || loading}>
-          {loading
-            ? 'Please Wait, Validating the data...'
-            : 'Continue To Next Step'}
-        </BaseButton>
+        <View style={{paddingTop: 32, paddingBottom: 24}}>
+          <BaseButton
+            onPress={async () => {
+              await handleSubmit();
+            }}
+            disable={isFieldsEmpty || loading}>
+            {loading
+              ? 'Please Wait, Validating the data...'
+              : 'Continue To Next Step'}
+          </BaseButton>
+        </View>
       </View>
-    </View>
+      <Toast config={toastConfig} />
+    </>
   );
 };
 

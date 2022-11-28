@@ -32,8 +32,8 @@ export const Revocation = ({loanData}) => {
           onPress={() => handleRevocation(loanData.uuid)}>
           <Text style={{color: 'white', fontSize: 16, textAlign: 'center'}}>
             {revoking
-              ? 'Please wait, Revoking tge lien marked units'
-              : revocationStatus.current === 'success'
+              ? 'Please wait, Revoking the lien marked units..'
+              : revocationStatus.current !== 'success'
               ? 'TEST: Click to Revoke Lien Units'
               : 'REVOKED'}
           </Text>

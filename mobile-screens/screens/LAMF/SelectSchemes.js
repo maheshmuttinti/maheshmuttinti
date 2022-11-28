@@ -1265,7 +1265,7 @@ const SchemeCard = ({item}) => {
   );
 };
 
-const SkeletonListCard = ({containerStyle = {}}) => {
+export const SkeletonListCard = ({containerStyle = {}}) => {
   return (
     <SkeletonContent
       containerStyle={{
