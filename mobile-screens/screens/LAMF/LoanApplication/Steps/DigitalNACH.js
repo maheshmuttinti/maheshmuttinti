@@ -41,33 +41,58 @@ export default function ({navigation, applicationId}) {
     }, []),
   );
 
+  const fetchBankDetails = async ifscCode => {
+    try {
+      const bankDetailsResponse = await getBankDetailsByIFSC(ifscCode);
+      setBankDetails(bankDetailsResponse);
+    } catch (err) {
+      console.log('fetchBankDetails->err: ', err);
+      setErrorMessage('Something Went Wrong!');
+      setInitLoading(false);
+    }
+  };
+
+  const fetchAllCloudLMSLoan = async _applicationId => {
+    try {
+      const allCloudLMSLoan = await getLMSLoanById(_applicationId);
+      setEMI(allCloudLMSLoan?.EMI);
+    } catch (err) {
+      console.log('fetchAllCloudLMSLoan->err: ', err);
+      setErrorMessage('Something Went Wrong!');
+      setInitLoading(false);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       (async () => {
-        setInitLoading(true);
-        setEMIDueDate(
-          applicationData?.loan_application_data?.emi_scheme
-            ?.split('_')
-            .join(' '),
-        );
-        if (
-          applicationData?.loan_application_data?.digital_nach_id &&
-          applicationData?.loan_application_data?.digital_nach_status
-        ) {
-          await getNachDetails();
-        }
+        try {
+          setInitLoading(true);
+          setEMIDueDate(
+            applicationData?.loan_application_data?.emi_scheme
+              ?.split('_')
+              .join(' '),
+          );
+          if (
+            applicationData?.loan_application_data?.digital_nach_id &&
+            applicationData?.loan_application_data?.digital_nach_status
+          ) {
+            await getNachDetails();
+          }
 
-        const ifscCode =
-          applicationData?.loan_application_data?.bank_verification_info
-            ?.bankTransfer?.beneIFSC;
-        if (!ifscCode) {
-          setInitLoading(false);
-          return;
-        } else {
-          const bankDetailsResponse = await getBankDetailsByIFSC(ifscCode);
-          setBankDetails(bankDetailsResponse);
-          const allCloudLMSLoan = await getLMSLoanById(applicationId);
-          setEMI(allCloudLMSLoan?.EMI);
+          const ifscCode =
+            applicationData?.loan_application_data?.bank_verification_info
+              ?.bankTransfer?.beneIFSC;
+          if (!ifscCode) {
+            setErrorMessage('IFSC Code Not Found!');
+            return;
+          } else {
+            await fetchBankDetails(ifscCode);
+            await fetchAllCloudLMSLoan(applicationId);
+            setInitLoading(false);
+          }
+        } catch (error) {
+          setErrorMessage('Something Went Wrong!');
           setInitLoading(false);
         }
       })();
@@ -218,17 +243,23 @@ export default function ({navigation, applicationId}) {
 
         const result = await handleCallAllCloudLMSAPIs();
         if (result === true) {
+          setInitLoading(false);
+
           setDigitalNACHStatusChecking(false);
           navigation.navigate('Protected', {screen: 'LoanSuccess'});
         } else {
+          setInitLoading(false);
+
           setDigitalNACHStatusChecking(false);
           navigation.navigate('Protected', {screen: 'LoanSuccess'});
         }
       } else {
         setErrorMessage('NACH Failed, Please try again!');
+        setInitLoading(false);
       }
     } catch (err) {
       setErrorMessage('Something Went Wrong');
+      setInitLoading(false);
       console.log('error', err);
       return err;
     }
