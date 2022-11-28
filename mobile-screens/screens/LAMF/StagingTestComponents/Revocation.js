@@ -1,14 +1,19 @@
 /* eslint-disable react-native/no-inline-styles */
 import {Text, TouchableOpacity} from 'react-native';
-import React from 'react';
+import React, {useState} from 'react';
 import Config from 'react-native-config';
 import {revokeLienMarkingForLoanApplication} from 'services';
 
 export const Revocation = ({loanData}) => {
+  const [revoking, setRevoking] = useState(false);
   const handleRevocation = async loanUuid => {
     try {
+      setRevoking(true);
       await revokeLienMarkingForLoanApplication(loanUuid);
+      setRevoking(false);
     } catch (error) {
+      setRevoking(false);
+
       return error;
     }
   };
@@ -24,7 +29,9 @@ export const Revocation = ({loanData}) => {
           }}
           onPress={() => handleRevocation(loanData.uuid)}>
           <Text style={{color: 'white', fontSize: 16, textAlign: 'center'}}>
-            {loanData?.lien_marking_status === 'success'
+            {revoking
+              ? 'Please wait, Revoking tge lien marked units'
+              : loanData?.lien_marking_status === 'success'
               ? 'TEST: Click to Revoke Lien Units'
               : 'REVOKED'}
           </Text>
