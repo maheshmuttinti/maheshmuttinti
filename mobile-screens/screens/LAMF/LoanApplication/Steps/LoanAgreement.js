@@ -23,7 +23,7 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [EMI, setEMI] = useState('');
-  const [errorMessages, setErrorMessages] = useState(null);
+  const [infoMessage, setInfoMessage] = useState(null);
 
   const getLoanApplicationData = useCallback(async () => {
     const application = await getLoanApplicationById(applicationId);
@@ -32,7 +32,7 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
 
   useEffect(() => {
     (async () => {
-      setErrorMessages(null);
+      setInfoMessage(null);
       await getLoanApplicationData();
     })();
   }, [getLoanApplicationData]);
@@ -40,7 +40,7 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
   useEffect(() => {
     (async () => {
       try {
-        setErrorMessages(null);
+        setInfoMessage(null);
         if (
           applicationData?.loan_application_data?.loan_agreement_id &&
           applicationData?.loan_application_data.loan_agreement_status ===
@@ -66,7 +66,7 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
               applicationId,
               'after_loan_agreement',
             );
-            setErrorMessages('Signed Loan Agreement');
+            setInfoMessage('Signed Loan Agreement');
             console.log(
               'all cloud lms api calls before_loan_agreement response',
               prettifyJSON(allCloudLMSAPIsResponse),
@@ -95,7 +95,7 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
               applicationId,
               'after_loan_agreement',
             );
-            setErrorMessages('Signed Loan Agreement');
+            setInfoMessage('Signed Loan Agreement');
             console.log(
               'all cloud lms api calls before_loan_agreement response',
               prettifyJSON(allCloudLMSAPIsResponse),
@@ -105,7 +105,7 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
         }
       } catch (error) {
         console.log('intial load function loan agreement step', error);
-        setErrorMessages('Something Went Wrong!');
+        setInfoMessage('Something Went Wrong!');
         // bypassing this step on failure case
         if (Config.LOAN_APPLICATION_MOCK_TEST === true) {
           setSignSuccess(true);
@@ -119,13 +119,13 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
   useEffect(() => {
     (async () => {
       try {
-        setErrorMessages(null);
+        setInfoMessage(null);
         if (!signSuccess) {
           const allCloudLMSLoan = await getLMSLoanById(applicationId);
           setEMI(allCloudLMSLoan?.EMI);
         }
       } catch (error) {
-        setErrorMessages('Something Went Wrong!');
+        setInfoMessage('Something Went Wrong!');
         console.log('error', error);
       }
     })();
@@ -133,7 +133,7 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
 
   const createLoanAgreement = async () => {
     try {
-      setErrorMessages(null);
+      setInfoMessage(null);
       setIsSubmitting(true);
       const loanApplicantName = applicationData?.loan_application_data?.name;
       const loanApplicantAddress = `${
@@ -239,16 +239,16 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
       } else {
         if (response?.message) {
           setIsSubmitting(false);
-          setErrorMessages(response?.message);
+          setInfoMessage(response?.message);
         } else {
           setIsSubmitting(false);
-          setErrorMessages('Something Went Wrong!');
+          setInfoMessage('Something Went Wrong!');
         }
       }
     } catch (error) {
       setIsSubmitting(false);
       console.log('error while digio sign api calling', error);
-      setErrorMessages('Something Went Wrong!');
+      setInfoMessage('Something Went Wrong!');
       return error;
     }
   };
@@ -276,9 +276,9 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
                 />
               </View>
             )}
-            {errorMessages && (
+            {infoMessage && (
               <View style={{paddingTop: 16}}>
-                <WarningCard message={errorMessages} />
+                <WarningCard message={infoMessage} />
               </View>
             )}
             <View style={{paddingTop: 24}}>
