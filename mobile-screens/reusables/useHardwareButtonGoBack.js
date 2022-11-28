@@ -7,7 +7,7 @@ export default function useHardwareButtonGoBack(preventGoBack = false) {
 
   const backAction = () => {
     if (preventGoBack === true) {
-      return;
+      return true;
     } else {
       navigation.canGoBack() && navigation.pop();
     }
