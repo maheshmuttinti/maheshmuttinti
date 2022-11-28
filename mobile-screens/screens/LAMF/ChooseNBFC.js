@@ -77,14 +77,18 @@ export default function ({navigation, route}) {
           const payload = {
             interest: nbfc?.nbfc?.roi,
             principal: nbfc?.total_pre_approved_loan_amount,
-            tenure: +nbfc?.nbfc?.max_tenure?.split(' ')[0],
+            tenures: [
+              {
+                label: `${nbfc?.nbfc?.max_tenure}`,
+                value: `${+nbfc?.nbfc?.max_tenure?.split(' ')[0]}`,
+              },
+            ],
           };
-          if (payload?.interest && payload?.principal && payload?.tenure) {
+          if (payload?.interest && payload?.principal && payload?.tenures) {
             const indicativeEMIsResponse =
               await getIndicativeEMIsForLoanTenures(payload);
-            const installments = indicativeEMIsResponse?.data?.installments;
             const indicativeEMIAmount =
-              installments?.length > 0 ? installments[0]?.installment : 0;
+              indicativeEMIsResponse?.[0]?.tentative_emi_amount;
             return {
               ...nbfc,
               nbfc: {...nbfc.nbfc, indicative_emi: indicativeEMIAmount},

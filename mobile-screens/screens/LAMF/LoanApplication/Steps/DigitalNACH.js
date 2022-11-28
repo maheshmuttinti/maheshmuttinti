@@ -84,7 +84,6 @@ export default function ({navigation, applicationId}) {
             applicationData?.loan_application_data?.bank_verification_info
               ?.bankTransfer?.beneIFSC;
           if (!ifscCode) {
-            setErrorMessage('IFSC Code Not Found!');
             return;
           } else {
             await fetchBankDetails(ifscCode);
