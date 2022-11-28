@@ -220,14 +220,13 @@ export default function ({navigation, applicationId}) {
   const getNachDetails = async () => {
     try {
       setErrorMessage(null);
-      if (applicationData?.loan_application_data?.digital_nach_id) {
+      const nachID = applicationData?.loan_application_data?.digital_nach_id;
+      if (!nachID) {
         setDigitalNACHStatusChecking(false);
         return;
       }
 
-      const response = await mandateStatus(
-        applicationData?.loan_application_data?.digital_nach_id,
-      );
+      const response = await mandateStatus(nachID);
       if (response.state === 'auth_success') {
         const loanData = {
           ...applicationData?.loan_application_data,
@@ -244,12 +243,10 @@ export default function ({navigation, applicationId}) {
         const result = await handleCallAllCloudLMSAPIs();
         if (result === true) {
           setInitLoading(false);
-
           setDigitalNACHStatusChecking(false);
           navigation.navigate('Protected', {screen: 'LoanSuccess'});
         } else {
           setInitLoading(false);
-
           setDigitalNACHStatusChecking(false);
           navigation.navigate('Protected', {screen: 'LoanSuccess'});
         }

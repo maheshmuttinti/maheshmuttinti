@@ -12,22 +12,18 @@ import {
   getLMSLoanById,
   callLMSAPIs,
 } from 'services';
-import Loader from '../../../../reusables/loader';
 import Config from 'react-native-config';
-import {
-  amountInWords,
-  formatDate,
-  getAge,
-  prettifyJSON,
-  showToast,
-} from 'utils';
+import {amountInWords, formatDate, getAge, prettifyJSON} from 'utils';
+import {WarningCard} from '../components/WarningCard';
 
 const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
   const theme = useTheme();
   const [signSuccess, setSignSuccess] = useState(false);
   const [applicationData, setApplicationData] = useState({});
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [EMI, setEMI] = useState('');
+  const [errorMessages, setErrorMessages] = useState(null);
 
   const getLoanApplicationData = useCallback(async () => {
     const application = await getLoanApplicationById(applicationId);
@@ -36,6 +32,7 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
 
   useEffect(() => {
     (async () => {
+      setErrorMessages(null);
       await getLoanApplicationData();
     })();
   }, [getLoanApplicationData]);
@@ -43,6 +40,7 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
   useEffect(() => {
     (async () => {
       try {
+        setErrorMessages(null);
         if (
           applicationData?.loan_application_data?.loan_agreement_id &&
           applicationData?.loan_application_data.loan_agreement_status ===
@@ -68,7 +66,7 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
               applicationId,
               'after_loan_agreement',
             );
-            showToast('Signed Loan Agreement');
+            setErrorMessages('Signed Loan Agreement');
             console.log(
               'all cloud lms api calls before_loan_agreement response',
               prettifyJSON(allCloudLMSAPIsResponse),
@@ -97,7 +95,7 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
               applicationId,
               'after_loan_agreement',
             );
-            showToast('Signed Loan Agreement');
+            setErrorMessages('Signed Loan Agreement');
             console.log(
               'all cloud lms api calls before_loan_agreement response',
               prettifyJSON(allCloudLMSAPIsResponse),
@@ -107,7 +105,7 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
         }
       } catch (error) {
         console.log('intial load function loan agreement step', error);
-        showToast('Something went wrong');
+        setErrorMessages('Something Went Wrong!');
         // bypassing this step on failure case
         if (Config.LOAN_APPLICATION_MOCK_TEST === true) {
           setSignSuccess(true);
@@ -121,11 +119,13 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
   useEffect(() => {
     (async () => {
       try {
+        setErrorMessages(null);
         if (!signSuccess) {
           const allCloudLMSLoan = await getLMSLoanById(applicationId);
           setEMI(allCloudLMSLoan?.EMI);
         }
       } catch (error) {
+        setErrorMessages('Something Went Wrong!');
         console.log('error', error);
       }
     })();
@@ -133,7 +133,8 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
 
   const createLoanAgreement = async () => {
     try {
-      setLoading(true);
+      setErrorMessages(null);
+      setIsSubmitting(true);
       const loanApplicantName = applicationData?.loan_application_data?.name;
       const loanApplicantAddress = `${
         applicationData?.loan_application_data?.address +
@@ -229,7 +230,7 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
       };
       await updateApplication(applicationId, loanPayload);
       if (response?.id) {
-        setLoading(false);
+        setIsSubmitting(false);
 
         navigation.navigate('DigioSDK', {
           digioDocumentId: response?.id,
@@ -237,27 +238,23 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
         });
       } else {
         if (response?.message) {
-          setLoading(false);
-          showToast(response?.message);
+          setIsSubmitting(false);
+          setErrorMessages(response?.message);
         } else {
-          setLoading(false);
-          showToast('Something went wrong');
+          setIsSubmitting(false);
+          setErrorMessages('Something Went Wrong!');
         }
       }
     } catch (error) {
-      setLoading(false);
+      setIsSubmitting(false);
       console.log('error while digio sign api calling', error);
-      showToast('Something went wrong');
+      setErrorMessages('Something Went Wrong!');
       return error;
     }
   };
 
   return (
     <>
-      <Loader
-        loading={loading}
-        text="You are being redirected to digital signature screen"
-      />
       <View style={{marginTop: 8}}>
         {!signSuccess ? (
           <>
@@ -270,6 +267,20 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
               }}>
               Loan Agreement
             </Heading>
+            {loading && (
+              <View style={{paddingTop: 16}}>
+                <WarningCard
+                  message={
+                    'Please Wait, We are fetching the data to proceed further..'
+                  }
+                />
+              </View>
+            )}
+            {errorMessages && (
+              <View style={{paddingTop: 16}}>
+                <WarningCard message={errorMessages} />
+              </View>
+            )}
             <View style={{paddingTop: 24}}>
               <Body style={{...theme.fontSizes.large}}>
                 Thank you for your interest in the loan. As a next step, you
@@ -317,8 +328,12 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
               } else {
                 setStep(currentStep + 1);
               }
-            }}>
-            Continue To Next Step
+            }}
+            textStyles={isSubmitting && {fontSize: 12}}
+            disable={loading || isSubmitting}>
+            {isSubmitting
+              ? 'You are being redirected to digital signature screen'
+              : 'Continue To Next Step'}
           </BaseButton>
         </View>
       </View>
