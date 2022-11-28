@@ -60,11 +60,16 @@ export default function ({navigation, applicationId}) {
         const ifscCode =
           applicationData?.loan_application_data?.bank_verification_info
             ?.bankTransfer?.beneIFSC;
-        const bankDetailsResponse = await getBankDetailsByIFSC(ifscCode);
-        setBankDetails(bankDetailsResponse);
-        const allCloudLMSLoan = await getLMSLoanById(applicationId);
-        setEMI(allCloudLMSLoan?.EMI);
-        setInitLoading(false);
+        if (!ifscCode) {
+          setInitLoading(false);
+          return;
+        } else {
+          const bankDetailsResponse = await getBankDetailsByIFSC(ifscCode);
+          setBankDetails(bankDetailsResponse);
+          const allCloudLMSLoan = await getLMSLoanById(applicationId);
+          setEMI(allCloudLMSLoan?.EMI);
+          setInitLoading(false);
+        }
       })();
     }, [applicationData, applicationId]),
   );
@@ -116,9 +121,7 @@ export default function ({navigation, applicationId}) {
           first_collection_date:
             applicationData?.loan_application_data?.first_emi_date, // Todo: check the format of this date.
           amount: EMI,
-          bank_account_name:
-            applicationData?.loan_application_data?.bank_details
-              ?.bank_account_name, // Todo: Bank Account Name get from Razor Pay API
+          bank_account_name: bankDetails?.BANK, // Todo: Bank Account Name get from Razor Pay API
         };
         console.log('payload for eMandateGeneration', prettifyJSON(payload));
         const response = await eMandateGeneration(payload);
