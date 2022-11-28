@@ -22,7 +22,7 @@ export default function ({
   const dispatch = useDispatch();
   const theme = useTheme();
   const [eligiblePANs, setEligiblePANs] = useState([]);
-  const [disableButton, setDisableButton] = useState(false);
+  const [disableButton, setDisableButton] = useState(true);
   const getEligiblePANsFnRef = useRef(() => {});
   const [selectedPAN, setSelectedPAN] = useState({});
   const [PANSelectError, setPANSelectError] = useState(null);
@@ -67,8 +67,6 @@ export default function ({
       setEligiblePANs(structuredPANs);
       if (structuredPANs?.length === 1) {
         setSelectedPAN(structuredPANs[0]);
-      }
-      if (eligiblePANsResponse?.length > 1) {
         setDisableButton(false);
       }
     } catch (err) {
@@ -86,10 +84,10 @@ export default function ({
 
   useEffect(() => {
     getEligiblePANsFnRef.current();
-  }, []);
+  }, [visible]);
 
   const handleSubmit = () => {
-    if (selectedPAN.label && selectedPAN.value) {
+    if (selectedPAN?.label && selectedPAN?.value) {
       setVisible(false);
       navigation.navigate('Protected', {
         screen: 'ChooseNBFC',
@@ -182,6 +180,7 @@ export default function ({
                   defaultSelected={[selectedPAN]}
                   onChange={v => {
                     setSelectedPAN(v);
+                    setDisableButton(false);
                     setPANSelectError(null);
                   }}
                   error={PANSelectError}
