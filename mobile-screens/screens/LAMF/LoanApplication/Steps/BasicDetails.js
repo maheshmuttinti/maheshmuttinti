@@ -25,8 +25,6 @@ export default function ({
   const [data, setData] = useState({});
   const [stateCode, setStateCode] = useState('');
   const [pushToBottom, setPushToBottom] = useState(false);
-  const [refreshCityOptions, setRefreshCityOptions] = useState([]);
-  const [cityModalClose, setCityModalClose] = useState(false);
 
   const form = useBetaForm({
     name: '',
@@ -255,13 +253,6 @@ export default function ({
             form.setField('state', v);
             setStateCode(v.value);
             form.value.city = '';
-            setRefreshCityOptions(new Date().getTime());
-          }}
-          onOpen={() => {
-            setCityModalClose(false);
-          }}
-          onClose={() => {
-            setCityModalClose(true);
           }}
           placeholder="Select State"
           label="STATE"
@@ -292,14 +283,12 @@ export default function ({
           onClose={() => {
             setPushToBottom(false);
           }}
-          defaultOpen={cityModalClose}
           placeholder="Select City"
           label="CITY"
           labelStyles={{
             color: theme.colors.primaryBlue,
             ...theme.fontSizes.small,
           }}
-          refresh={refreshCityOptions}
           multiple={false}
           error={form.errors.get('city')}
         />
