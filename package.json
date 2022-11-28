@@ -8,6 +8,7 @@
     "android:production": "ENVFILE=.env.production react-native run-android",
     "android:aab": "react-native run-android --variant=release",
     "ios": "cd ios && pod install && cd ../ && react-native run-ios --simulator='iPhone 12 Pro Max'",
+    "staging:ios:12": "cd ios && pod install && cd ../ && ENVFILE=.env.staging react-native run-ios --simulator='iPhone 12 Pro Max'",
     "production:ios:12": "cd ios && pod install && cd ../ && ENVFILE=.env.production react-native run-ios --simulator='iPhone 12 Pro Max'",
     "ios:14": "cd ios && pod install && cd ../ && react-native run-ios --simulator='iPhone 14'",
     "staging:ios:14": "cd ios && pod install && cd ../ && ENVFILE=.env.staging react-native run-ios --simulator='iPhone 14'",
