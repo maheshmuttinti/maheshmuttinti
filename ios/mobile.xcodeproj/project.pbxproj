@@ -559,7 +559,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.radicaladvisors.finezzy;
 				PRODUCT_NAME = mobile;
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = Finezzy;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
