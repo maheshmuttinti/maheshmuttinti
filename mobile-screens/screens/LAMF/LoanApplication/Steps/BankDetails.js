@@ -14,8 +14,8 @@ import {
 import {InfoIcon} from 'assets';
 import isEmpty from 'lodash/isEmpty';
 import TickCircle from 'assets/icons/tickCircle';
-import {prettifyJSON, showToast} from 'utils';
-import Loader from '../../../reusables/loader';
+import {prettifyJSON} from 'utils';
+import {WarningCard} from '../components/WarningCard';
 
 const BankDetails = ({applicationId, currentStep, setStep}) => {
   const theme = useTheme();
@@ -29,20 +29,36 @@ const BankDetails = ({applicationId, currentStep, setStep}) => {
   const [bankDetails, setBankDetails] = useState({});
   const [applicationData, setApplicationData] = useState({});
   const [loading, setLoading] = useState(false);
+  const [bankValidationError, setBankValidationError] = useState(null);
+  const [isFieldsEmpty, setFieldsEmpty] = useState(true);
+
+  const prefillData = () => {
+    if (applicationData?.loan_application_data?.bank_details) {
+      const details = applicationData?.loan_application_data?.bank_details;
+      form.setField('name', details.name);
+      form.setField('ifsc', details.ifsc);
+      setIfsc(details.ifsc);
+      form.setField('bank_account_number', details.bank_account_number);
+      form.setField('confirm_account_number', details.confirm_account_number);
+    }
+  };
+
+  useEffect(() => {
+    prefillData();
+  }, [applicationData]);
 
   useEffect(() => {
     form.setValidationRules({
       ifsc: {
-        presence: {message: '^Please enter your bank ifsc code!'},
-        // format: {
-        //   pattern: /^[A-Za-z]{4}[a-zA-Z0-9]{6}$/,
-        //   message: '^Please enter a valid ifsc Code',
-        // },
+        presence: {
+          allowEmpty: false,
+          message: '^Please Enter your Bank IFSC Code',
+        },
       },
       bank_account_number: {
         presence: {
           allowEmpty: false,
-          message: '^Please enter your bank account number',
+          message: '^Please Enter your Bank Account Number',
         },
       },
       confirm_account_number: {
@@ -60,36 +76,39 @@ const BankDetails = ({applicationId, currentStep, setStep}) => {
       },
       name: {
         presence: {
-          allowEmpty: true,
-          message: '^Please enter name',
+          allowEmpty: false,
+          message: '^Please Enter Name',
         },
       },
     });
   }, []);
 
   useEffect(() => {
-    prefillData();
-  }, [applicationData]);
-
-  const prefillData = () => {
-    if (
-      applicationData?.loan_application_data &&
-      applicationData?.loan_application_data?.bank_details
-    ) {
-      const details = applicationData?.loan_application_data?.bank_details;
-      form.setField('name', details.name);
-      form.setField('ifsc', details.ifsc);
-      setIfsc(details.ifsc);
-      form.setField('bank_account_number', details.bank_account_number);
-      form.setField('confirm_account_number', details.confirm_account_number);
-    }
-  };
+    setBankValidationError(null);
+    form.validate();
+  }, [
+    form.value.ifsc,
+    form.value.bank_account_number,
+    form.value.confirm_account_number,
+    form.value.name,
+  ]);
 
   useEffect(() => {
-    if (!isEmpty(form.value.confirm_account_number)) {
-      form.validate();
+    if (
+      !isEmpty(form.value.ifsc) &&
+      !isEmpty(form.value.bank_account_number) &&
+      !isEmpty(form.value.confirm_account_number) &&
+      !isEmpty(form.value.name) &&
+      form.value.bank_account_number === form.value.confirm_account_number
+    ) {
+      setFieldsEmpty(false);
     }
-  }, [form.value.confirm_account_number, form.value.bank_account_number]);
+  }, [
+    form.value.ifsc,
+    form.value.bank_account_number,
+    form.value.confirm_account_number,
+    form.value.name,
+  ]);
 
   useEffect(() => {
     (async () => {
@@ -97,27 +116,33 @@ const BankDetails = ({applicationId, currentStep, setStep}) => {
     })();
   }, []);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        if (ifsc.length > 0) {
-          const data = await getBankDetailsByIFSC(ifsc);
-          if (data) {
-            setBankDetails(data);
-          } else {
-            setBankDetails({});
-          }
-        }
-      } catch (error) {
-        if (error === 'not matched') {
-          setBankDetails({});
-        }
+  const handleFetchBranchName = async _ifsc => {
+    try {
+      const data = await getBankDetailsByIFSC(_ifsc);
+      if (data) {
+        setBankDetails(data);
+      } else {
+        setBankDetails({});
       }
-    })();
+    } catch (error) {
+      if (error === 'not matched') {
+        setBankDetails({});
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (ifsc !== '') {
+      const debounceTimer = setTimeout(() => {
+        (async () => await handleFetchBranchName(ifsc))();
+      }, 200);
+      return () => clearTimeout(debounceTimer);
+    }
   }, [ifsc]);
 
   const getLoanApplicationData = async () => {
     const application = await getLoanApplicationById(applicationId);
+    console.log('application: ', JSON.stringify(application, null, 2));
     setApplicationData(application);
   };
 
@@ -127,87 +152,78 @@ const BankDetails = ({applicationId, currentStep, setStep}) => {
     }
   };
 
-  const verifyBank = async () => {
+  const handleCallLMSAPIs = async () => {
     try {
-      if (
-        form.value.bank_account_number.length > 0 &&
-        form.value.ifsc.length > 0 &&
-        form.value.name.length > 0
-      ) {
-        const payload = {
-          task: 'bankTransfer',
-          essentials: {
-            beneficiaryAccount: form.value.bank_account_number,
-            beneficiaryIFSC: form.value.ifsc,
-            beneficiaryName: form.value.name,
-            nameFuzzy: true,
-          },
-        };
+      const allCloudLMSAPIsResponse = await callLMSAPIs(
+        applicationId,
+        'before_loan_agreement',
+      );
 
-        setLoading('verifying_bank');
-        const response = await bankVerification(payload);
-        if (response?.result?.nameMatch === 'yes') {
-          const loanData = {
-            ...applicationData?.loan_application_data,
-            bank_verified: 'success',
-            bank_verification_info: response.result,
-            bank_details: form.value,
-          };
-          const loanPayload = {
-            loan_application_data: loanData,
-            loan_application_step: applicationData?.loan_application_step,
-          };
-          loanPayload.loan_application_step = 'bank_verification';
-          await updateApplication(applicationId, loanPayload);
-          showToast('Bank account verified');
-          setLoading('saving_data_to_all_cloud');
-          const allCloudLMSAPIsResponse = await callLMSAPIs(
-            applicationId,
-            'before_loan_agreement',
-          );
-          setLoading(false);
-          showToast('Data is saved to All Cloud successfully');
-          console.log(
-            'all cloud lms api calls before_loan_agreement response',
-            prettifyJSON(allCloudLMSAPIsResponse),
-          );
-          setStep(currentStep + 1);
-        } else {
-          setLoading(false);
-          showToast("Name on bank doesn't match");
-        }
+      console.log(
+        'all cloud lms api calls before_loan_agreement response',
+        prettifyJSON(allCloudLMSAPIsResponse),
+      );
+      return allCloudLMSAPIsResponse;
+    } catch (error) {
+      setBankValidationError('Something Wrong, Please try again.');
+      console.log('error', error);
+      return error;
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      if (applicationData?.loan_application_step === 'bank_verification') {
+        await handleCallLMSAPIs();
+        setStep(currentStep + 1);
+        return;
+      }
+      setBankValidationError(null);
+      const payload = {
+        task: 'bankTransfer',
+        essentials: {
+          beneficiaryAccount: form.value.bank_account_number,
+          beneficiaryIFSC: form.value.ifsc,
+          beneficiaryName: form.value.name,
+          nameFuzzy: true,
+        },
+        ifsc: form.value.ifsc,
+        bank_account_number: form.value.bank_account_number,
+        confirm_account_number: form.value.confirm_account_number,
+        name: form.value.name,
+      };
+
+      setLoading(true);
+      const response = await bankVerification(payload);
+      if (response?.result?.nameMatch === 'yes') {
+        const loanData = {
+          ...applicationData?.loan_application_data,
+          bank_verified: 'success',
+          bank_verification_info: response.result,
+          bank_details: form.value,
+        };
+        const loanPayload = {
+          loan_application_data: loanData,
+          loan_application_step: applicationData?.loan_application_step,
+        };
+        loanPayload.loan_application_step = 'bank_verification';
+
+        await updateApplication(applicationId, loanPayload);
+        await handleCallLMSAPIs();
+        setStep(currentStep + 1);
+        setLoading(false);
       } else {
         setLoading(false);
-
-        showToast('Please Enter details');
+        setBankValidationError("Name on bank doesn't match");
       }
     } catch (error) {
       setLoading(false);
-
-      console.log(
-        'error in bank details submit - which include all cloud lms api',
-        error,
-        prettifyJSON(error?.response?.data),
-        prettifyJSON(error?.response?.data?.message),
-      );
-      showToast(error?.response?.data?.message);
+      form.setErrors(error);
       return error;
     }
   };
   return (
-    <View style={{paddingTop: 8}}>
-      <Loader
-        loading={
-          loading === 'verifying_bank' || loading === 'saving_data_to_all_cloud'
-        }
-        text={
-          loading === 'saving_data_to_all_cloud'
-            ? 'Processing your Data..'
-            : loading === 'verifying_bank'
-            ? 'Bank Account is Verifying..'
-            : ''
-        }
-      />
+    <View style={{paddingTop: 8, flex: 1}}>
       <Heading
         style={{
           color: theme.colors.text,
@@ -217,14 +233,18 @@ const BankDetails = ({applicationId, currentStep, setStep}) => {
         }}>
         Bank Details
       </Heading>
+      {bankValidationError && (
+        <View style={{paddingTop: 16}}>
+          <WarningCard message={bankValidationError} />
+        </View>
+      )}
       <View style={{paddingTop: 24}}>
         <BaseTextInput
-          placeholder="Enter ifsc code"
+          placeholder="Enter IFSC CODE"
           label="IFSC CODE"
-          onChangeText={v => {
-            form.setField('ifsc', v.trim().toUpperCase());
+          onChangeText={async v => {
+            form.setField('ifsc', v);
             setIfsc(v);
-            form.validateSingleField(form.value.ifsc, 'ifsc');
           }}
           labelStyles={{
             color: theme.colors.primaryBlue,
@@ -235,15 +255,17 @@ const BankDetails = ({applicationId, currentStep, setStep}) => {
           onFieldBlur={() => makeIfscCapital()}
         />
       </View>
-      {bankDetails.BANKCODE && (
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+      {bankDetails?.BANKCODE && (
+        <View
+          style={{flexDirection: 'row', alignItems: 'center', paddingTop: 12}}>
           <TickCircle />
           <Heading
             style={{
               color: theme.colors.text,
               fontFamily: theme.fonts.bold,
+              paddingLeft: 4,
               ...theme.fontSizes.medium,
-            }}>{` ${bankDetails.BANK}, ${bankDetails.BRANCH}`}</Heading>
+            }}>{`${bankDetails?.BANK}, ${bankDetails?.BRANCH}`}</Heading>
         </View>
       )}
       <View style={{paddingTop: 16}}>
@@ -317,12 +339,16 @@ const BankDetails = ({applicationId, currentStep, setStep}) => {
           error={form.errors.get('name')}
         />
       </View>
+
       <View style={{paddingTop: 32, paddingBottom: 24}}>
         <BaseButton
-          onPress={() => {
-            verifyBank();
-          }}>
-          Continue To Next Step
+          onPress={async () => {
+            await handleSubmit();
+          }}
+          disable={isFieldsEmpty || loading}>
+          {loading
+            ? 'Please Wait, Validating the data...'
+            : 'Continue To Next Step'}
         </BaseButton>
       </View>
     </View>

@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import {SignedSuccessIcon} from 'assets';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {View} from 'react-native';
 import {useTheme} from 'theme';
 import {Heading, Body, BaseButton} from 'uin';
@@ -12,7 +12,7 @@ import {
   getLMSLoanById,
   callLMSAPIs,
 } from 'services';
-import Loader from '../../../reusables/loader';
+import Loader from '../../../../reusables/loader';
 import Config from 'react-native-config';
 import {
   amountInWords,
@@ -29,11 +29,16 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
   const [loading, setLoading] = useState(false);
   const [EMI, setEMI] = useState('');
 
+  const getLoanApplicationData = useCallback(async () => {
+    const application = await getLoanApplicationById(applicationId);
+    setApplicationData(application);
+  }, [applicationId]);
+
   useEffect(() => {
     (async () => {
       await getLoanApplicationData();
     })();
-  }, []);
+  }, [getLoanApplicationData]);
 
   useEffect(() => {
     (async () => {
@@ -111,12 +116,7 @@ const LoanAgreement = ({navigation, applicationId, currentStep, setStep}) => {
         return error;
       }
     })();
-  }, [applicationData]);
-
-  const getLoanApplicationData = async () => {
-    const application = await getLoanApplicationById(applicationId);
-    setApplicationData(application);
-  };
+  }, [applicationData, applicationId]);
 
   useEffect(() => {
     (async () => {

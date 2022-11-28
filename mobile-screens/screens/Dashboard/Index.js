@@ -105,10 +105,10 @@ const Dashboard = ({navigation, route}) => {
       <View style={{paddingHorizontal: 17, paddingTop: 24}}>
         <DashboardHeader onNavIconClick={() => navigation.openDrawer()} />
 
-        <WelcomeHeader
+        {/* <WelcomeHeader
           refreshOnScreenFocus={refreshOnScreenFocus}
           wrapperStyles={{paddingTop: 36.5}}
-        />
+        />*/}
         {showBannerSpace && (
           <UserProgressGradientCard
             setShowBannerSpace={setShowBannerSpace}
@@ -119,22 +119,22 @@ const Dashboard = ({navigation, route}) => {
             userStage={userStage}
           />
         )}
-        <ProfileCard
+        {/* <ProfileCard
           refreshOnScreenFocus={refreshOnScreenFocus}
           wrapperStyles={{paddingTop: 34}}
         />
-        <Calculators wrapperStyles={{paddingTop: 24}} />
+        <Calculators wrapperStyles={{paddingTop: 24}} />  */}
       </View>
-      <InvestingSection wrapperStyles={{paddingTop: 32}} />
+      {/* <InvestingSection wrapperStyles={{paddingTop: 32}} />
       <View style={{paddingHorizontal: 17, paddingTop: 24}}>
         <MoreFunds />
         <Goals wrapperStyles={{paddingTop: 24}} />
         <UpcomingPayments wrapperStyles={{paddingTop: 24}} />
         <ExtraAddOns wrapperStyles={{paddingTop: 24}} />
         <NewsAndArticles wrapperStyles={{paddingTop: 24}} />
-      </View>
+      </View> */}
 
-      <ExploreMoreReportsBanner wrapperStyles={{paddingTop: 40}} />
+      {/* <ExploreMoreReportsBanner wrapperStyles={{paddingTop: 40}} /> */}
 
       <View style={{paddingHorizontal: 17, marginBottom: 120}} />
     </ScreenWrapper>

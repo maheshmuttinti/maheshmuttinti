@@ -13,11 +13,13 @@ import {
   updateApplication,
 } from 'services';
 import {prettifyJSON, showToast, sleep} from 'utils';
+import useLayoutBackButtonAction from '../../reusables/useLayoutBackButtonAction';
 
 const CamsSuccess = ({navigation}) => {
   const theme = useTheme();
   const [id, setId] = useState('');
   const [lienMarkingStatusValue, setLienMarkingStatus] = useState('awaiting');
+  useLayoutBackButtonAction(theme.colors.background, null, true);
 
   useEffect(() => {
     (async () => {

@@ -12,40 +12,97 @@ import {
 } from 'services';
 import {useTheme} from 'theme';
 import {BaseButton, Heading} from 'uin';
-import Loader from '../../../reusables/loader';
-import {openBrowser, prettifyJSON, showToast, sleep} from 'utils';
+import {openBrowser, prettifyJSON, sleep} from 'utils';
 import {useFocusEffect} from '@react-navigation/native';
 import Config from 'react-native-config';
+import {WarningCard} from '../components/WarningCard';
 
 const VideoVerification = ({applicationId, setStep, currentStep}) => {
   const theme = useTheme();
   const [isVideoVerificationCompleted, setVideoVerificationCompleted] =
     useState(false);
-  const [loading, setLoading] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(false);
   const [applicationData, setApplicationData] = useState({});
   const getLoanApplicationData = useRef(() => {});
   const checkVideoVerificationCompletion = useRef(() => {});
-  const [
-    redirectingToVideoVerificationLink,
-    setRedirectingToVideoVerificationLink,
-  ] = useState(false);
+  const [redirectingToVideoVerification, setRedirectingToVideoVerification] =
+    useState(false);
+  const [videoVerificationStatusMessage, setVideoVerificationStatusMessage] =
+    useState(null);
 
-  checkVideoVerificationCompletion.current = async () => {
-    if (
-      applicationData &&
-      applicationData?.loan_application_data &&
-      applicationData?.loan_application_data?.video_kyc_token &&
-      applicationData?.loan_application_data?.video_kyc_status === 'pending'
-    ) {
-      setLoading(true);
-      await getVideoKycDetails();
-    } else if (
-      applicationData &&
-      applicationData?.loan_application_data &&
-      applicationData?.loan_application_data?.video_kyc_token &&
-      applicationData?.loan_application_data?.video_kyc_status === 'completed'
-    ) {
-      setVideoVerificationCompleted(true);
+  const getVideoKycDetails = async application => {
+    try {
+      setVideoVerificationStatusMessage(null);
+      const videoKYCToken = application?.loan_application_data?.video_kyc_token;
+      setCheckingStatus(true);
+      await sleep(6000);
+      if (!videoKYCToken) {
+        setCheckingStatus(false);
+        return;
+      }
+      const videoVerificationResponse = await videoKYCStatus(
+        application?.loan_application_data?.video_kyc_token,
+      );
+      console.log(
+        'kyc video verification response',
+        prettifyJSON(videoVerificationResponse),
+      );
+      if (videoVerificationResponse?.error?.message) {
+        setCheckingStatus(false);
+        setVideoVerificationStatusMessage(
+          videoVerificationResponse?.error?.message,
+        );
+        return;
+      }
+
+      if (
+        videoVerificationResponse?.videoVerification?.faceFound &&
+        videoVerificationResponse?.videoVerification?.isAudioProcessed &&
+        videoVerificationResponse?.videoVerification?.isVideoProcessed
+      ) {
+        const loanData = {
+          ...application?.loan_application_data,
+          video_kyc_status: 'completed',
+          video_kyc_data: videoVerificationResponse.videoVerification,
+        };
+        const loanPayload = {
+          loan_application_data: loanData,
+          loan_application_step: application?.loan_application_step,
+        };
+        loanPayload.loan_application_step = 'video_verification';
+        await updateApplication(applicationId, loanPayload);
+        setVideoVerificationCompleted(true);
+        setCheckingStatus(false);
+      } else {
+        setVideoVerificationCompleted(false);
+        setVideoVerificationStatusMessage(
+          'Video Verification failed, Please try again.',
+        );
+        setCheckingStatus(false);
+      }
+      setCheckingStatus(false);
+    } catch (err) {
+      setCheckingStatus(false);
+      setVideoVerificationStatusMessage(
+        'Video Verification failed, Please try again.',
+      );
+    }
+  };
+
+  getLoanApplicationData.current = async () => {
+    try {
+      const application = await getLoanApplicationById(applicationId);
+      setApplicationData(application);
+      if (application?.loan_application_data?.video_kyc_status === 'pending') {
+        await getVideoKycDetails(application);
+      } else if (
+        application?.loan_application_data?.video_kyc_status === 'completed'
+      ) {
+        setVideoVerificationCompleted(true);
+      }
+    } catch (error) {
+      console.log('error while getting the loan application', error);
+      return error;
     }
   };
 
@@ -58,12 +115,12 @@ const VideoVerification = ({applicationId, setStep, currentStep}) => {
   useFocusEffect(
     useCallback(() => {
       checkVideoVerificationCompletion.current();
-    }, [applicationData]),
+    }, []),
   );
 
   const createVideoKycLink = async () => {
     try {
-      setRedirectingToVideoVerificationLink(true);
+      setRedirectingToVideoVerification(true);
       let photoUrl = '';
       if (
         applicationData?.loan_application_data?.proofs_Upload_via ===
@@ -83,7 +140,6 @@ const VideoVerification = ({applicationId, setStep, currentStep}) => {
         photoUrl = fileResponse?.download_url;
       }
 
-      console.log('photoUrl-112233', photoUrl);
       const payload = {
         match_image_url: photoUrl,
       };
@@ -95,68 +151,17 @@ const VideoVerification = ({applicationId, setStep, currentStep}) => {
       };
       const loanPayload = {loan_application_data: loanData};
       await updateApplication(applicationId, loanPayload);
-      // openBrowser(response.videoUrl);
-      // const successRedirectUrl = 'finezzy://signzy/video';
       const successRedirectUrl = Config.DIGIO_VIDEO_REDIRECT_URL;
       await openBrowser(response.videoUrl, successRedirectUrl);
 
-      setRedirectingToVideoVerificationLink(false);
+      setRedirectingToVideoVerification(false);
     } catch (err) {
-      console.log(err);
-      setRedirectingToVideoVerificationLink(false);
-    }
-  };
-
-  const getVideoKycDetails = async () => {
-    try {
-      await sleep(3000);
-      const videoData = await videoKYCStatus(
-        applicationData?.loan_application_data?.video_kyc_token,
-      );
-      console.log('kyc video verification response', prettifyJSON(videoData));
-
-      if (
-        videoData?.videoVerification?.faceFound &&
-        videoData?.videoVerification?.isAudioProcessed &&
-        videoData?.videoVerification?.isVideoProcessed
-      ) {
-        const loanData = {
-          ...applicationData?.loan_application_data,
-          video_kyc_status: 'completed',
-          video_kyc_data: videoData.videoVerification,
-        };
-        const loanPayload = {
-          loan_application_data: loanData,
-          loan_application_step: applicationData?.loan_application_step,
-        };
-        loanPayload.loan_application_step = 'video_verification';
-        await updateApplication(applicationId, loanPayload);
-        setVideoVerificationCompleted(true);
-        setLoading(false);
-      } else {
-        setVideoVerificationCompleted(false);
-        showToast('Video Verification failed, Please try again.');
-        setLoading(false);
-      }
-      setLoading(false);
-    } catch (err) {
-      console.log(err);
-      showToast('Video Verification failed, Please try again.');
-      setLoading(false);
-    }
-  };
-
-  getLoanApplicationData.current = async () => {
-    try {
-      const application = await getLoanApplicationById(applicationId);
-      setApplicationData(application);
-    } catch (error) {
-      console.log('error while getting the loan application', error);
-      return error;
+      setRedirectingToVideoVerification(false);
     }
   };
 
   const handleSubmit = async () => {
+    setVideoVerificationStatusMessage(null);
     if (!isVideoVerificationCompleted) {
       await createVideoKycLink();
     } else {
@@ -165,16 +170,7 @@ const VideoVerification = ({applicationId, setStep, currentStep}) => {
   };
 
   return (
-    <>
-      <Loader
-        loading={loading}
-        text={'Checking the Video Verification Status...'}
-      />
-
-      <Loader
-        loading={redirectingToVideoVerificationLink}
-        text={'Redirecting to Video Verification Screen...'}
-      />
+    <View style={{flex: 1}}>
       <View style={{paddingTop: 8}}>
         <View>
           <Heading
@@ -197,6 +193,20 @@ const VideoVerification = ({applicationId, setStep, currentStep}) => {
               verification
             </Heading>
           </View>
+          {checkingStatus === true && (
+            <View style={{marginTop: 16}}>
+              <WarningCard
+                message={
+                  'Please Wait, Checking the Video Verification Status...'
+                }
+              />
+            </View>
+          )}
+          {videoVerificationStatusMessage && (
+            <View style={{marginTop: 16}}>
+              <WarningCard message={videoVerificationStatusMessage} />
+            </View>
+          )}
         </View>
         <View
           style={{
@@ -225,18 +235,24 @@ const VideoVerification = ({applicationId, setStep, currentStep}) => {
             </Heading>
           </View>
         )}
-        <View style={{paddingTop: 12, paddingBottom: 100}}>
+        <View style={{paddingTop: 12}}>
           <BaseButton
             onPress={async () => {
               await handleSubmit();
-            }}>
-            {isVideoVerificationCompleted
-              ? 'Continue'
+            }}
+            textStyles={redirectingToVideoVerification && {fontSize: 12}}
+            disable={
+              checkingStatus === true || redirectingToVideoVerification === true
+            }>
+            {redirectingToVideoVerification === true
+              ? 'You are being redirected to Video Verification...'
+              : isVideoVerificationCompleted
+              ? 'Continue To Next Step'
               : 'Start Video Verification'}
           </BaseButton>
         </View>
       </View>
-    </>
+    </View>
   );
 };
 

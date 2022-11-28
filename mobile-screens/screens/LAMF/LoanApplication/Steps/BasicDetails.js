@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useEffect, useState} from 'react';
-import {Text, View} from 'react-native';
+import {Platform, Text, View} from 'react-native';
 import {useTheme} from 'theme';
 import {Heading, BaseTextInput, BaseButton, Select, RadioInput} from 'uin';
 import useBetaForm from '@reusejs/react-form-hook';
@@ -10,7 +10,7 @@ import {
   getStateByCountryCode,
   updateApplication,
 } from 'services';
-import useUser from '../../../reusables/useUser';
+import useUser from '../../../../reusables/useUser';
 
 export default function ({
   currentStep,
@@ -25,6 +25,8 @@ export default function ({
   const [data, setData] = useState({});
   const [stateCode, setStateCode] = useState('');
   const [pushToBottom, setPushToBottom] = useState(false);
+  const [refreshCityOptions, setRefreshCityOptions] = useState([]);
+  const [cityModalClose, setCityModalClose] = useState(false);
 
   const form = useBetaForm({
     name: '',
@@ -240,7 +242,12 @@ export default function ({
         />
       </View>
 
-      <View style={{paddingTop: 16, zIndex: 11}}>
+      <View
+        style={
+          Platform.OS === 'ios'
+            ? {paddingTop: 16, zIndex: 11}
+            : {paddingTop: 16}
+        }>
         <Select
           dataSource={async q => await getStateByCountryCode('IN', q)}
           defaultSelected={form.value.state ? [form.value.state] : []}
@@ -248,6 +255,13 @@ export default function ({
             form.setField('state', v);
             setStateCode(v.value);
             form.value.city = '';
+            setRefreshCityOptions(new Date().getTime());
+          }}
+          onOpen={() => {
+            setCityModalClose(false);
+          }}
+          onClose={() => {
+            setCityModalClose(true);
           }}
           placeholder="Select State"
           label="STATE"
@@ -260,7 +274,12 @@ export default function ({
         />
       </View>
 
-      <View style={{paddingTop: 16, zIndex: 10}}>
+      <View
+        style={
+          Platform.OS === 'ios'
+            ? {paddingTop: 16, zIndex: 10}
+            : {paddingTop: 16}
+        }>
         <Select
           dataSource={async q => await getCitiesOfState('IN', stateCode, q)}
           defaultSelected={form.value.city ? [form.value.city] : []}
@@ -273,18 +292,20 @@ export default function ({
           onClose={() => {
             setPushToBottom(false);
           }}
+          defaultOpen={cityModalClose}
           placeholder="Select City"
           label="CITY"
           labelStyles={{
             color: theme.colors.primaryBlue,
             ...theme.fontSizes.small,
           }}
+          refresh={refreshCityOptions}
           multiple={false}
           error={form.errors.get('city')}
         />
       </View>
 
-      <View style={{paddingTop: 16}}>
+      <View style={{marginTop: 16}}>
         <BaseTextInput
           keyboardType="numeric"
           placeholder="Enter Pincode"
