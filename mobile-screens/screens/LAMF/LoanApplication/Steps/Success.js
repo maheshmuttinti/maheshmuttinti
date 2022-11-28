@@ -6,10 +6,12 @@ import {Heading, OutlinedButton} from 'uin';
 import {View} from 'react-native';
 import {LoanSuccessBanner} from 'assets';
 import useLayoutBackButtonAction from '../../../../reusables/useLayoutBackButtonAction';
+import useHardwareButtonGoBack from '../../../../reusables/useHardwareButtonGoBack';
 
 export default function ({navigation}) {
   const theme = useTheme();
   useLayoutBackButtonAction(null, null, true);
+  useHardwareButtonGoBack(true);
 
   return (
     <ScreenWrapper>
