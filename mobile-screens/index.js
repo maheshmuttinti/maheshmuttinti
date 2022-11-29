@@ -21,6 +21,7 @@ import NetInfo from '@react-native-community/netinfo';
 import {setNetworkStatus} from 'store';
 import 'react-native-gesture-handler';
 import {useSelector, shallowEqual} from 'react-redux';
+import Development from './screens/Development';
 
 const Stack = createStackNavigator();
 
@@ -66,36 +67,36 @@ const App = () => {
     selectSchemeWarning: () => <SelectSchemeWarningComponent />,
   };
 
-  const {isUserLoggedInWithMPIN} = useSelector(
-    ({auth}) => ({
-      isUserLoggedInWithMPIN: auth.isUserLoggedInWithMPIN,
-    }),
-    shallowEqual,
-  );
+  // const {isUserLoggedInWithMPIN} = useSelector(
+  //   ({auth}) => ({
+  //     isUserLoggedInWithMPIN: auth.isUserLoggedInWithMPIN,
+  //   }),
+  //   shallowEqual,
+  // );
 
-  const init = async () => {
-    try {
-      let tokenFromStorage = await AsyncStorage.getItem('@access_token');
-      if (tokenFromStorage !== null) {
-        dispatch(setTokens(JSON.parse(tokenFromStorage)));
-        let userProfile = await getUser();
-        if (userProfile) {
-          dispatch(setUser(userProfile));
-        }
-      }
-    } catch (error) {
-      return error;
-    }
-  };
+  // const init = async () => {
+  //   try {
+  //     let tokenFromStorage = await AsyncStorage.getItem('@access_token');
+  //     if (tokenFromStorage !== null) {
+  //       dispatch(setTokens(JSON.parse(tokenFromStorage)));
+  //       let userProfile = await getUser();
+  //       if (userProfile) {
+  //         dispatch(setUser(userProfile));
+  //       }
+  //     }
+  //   } catch (error) {
+  //     return error;
+  //   }
+  // };
 
-  useEffect(() => {
-    init();
-    const unsubscribe = NetInfo.addEventListener(state => {
-      dispatch(setNetworkStatus(state.isConnected ? 'online' : 'offline'));
-    });
+  // useEffect(() => {
+  //   init();
+  //   const unsubscribe = NetInfo.addEventListener(state => {
+  //     dispatch(setNetworkStatus(state.isConnected ? 'online' : 'offline'));
+  //   });
 
-    return () => unsubscribe();
-  }, []);
+  //   return () => unsubscribe();
+  // }, []);
 
   return (
     <>
@@ -105,6 +106,11 @@ const App = () => {
           ref={RootNavigation.navigationRef}>
           <Stack.Navigator>
             <Stack.Screen
+              name="Development"
+              options={{headerShown: false}}
+              component={Development}
+            />
+            {/* <Stack.Screen
               name="Auth"
               options={{headerShown: false}}
               component={Auth}
@@ -120,7 +126,7 @@ const App = () => {
               name="EmptyStates"
               options={{headerShown: false}}
               component={EmptyStates}
-            />
+            /> */}
           </Stack.Navigator>
         </NavigationContainer>
       </ThemeProvider>

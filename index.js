@@ -8,11 +8,14 @@ import {name as appName} from './app.json';
 import {Provider} from 'react-redux';
 import {mobileStore} from 'store';
 import React from 'react';
+import {StepperProvider} from 'uin';
 
 const MobileApp = () => {
   return (
     <Provider store={mobileStore}>
-      <App />
+      <StepperProvider>
+        <App />
+      </StepperProvider>
     </Provider>
   );
 };
