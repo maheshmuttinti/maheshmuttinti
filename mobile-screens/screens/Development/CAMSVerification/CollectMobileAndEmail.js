@@ -111,55 +111,58 @@ export const CollectMobileAndEmail = ({
   };
 
   const handleSignup = async () => {
-    onSubmit();
     try {
-      clearFormErrors();
-      casEmailForm.setErrors({});
+      onSubmit();
+      // enable the below code in real time
+      // clearFormErrors();
+      // casEmailForm.setErrors({});
 
-      let emailMatch = EMAIL_REGEX.test(casEmailForm.value.email.trim());
-      let numberMatch = INDIA_ISD_NUMBER_REGEX.test(
-        `+91${form.value.value.trim()}`,
-      );
+      // let emailMatch = EMAIL_REGEX.test(casEmailForm.value.email.trim());
+      // let numberMatch = INDIA_ISD_NUMBER_REGEX.test(
+      //   `+91${form.value.value.trim()}`,
+      // );
 
-      if (casEmailForm.value.email.length === 0) {
-        casEmailForm.setErrors({email: 'Please enter Email ID'});
-      } else {
-        if (emailMatch) {
-          casEmailForm.setField('email', casEmailForm.value.email.trim());
-          setShowGreenCircleIconForEmail(true);
-        } else {
-          casEmailForm.setErrors({email: 'Please enter valid email ID'});
-        }
-      }
-      if (form.value.value.length === 0) {
-        form.setErrors({value: 'Please enter phone number'});
-      } else {
-        if (numberMatch && !isNaN(form.value.value.slice(3))) {
-          form.setField('value', form.value.value.trim());
-          setShowGreenCircleIconForMobile(true);
-        } else {
-          form.setErrors({value: 'Please enter a valid phone number'});
-        }
-      }
+      // if (casEmailForm.value.email.length === 0) {
+      //   casEmailForm.setErrors({email: 'Please enter Email ID'});
+      // } else {
+      //   if (emailMatch) {
+      //     casEmailForm.setField('email', casEmailForm.value.email.trim());
+      //     setShowGreenCircleIconForEmail(true);
+      //   } else {
+      //     casEmailForm.setErrors({email: 'Please enter valid email ID'});
+      //   }
+      // }
+      // if (form.value.value.length === 0) {
+      //   form.setErrors({value: 'Please enter phone number'});
+      // } else {
+      //   if (numberMatch && !isNaN(form.value.value.slice(3))) {
+      //     form.setField('value', form.value.value.trim());
+      //     setShowGreenCircleIconForMobile(true);
+      //   } else {
+      //     form.setErrors({value: 'Please enter a valid phone number'});
+      //   }
+      // }
 
-      if (emailMatch && numberMatch) {
-        let userName =
-          form.value.type === 'mobile_number'
-            ? `+91${form.value.value}`
-            : form.value.value;
+      // if (emailMatch && numberMatch) {
+      //   let userName =
+      //     form.value.type === 'mobile_number'
+      //       ? `+91${form.value.value}`
+      //       : form.value.value;
 
-        let generatedPassword = await getUserPassword(userName);
-        console.log('generatedPassword-1234', generatedPassword);
+      //   let generatedPassword = await getUserPassword(userName);
+      //   console.log('generatedPassword-1234', generatedPassword);
 
-        let payload = {
-          type: form?.value?.type,
-          value: form?.value?.value,
-          password: generatedPassword,
-        };
+      //   let payload = {
+      //     type: form?.value?.type,
+      //     value: form?.value?.value,
+      //     password: generatedPassword,
+      //   };
 
-        console.log('payload-112233', payload);
-        setApiCallStatus('loading');
-      }
+      //   console.log('payload-112233', payload);
+      //   setApiCallStatus('loading');
+      //   onSubmit();
+      //   setApiCallStatus('success');
+      // }
     } catch (error) {
       console.log('handleSignup-error', error);
       setApiCallStatus('failed');
@@ -174,16 +177,6 @@ export const CollectMobileAndEmail = ({
   return (
     <>
       <View style={{flex: 1}}>
-        <Text
-          style={{
-            ...theme.fontSizes.small,
-            fontWeight: theme.fontWeights.moreBold,
-            color: theme.colors.primaryOrange,
-            fontFamily: theme.fonts.regular,
-            paddingBottom: 8,
-          }}>
-          {`VERIFICATION ${currentStep} of ${totalSteps}`}
-        </Text>
         <AuthHeading>CAMS Verification</AuthHeading>
 
         <View style={{paddingTop: 16}}>
