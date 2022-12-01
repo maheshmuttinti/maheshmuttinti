@@ -38,11 +38,11 @@ export const OTPVerification = ({route, onSubmit}) => {
 
   return (
     <>
-      <AuthHeading>CAMS Verification</AuthHeading>
+      <AuthHeading>KARVY Verification</AuthHeading>
 
       <View style={{paddingTop: 16}}>
         <GrayBodyText>
-          CAMS has sent a message with a verification code to registered email
+          KARVY has sent a message with a verification code to registered email
           and phone number
         </GrayBodyText>
       </View>

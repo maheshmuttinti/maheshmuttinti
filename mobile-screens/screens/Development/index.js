@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
-import {Pressable, View} from 'react-native';
-import React from 'react';
+import {Pressable, View, Text} from 'react-native';
+import React, {useState, useMemo} from 'react';
 import {Stepper, useStepper} from 'uin';
 import SplashScreen from 'react-native-splash-screen';
 import {
@@ -10,14 +10,18 @@ import {
   BackArrow,
 } from 'assets';
 import {useTheme} from 'theme';
-import {CollectMobileAndEmail} from './CAMSVerification/CollectMobileAndEmail';
 import ScreenWrapper from '../../hocs/screen_wrapper';
+import {CollectMobileAndEmail} from './CAMSVerification/CollectMobileAndEmail';
+import {OTPVerification as CAMSOTPVerification} from './CAMSVerification/OTPVerification';
+import {OTPVerification as KarvyOTPVerification} from './KarvyVerification/OTPVerification';
 
 const SCREEN_BACKGROUND_COLOR = 'white';
 const ICON_HEIGHT = 16;
 const ICON_WIDTH = 16;
 
 export default function ({navigation}) {
+  const [redirectToCAMSOTPVerification, setRedirectToCAMSOTPVerification] =
+    useState(false);
   const theme = useTheme();
   React.useEffect(() => {
     SplashScreen.hide();
@@ -26,9 +30,23 @@ export default function ({navigation}) {
   const {incrementCurrentStep, decrementCurrentStep, currentStep, steps} =
     useStepper();
   const backArrowIconWrapperStyle = {
-    // paddingBottom: 41.18,
     paddingTop: 48,
   };
+
+  const handleGoBack = () => {
+    if (redirectToCAMSOTPVerification === true) {
+      setRedirectToCAMSOTPVerification(false);
+    } else if (!redirectToCAMSOTPVerification && currentStepToShow === 2) {
+      setRedirectToCAMSOTPVerification(true);
+      decrementCurrentStep();
+    }
+  };
+
+  const currentStepToShow = useMemo(
+    () => (currentStep + 1 > steps?.length ? steps.length : currentStep + 1),
+    [currentStep, steps],
+  );
+
   return (
     <ScreenWrapper style={{backgroundColor: SCREEN_BACKGROUND_COLOR}}>
       <View style={{paddingHorizontal: 24, flex: 1}}>
@@ -36,7 +54,7 @@ export default function ({navigation}) {
           <Pressable
             hitSlop={{top: 30, left: 30, right: 30, bottom: 30}}
             onPress={() => {
-              navigation.canGoBack() && navigation.pop();
+              handleGoBack();
             }}
             style={{width: 50}}>
             <BackArrow />
@@ -64,13 +82,34 @@ export default function ({navigation}) {
           </Stepper>
         </View>
         <View style={{marginTop: 64, flex: 1}}>
-          <CollectMobileAndEmail
-            onSubmit={() => incrementCurrentStep()}
-            currentStep={
-              currentStep + 1 > steps?.length ? steps.length : currentStep + 1
-            }
-            totalSteps={steps?.length}
-          />
+          <Text
+            style={{
+              ...theme.fontSizes.small,
+              fontWeight: theme.fontWeights.moreBold,
+              color: theme.colors.primaryOrange,
+              fontFamily: theme.fonts.regular,
+              paddingBottom: 8,
+            }}>
+            {`VERIFICATION ${currentStepToShow} of ${steps?.length}`}
+          </Text>
+          {currentStepToShow === 1 && !redirectToCAMSOTPVerification && (
+            <CollectMobileAndEmail
+              onSubmit={() => {
+                setRedirectToCAMSOTPVerification(true);
+              }}
+            />
+          )}
+          {redirectToCAMSOTPVerification === true && (
+            <CAMSOTPVerification
+              onSubmit={() => {
+                setRedirectToCAMSOTPVerification(false);
+                incrementCurrentStep();
+              }}
+            />
+          )}
+          {!redirectToCAMSOTPVerification && currentStepToShow === 2 && (
+            <KarvyOTPVerification onSubmit={() => incrementCurrentStep()} />
+          )}
         </View>
       </View>
     </ScreenWrapper>
