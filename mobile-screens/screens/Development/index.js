@@ -3,7 +3,11 @@ import {Pressable, Text} from 'react-native';
 import React from 'react';
 import {useTheme} from 'theme';
 
-const screens = ['FetchCASFromRTAsForm', 'CombinedUpdateCASAndLienMarking'];
+const screens = [
+  'FetchCASFromRTAsForm',
+  'CombinedUpdateCASAndLienMarking',
+  'UpdatePortfolio',
+];
 
 export default function ({navigation}) {
   const theme = useTheme();

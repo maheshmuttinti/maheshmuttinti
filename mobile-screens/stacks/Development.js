@@ -3,6 +3,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 import DevelopmentList from '../screens/Development';
 import FetchCASFromRTAsForm from '../screens/Development/NewCASFlow/screens/FetchCASFromRTAs';
 import CombinedUpdateCASAndLienMarking from '../screens/Development/NewCASFlow/screens/CombinedUpdateCASAndLienMarking';
+import UpdatePortfolio from '../screens/Development/NewCASFlow/screens/UpdatePortfolio';
 
 const Development = () => {
   const Stack = createStackNavigator();
@@ -24,6 +25,11 @@ const Development = () => {
         name="CombinedUpdateCASAndLienMarking"
         options={{headerShown: false}}
         component={CombinedUpdateCASAndLienMarking}
+      />
+      <Stack.Screen
+        name="UpdatePortfolio"
+        options={{headerShown: false}}
+        component={UpdatePortfolio}
       />
     </Stack.Navigator>
   );
