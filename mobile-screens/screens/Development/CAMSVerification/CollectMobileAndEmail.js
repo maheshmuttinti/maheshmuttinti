@@ -1,14 +1,8 @@
 /* eslint-disable react-native/no-inline-styles */
 import * as React from 'react';
 import {useEffect, useCallback, useState, useRef} from 'react';
-import {View, Text, TouchableOpacity, Linking, Platform} from 'react-native';
-import {
-  GrayBodyText,
-  AuthHeading,
-  BaseTextInput,
-  BaseButton,
-  TextButton,
-} from 'uin';
+import {View, Text} from 'react-native';
+import {AuthHeading, BaseTextInput, BaseButton, TextButton} from 'uin';
 import {useTheme} from 'theme';
 import {WarningIcon1, TickCircle, PentagonDangerIcon} from 'assets';
 import useBetaForm from '@reusejs/react-form-hook';
@@ -19,11 +13,15 @@ import {
   INDIA_ISD_NUMBER_REGEX,
   getUserPassword,
 } from 'utils';
-import Config from 'react-native-config';
 const errMsg =
   'The phone number and email address aren’t matching at the CAMS system. Please enter the correct email and mobile number.';
 
-export const CollectMobileAndEmail = ({navigation, onSubmit = () => {}}) => {
+export const CollectMobileAndEmail = ({
+  navigation,
+  onSubmit = () => {},
+  currentStep,
+  totalSteps,
+}) => {
   const theme = useTheme();
   const [showGreenCircleIconForMobile, setShowGreenCircleIconForMobile] =
     useState(false);
@@ -31,7 +29,6 @@ export const CollectMobileAndEmail = ({navigation, onSubmit = () => {}}) => {
     useState(false);
   const [apiCallStatus, setApiCallStatus] = useState(null);
   const limit10Digit = useRef(() => {});
-
   const [errorMessage, setErrorMessage] = useState(errMsg);
 
   const form = useBetaForm({
@@ -65,6 +62,20 @@ export const CollectMobileAndEmail = ({navigation, onSubmit = () => {}}) => {
     form.setField('password', '');
     casEmailForm.setField('email', '');
   };
+
+  useEffect(() => {
+    if (isNaN(form.value.value)) {
+      form.setErrors({value: 'Please enter a valid phone number'});
+    }
+    if (form.value.type === 'mobile_number' && form.value.value.length >= 10) {
+      limit10Digit.current();
+    }
+    if (form.value.type === 'mobile_number' && form.value.value.length === 10) {
+      showGreenTickCircleIcon(true);
+    } else {
+      showGreenTickCircleIcon(false);
+    }
+  }, [form.value.value, form.value.type]);
 
   useFocusEffect(
     useCallback(() => {
@@ -163,6 +174,16 @@ export const CollectMobileAndEmail = ({navigation, onSubmit = () => {}}) => {
   return (
     <>
       <View style={{flex: 1}}>
+        <Text
+          style={{
+            ...theme.fontSizes.small,
+            fontWeight: theme.fontWeights.moreBold,
+            color: theme.colors.primaryOrange,
+            fontFamily: theme.fonts.regular,
+            paddingBottom: 8,
+          }}>
+          {`VERIFICATION ${currentStep} of ${totalSteps}`}
+        </Text>
         <AuthHeading>CAMS Verification</AuthHeading>
 
         <View style={{paddingTop: 16}}>
