@@ -11,9 +11,9 @@ import {
 } from 'assets';
 import {useTheme} from 'theme';
 import ScreenWrapper from '../../hocs/screen_wrapper';
-import {CollectMobileAndEmail} from './CAMSVerification/CollectMobileAndEmail';
-import {OTPVerification as CAMSOTPVerification} from './CAMSVerification/OTPVerification';
-import {OTPVerification as KarvyOTPVerification} from './KarvyVerification/OTPVerification';
+import {CollectMobileAndEmail} from './FetchCASFromRTAs/CAMS/CollectMobileAndEmail';
+import {OTPVerification as CAMSOTPVerification} from './FetchCASFromRTAs/CAMS/OTPVerification';
+import {OTPVerification as KarvyOTPVerification} from './FetchCASFromRTAs/Karvy/OTPVerification';
 
 const SCREEN_BACKGROUND_COLOR = 'white';
 const ICON_HEIGHT = 16;

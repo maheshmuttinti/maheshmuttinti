@@ -22,6 +22,7 @@ import {setNetworkStatus} from 'store';
 import 'react-native-gesture-handler';
 import {useSelector, shallowEqual} from 'react-redux';
 import Development from './screens/Development';
+import SplashScreen from 'react-native-splash-screen';
 
 const Stack = createStackNavigator();
 
@@ -67,6 +68,9 @@ const App = () => {
     selectSchemeWarning: () => <SelectSchemeWarningComponent />,
   };
 
+  React.useEffect(() => {
+    SplashScreen.hide();
+  }, []);
   // const {isUserLoggedInWithMPIN} = useSelector(
   //   ({auth}) => ({
   //     isUserLoggedInWithMPIN: auth.isUserLoggedInWithMPIN,
