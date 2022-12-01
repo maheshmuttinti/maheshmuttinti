@@ -4,8 +4,10 @@ import DevelopmentList from '../screens/Development';
 import FetchCASFromRTAsForm from '../screens/Development/NewCASFlow/screens/FetchCASFromRTAs';
 import CombinedUpdateCASAndLienMarking from '../screens/Development/NewCASFlow/screens/CombinedUpdateCASAndLienMarking';
 import UpdatePortfolio from '../screens/Development/NewCASFlow/screens/UpdatePortfolio';
+import {useTheme} from 'theme';
 
 const Development = () => {
+  const theme = useTheme();
   const Stack = createStackNavigator();
 
   return (
@@ -28,7 +30,20 @@ const Development = () => {
       />
       <Stack.Screen
         name="UpdatePortfolio"
-        options={{headerShown: false}}
+        options={{
+          title: 'Loans Against Mutual Funds',
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+            shadowColor: 'transparent',
+            elevation: 0,
+          },
+          headerTintColor: theme.colors.text,
+          headerTitleStyle: {
+            fontWeight: 'bold',
+            fontFamily: theme.fonts.regular,
+            ...theme.fontSizes.large,
+          },
+        }}
         component={UpdatePortfolio}
       />
     </Stack.Navigator>

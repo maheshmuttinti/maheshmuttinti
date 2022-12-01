@@ -10,13 +10,12 @@ const UpdatePortfolio = ({navigation}) => {
   const theme = useTheme();
   return (
     <ScreenWrapper>
-      <View style={{paddingHorizontal: 24}}>
+      <View style={{paddingHorizontal: 24, paddingTop: 40}}>
         <Heading
           style={{
             color: theme.colors.text,
             ...theme.fontSizes.heading4,
             fontWeight: theme.fontWeights.veryBold,
-            paddingTop: 56,
           }}>
           Update Portfolio
         </Heading>
