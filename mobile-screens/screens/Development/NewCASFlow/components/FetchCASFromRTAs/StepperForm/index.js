@@ -9,7 +9,7 @@ import {
   BackArrow,
 } from 'assets';
 import {useTheme} from 'theme';
-import ScreenWrapper from '../../../../hocs/screen_wrapper';
+import ScreenWrapper from '../../../../../../hocs/screen_wrapper';
 import {CollectMobileAndEmail} from '../CAMS/CollectMobileAndEmail';
 import {OTPVerification as CAMSOTPVerification} from '../CAMS/OTPVerification';
 import {OTPVerification as KarvyOTPVerification} from '../Karvy/OTPVerification';
@@ -30,12 +30,12 @@ export default function ({navigation}) {
   };
 
   const handleGoBack = () => {
-    if (redirectToCAMSOTPVerification === true) {
-      setRedirectToCAMSOTPVerification(false);
-    } else if (!redirectToCAMSOTPVerification && currentStepToShow === 2) {
-      setRedirectToCAMSOTPVerification(true);
-      decrementCurrentStep();
-    }
+    // if (redirectToCAMSOTPVerification === true) {
+    //   setRedirectToCAMSOTPVerification(false);
+    // } else if (!redirectToCAMSOTPVerification && currentStepToShow === 2) {
+    //   setRedirectToCAMSOTPVerification(true);
+    //   decrementCurrentStep();
+    // }
   };
 
   const currentStepToShow = useMemo(
@@ -89,21 +89,22 @@ export default function ({navigation}) {
             }}>
             {`VERIFICATION ${currentStepToShow} of ${steps?.length}`}
           </Text>
-          {currentStepToShow === 1 && !redirectToCAMSOTPVerification && (
-            <CollectMobileAndEmail
-              onSubmit={() => {
-                setRedirectToCAMSOTPVerification(true);
-              }}
-            />
-          )}
-          {redirectToCAMSOTPVerification === true && (
-            <CAMSOTPVerification
-              onSubmit={() => {
-                setRedirectToCAMSOTPVerification(false);
-                incrementCurrentStep();
-              }}
-            />
-          )}
+          {currentStepToShow === 1 &&
+            (redirectToCAMSOTPVerification === false ? (
+              <CollectMobileAndEmail
+                onSubmit={() => {
+                  setRedirectToCAMSOTPVerification(true);
+                }}
+              />
+            ) : (
+              <CAMSOTPVerification
+                onSubmit={() => {
+                  setRedirectToCAMSOTPVerification(false);
+                  incrementCurrentStep();
+                }}
+              />
+            ))}
+
           {!redirectToCAMSOTPVerification && currentStepToShow === 2 && (
             <KarvyOTPVerification onSubmit={() => incrementCurrentStep()} />
           )}

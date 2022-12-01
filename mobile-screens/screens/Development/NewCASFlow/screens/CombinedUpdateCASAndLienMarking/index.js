@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import {Pressable, View, Text} from 'react-native';
-import React, {useState, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {Stepper, useStepper} from 'uin';
 import {
   BlueDotCircle,
@@ -9,19 +9,17 @@ import {
   BackArrow,
 } from 'assets';
 import {useTheme} from 'theme';
-import ScreenWrapper from '../../../hocs/screen_wrapper';
-import {OTPVerification as UpdateCASCAMSOTPVerification} from '../UpdateCASFromRTAs/CAMS/OTPVerification';
-import {OTPVerification as UpdateCASKarvyOTPVerification} from '../UpdateCASFromRTAs/Karvy/OTPVerification';
-import {OTPVerification as CAMSRTALienMarkingOTPVerification} from '../RTAsLienMarking/CAMS/OTPVerification';
-import {OTPVerification as KarvyRTALienMarkingOTPVerification} from '../RTAsLienMarking/Karvy/OTPVerification';
+import ScreenWrapper from '../../../../../hocs/screen_wrapper';
+import {OTPVerification as UpdateCASCAMSOTPVerification} from '../../components/UpdateCASFromRTAs/CAMS/OTPVerification';
+import {OTPVerification as UpdateCASKarvyOTPVerification} from '../../components/UpdateCASFromRTAs/Karvy/OTPVerification';
+import {OTPVerification as CAMSRTALienMarkingOTPVerification} from '../../components/RTAsLienMarking/CAMS/OTPVerification';
+import {OTPVerification as KarvyRTALienMarkingOTPVerification} from '../../components/RTAsLienMarking/Karvy/OTPVerification';
 
 const SCREEN_BACKGROUND_COLOR = 'white';
 const ICON_HEIGHT = 16;
 const ICON_WIDTH = 16;
 
 export default function ({navigation}) {
-  const [redirectToCAMSOTPVerification, setRedirectToCAMSOTPVerification] =
-    useState(false);
   const theme = useTheme();
 
   const {incrementCurrentStep, decrementCurrentStep, currentStep, steps} =
@@ -31,12 +29,7 @@ export default function ({navigation}) {
   };
 
   const handleGoBack = () => {
-    if (redirectToCAMSOTPVerification === true) {
-      setRedirectToCAMSOTPVerification(false);
-    } else if (!redirectToCAMSOTPVerification && currentStepToShow === 2) {
-      setRedirectToCAMSOTPVerification(true);
-      decrementCurrentStep();
-    }
+    navigation.pop();
   };
 
   const currentStepToShow = useMemo(
@@ -92,42 +85,35 @@ export default function ({navigation}) {
             }}>
             {`VERIFICATION ${currentStepToShow} of ${steps?.length}`}
           </Text>
-          {/* <UpdateCASCAMSOTPVerification /> */}
-          {/* <UpdateCASKarvyOTPVerification /> */}
-          {/* <CAMSRTALienMarkingOTPVerification /> */}
-          {/* <KarvyRTALienMarkingOTPVerification /> */}
-        </View>
-
-        {/* <View style={{marginTop: 64, flex: 1}}>
-          <Text
-            style={{
-              ...theme.fontSizes.small,
-              fontWeight: theme.fontWeights.moreBold,
-              color: theme.colors.primaryOrange,
-              fontFamily: theme.fonts.regular,
-              paddingBottom: 8,
-            }}>
-            {`VERIFICATION ${currentStepToShow} of ${steps?.length}`}
-          </Text>
-          {currentStepToShow === 1 && !redirectToCAMSOTPVerification && (
-            <CollectMobileAndEmail
+          {currentStepToShow === 1 && (
+            <UpdateCASCAMSOTPVerification
               onSubmit={() => {
-                setRedirectToCAMSOTPVerification(true);
-              }}
-            />
-          )}
-          {redirectToCAMSOTPVerification === true && (
-            <CAMSOTPVerification
-              onSubmit={() => {
-                setRedirectToCAMSOTPVerification(false);
                 incrementCurrentStep();
               }}
             />
           )}
-          {!redirectToCAMSOTPVerification && currentStepToShow === 2 && (
-            <KarvyOTPVerification onSubmit={() => incrementCurrentStep()} />
+          {currentStepToShow === 2 && (
+            <UpdateCASKarvyOTPVerification
+              onSubmit={() => {
+                incrementCurrentStep();
+              }}
+            />
           )}
-        </View> */}
+          {currentStepToShow === 3 && (
+            <CAMSRTALienMarkingOTPVerification
+              onSubmit={() => {
+                incrementCurrentStep();
+              }}
+            />
+          )}
+          {currentStepToShow === 4 && (
+            <KarvyRTALienMarkingOTPVerification
+              onSubmit={() => {
+                incrementCurrentStep();
+              }}
+            />
+          )}
+        </View>
       </View>
     </ScreenWrapper>
   );

@@ -3,7 +3,7 @@ import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {GrayBodyText, AuthHeading, CustomOtpInput} from 'uin';
 import useBetaForm from '@reusejs/react-form-hook';
-import BackgroundTimer from '../../../../reusables/BackgroundTimer';
+import BackgroundTimer from '../../../../../../reusables/BackgroundTimer';
 import {useTheme} from 'theme';
 
 export const OTPVerification = ({route, onSubmit}) => {
@@ -38,13 +38,12 @@ export const OTPVerification = ({route, onSubmit}) => {
 
   return (
     <>
-      <AuthHeading>Update CAS</AuthHeading>
+      <AuthHeading>CAMS Verification</AuthHeading>
 
       <View style={{paddingTop: 16}}>
         <GrayBodyText>
-          To ensure that you get the accurate loan amount, we need your updated
-          MF portfolio. CAMS has sent a message with a verification code to
-          registered email and phone number.
+          CAMS has sent a message with a verification code to registered email
+          and phone number
         </GrayBodyText>
       </View>
 

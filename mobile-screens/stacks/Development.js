@@ -1,8 +1,8 @@
 import * as React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import DevelopmentList from '../screens/Development';
-import FetchCASFromRTAsForm from '../screens/Development/FetchCASFromRTAs/StepperForm';
-import CombinedUpdateCASAndLienMarking from '../screens/Development/CombinedUpdateCASAndLienMarking';
+import FetchCASFromRTAsForm from '../screens/Development/NewCASFlow/screens/FetchCASFromRTAs';
+import CombinedUpdateCASAndLienMarking from '../screens/Development/NewCASFlow/screens/CombinedUpdateCASAndLienMarking';
 
 const Development = () => {
   const Stack = createStackNavigator();

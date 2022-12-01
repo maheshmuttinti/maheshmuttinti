@@ -21,7 +21,7 @@ import NetInfo from '@react-native-community/netinfo';
 import {setNetworkStatus} from 'store';
 import 'react-native-gesture-handler';
 import {useSelector, shallowEqual} from 'react-redux';
-import Development from './screens/Development';
+import Development from './stacks/Development';
 import SplashScreen from 'react-native-splash-screen';
 
 const Stack = createStackNavigator();
