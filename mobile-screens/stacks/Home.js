@@ -1,6 +1,6 @@
 import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
-import Dashboard from '../DrawerNavigator';
+import Dashboard from '../screens/Dashboard/Index';
 import {useTheme} from 'theme';
 import ChooseNBFC from '../screens/LAMF/ChooseNBFC';
 import CompareNBFC from '../screens/LAMF/CompareNBFCs';
@@ -19,10 +19,8 @@ import UploadPortfolio from '../screens/UploadCAS/UploadPortfolio';
 import FAQ from '../screens/UploadCAS/FAQ';
 import DigioSDK from '../reusables/digioSDK';
 import WebBrowser from '../reusables/WebBrowser';
-import EmailActivationLinkScreen from '../screens/VerifyEmailLink';
-import Reports from '../screens/Reports';
 
-const Protected = () => {
+const HomeStack = () => {
   const Stack = createStackNavigator();
   const theme = useTheme();
 
@@ -39,25 +37,28 @@ const Protected = () => {
           fontWeight: 'bold',
         },
       }}
-      initialRouteName={'Reports'}>
+      initialRouteName={Dashboard}>
       <Stack.Screen
-        name="EmailActivationLinkScreen"
-        options={{headerShown: false}}
-        component={EmailActivationLinkScreen}
-      />
-      <Stack.Screen
-        name="Reports"
-        options={{headerShown: false}}
-        component={Reports}
-      />
-      <Stack.Screen
-        name="Drawer"
+        name="Dashboard"
         options={{headerShown: false}}
         component={Dashboard}
       />
       <Stack.Screen
         name="ChooseNBFC"
-        options={{headerShown: false}}
+        options={{
+          title: 'Loans Against Mutual Funds',
+          headerStyle: {
+            backgroundColor: theme.colors.primaryBlue,
+            shadowColor: 'transparent',
+            elevation: 0,
+          },
+          headerTintColor: theme.colors.primary,
+          headerTitleStyle: {
+            fontWeight: 'bold',
+            fontFamily: theme.fonts.regular,
+            ...theme.fontSizes.large,
+          },
+        }}
         component={ChooseNBFC}
       />
       <Stack.Screen
@@ -80,7 +81,20 @@ const Protected = () => {
       />
       <Stack.Screen
         name="SelectSchemes"
-        options={{headerShown: false}}
+        options={{
+          title: 'Loans Against Mutual Funds',
+          headerStyle: {
+            backgroundColor: theme.colors.primaryBlue,
+            shadowColor: 'transparent',
+            elevation: 0,
+          },
+          headerTintColor: theme.colors.primary,
+          headerTitleStyle: {
+            fontWeight: 'bold',
+            fontFamily: theme.fonts.regular,
+            ...theme.fontSizes.large,
+          },
+        }}
         component={SelectSchemes}
       />
       <Stack.Screen
@@ -269,4 +283,4 @@ const Protected = () => {
   );
 };
 
-export default Protected;
+export default HomeStack;

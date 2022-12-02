@@ -6,6 +6,7 @@ import {View} from 'react-native';
 import {useTheme} from 'theme';
 import {BaseButton, Card, Heading, RadioInput} from 'uin';
 import Modal from 'react-native-modal';
+import {prettifyJSON} from 'utils';
 
 const EMIDueDatesModal = ({
   emiSchemes,
@@ -22,8 +23,15 @@ const EMIDueDatesModal = ({
     const foundedScheme = emiSchemes?.find(
       item => item?.label === defaultEMIScheme?.label,
     );
+    console.log('foundedScheme', foundedScheme);
     setDefaultSelected([foundedScheme]);
   }, [defaultEMIScheme, emiSchemes]);
+
+  console.log(
+    'defaultEMIScheme defaultSelected',
+    prettifyJSON(emiSchemes),
+    defaultSelected,
+  );
 
   const theme = useTheme();
   return (

@@ -202,9 +202,9 @@ export default function ({route, navigation}) {
               ? theme.colors.error
               : theme.colors.primaryBlue
           }
-          // left={-21}
-          // scale={0.9}
-          // inputCount={1}
+          left={-21}
+          scale={0.9}
+          inputCount={6}
           secureTextEntry={false}
         />
       </View>

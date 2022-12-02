@@ -13,15 +13,11 @@ import {
   updateApplication,
 } from 'services';
 import {prettifyJSON, showToast, sleep} from 'utils';
-import useLayoutBackButtonAction from '../../reusables/useLayoutBackButtonAction';
-import useHardwareButtonGoBack from '../../reusables/useHardwareButtonGoBack';
 
 const CamsSuccess = ({navigation}) => {
   const theme = useTheme();
   const [id, setId] = useState('');
   const [lienMarkingStatusValue, setLienMarkingStatus] = useState('awaiting');
-  useLayoutBackButtonAction(theme.colors.text, null, true);
-  useHardwareButtonGoBack(true);
 
   useEffect(() => {
     (async () => {
@@ -180,6 +176,7 @@ const CamsSuccess = ({navigation}) => {
         'error in redirecting to correct screen in lien marking step',
         error,
       );
+      setLienMarkingStatusCheck('failed');
       showToast(`${error.response.data}` || 'Something went wrong');
     }
   };

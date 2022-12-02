@@ -2,15 +2,11 @@ import * as React from 'react';
 import {BackHandler} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
-export default function useHardwareButtonGoBack(preventGoBack = false) {
+export default function useHardwareButtonGoBack() {
   const navigation = useNavigation();
 
   const backAction = () => {
-    if (preventGoBack === true) {
-      return true;
-    } else {
-      navigation.canGoBack() && navigation.pop();
-    }
+    navigation.canGoBack() && navigation.pop();
   };
 
   React.useEffect(() => {

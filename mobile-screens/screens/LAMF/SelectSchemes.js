@@ -1,11 +1,12 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState, useRef, useCallback} from 'react';
+import React, {useState, useRef, useMemo, useCallback} from 'react';
 import {
   Text,
   View,
   ScrollView,
   TouchableOpacity,
   Platform,
+  Alert,
   Dimensions,
   Pressable,
 } from 'react-native';
@@ -40,7 +41,7 @@ import {
   getPreApprovedLoanforPan,
 } from 'services';
 import Toast from 'react-native-toast-message';
-import {isNumber, prettifyJSON, showToast} from 'utils';
+import {showToast} from 'utils';
 import useLayoutBackButtonAction from '../../reusables/useLayoutBackButtonAction';
 import Slider from '@react-native-community/slider';
 import Carousel from 'react-native-snap-carousel-v4';
@@ -74,13 +75,15 @@ const Index = ({route, navigation}) => {
   const [refreshEMIPlansOptions, setRefreshEMIPlansOptions] = useState([]);
   const [selectComponentWrapperHeight, setSelectComponentWrapperHeight] =
     useState('auto');
-  const [emiPlansLoading, setEMIPlansLoading] = useState(true);
   const [loading, setLoading] = useState(false);
   const ref = useRef(null);
 
   const [editAmountField, setEditAmountField] = useState(false);
 
   useLayoutBackButtonAction(theme.colors.background);
+
+  const minLoanAmount =
+    Config.MOCK_ENVIRONMENT === 'STAGING' ? 100 : +nbfc?.min_loan_amount;
 
   const getUsersPANs = useCallback(async () => {
     const eligiblePANsResponse = await getEligiblePANs(noLoanAmountLimits);
@@ -97,7 +100,6 @@ const Index = ({route, navigation}) => {
     async code => {
       try {
         setApiCallStatus('schemes_list_loading');
-        setRefreshEMIPlansOptions(new Date().getTime());
 
         const data = await getPreApprovedLoanforPan(
           selectedPan.value,
@@ -106,7 +108,6 @@ const Index = ({route, navigation}) => {
           noLoanAmountLimits,
         );
         setEmail(data?.email);
-
         setNbfc(data?.nbfc);
         let _schemes = data?.schemes.map(scheme => ({
           ...scheme,
@@ -140,16 +141,14 @@ const Index = ({route, navigation}) => {
           setEditableTotal(`${item.total_pre_approved_loan_amount}`);
         }
       });
-    } catch (error) {
       setLoading(false);
-
+    } catch (error) {
       console.log('error while getting nbfcs', error);
       return error;
     }
   }, [nbfc_code, noLoanAmountLimits, selectedPan.value, getNbfcAndSchemeData]);
 
   const onChangeNbfc = async i => {
-    setShowSelectableList(false);
     allNbfcs.map(async (item, index) => {
       if (i === index) {
         setActive(i);
@@ -161,8 +160,7 @@ const Index = ({route, navigation}) => {
     });
   };
 
-  const handleChangeText = (text, minimumLoanAmount) => {
-    console.log('text: ', text, minimumLoanAmount);
+  const handleChangeText = text => {
     let _editableTotal = +text.slice(1);
 
     setShowSelectableList(true);
@@ -201,76 +199,88 @@ const Index = ({route, navigation}) => {
     })();
   }, [getNbfcs]);
 
-  const nbfcsIndicativeEMIs = useCallback(async () => {
+  const getIndicativeEMIs = async payload => {
     try {
-      setEMIPlansLoading(true);
-      setEmiPlan(null);
-      setEmiPlans([]);
-
-      if (Object.keys(nbfc)?.includes('emi_plans')) {
-        const tenures = nbfc?.emi_plans?.map(plan => ({
-          ...plan,
-          value: +plan?.value?.split(' Months')[0],
-        }));
-        const nbfcROI = nbfc?.roi;
-        const payload = {
-          principal: editableTotal?.startsWith('₹')
-            ? +editableTotal.split('₹')[1]
-            : +editableTotal,
-          interest: +nbfcROI,
-          tenures: tenures,
-        };
-
+      if (payload?.interest && payload?.principal && payload?.tenure) {
         const indicativeEMIsResponse = await getIndicativeEMIsForLoanTenures(
           payload,
         );
-
-        setEmiPlans(indicativeEMIsResponse);
-        setEMIPlansLoading(false);
+        return indicativeEMIsResponse;
       }
-      setEMIPlansLoading(false);
+    } catch (error) {
+      console.log('error while getting emi amount', error);
+    }
+  };
+
+  const getPrincipal = useCallback(() => {
+    let principal = minLoanAmount;
+    if (editableTotal.split('₹')[1]) {
+      principal = +editableTotal.split('₹')[1].trim();
+    } else if (total) {
+      principal = total;
+    }
+    return principal;
+  }, [editableTotal, total, minLoanAmount]);
+
+  const nbfcsIndicativeEMIs = useCallback(async () => {
+    try {
+      const principal = getPrincipal();
+      if (Object.keys(nbfc).includes('emi_plans')) {
+        const nbfcEMIPlans = nbfc?.emi_plans?.filter(
+          item => item?.label !== '24 Months',
+        );
+        const nbfcROI = nbfc?.roi;
+
+        const mappedEMIPlans = await Promise.all(
+          nbfcEMIPlans?.map(async emiPlanItem => {
+            const _emiPlanValue = emiPlanItem?.value?.includes('Months')
+              ? emiPlanItem?.value?.split(' Months')[0]
+              : emiPlanItem?.value;
+
+            const indicativeEMIsResponse = await getIndicativeEMIs({
+              principal: principal,
+              interest: +nbfcROI,
+              tenure: +_emiPlanValue,
+            });
+            const installments = indicativeEMIsResponse?.data?.installments;
+            const indicativeEMIAmount =
+              installments?.length > 0 ? installments[0]?.installment : 0;
+
+            return {
+              label: `${emiPlanItem?.label} - ₹${indicativeEMIAmount}`,
+              value: _emiPlanValue,
+            };
+          }),
+        );
+        setEmiPlans(mappedEMIPlans);
+      }
     } catch (err) {
-      setEMIPlansLoading(false);
+      console.log('errorrrr', err);
       return err;
     }
-  }, [nbfc, editableTotal]);
+  }, [nbfc, getPrincipal]);
 
   useEffect(() => {
-    const fetchIndicativeEMIsSubscribe = setTimeout(() => {
-      (async () => await nbfcsIndicativeEMIs())();
-    }, 500);
-    return () => {
-      clearTimeout(fetchIndicativeEMIsSubscribe);
-    };
+    (async () => {
+      await nbfcsIndicativeEMIs();
+    })();
   }, [nbfcsIndicativeEMIs]);
 
   useEffect(() => {
-    const remain = editableTotal?.startsWith('₹')
-      ? +editableTotal.split('₹')[1]
-      : +editableTotal;
+    const remain = editableTotal.split('₹')[1];
     console.log('remain', remain);
     const currentSchemesTotal = selectedSchemes.map(
       item => item.pre_approved_loan_amount,
     );
-    console.log('currentSchemesTotal: ', currentSchemesTotal);
     if (remain !== 0) {
-      const calculatedRemain = remain - _.sum(currentSchemesTotal);
-      if (calculatedRemain < 0) {
-        return setRemainingTotal(0);
-      }
-      return setRemainingTotal(calculatedRemain);
-    } else {
-      setRemainingTotal(remain);
+      return setRemainingTotal(remain - _.sum(currentSchemesTotal));
     }
   }, [selectedSchemes, editableTotal]);
 
-  useEffect(() => {
-    console.log('remainingTotal', remainingTotal);
-  }, [remainingTotal]);
+  console.log('remainingTotal', remainingTotal);
 
   const filterSchemes = (val, item) => {
     if (val) {
-      console.log('unit_balance', item?.unit_balance);
       if (
         remainingTotal > 0 &&
         remainingTotal >= item.pre_approved_loan_amount
@@ -291,7 +301,7 @@ const Index = ({route, navigation}) => {
         Toast.show({
           type: 'schemeWarning',
           position: 'bottom',
-          visibilityTime: 2000,
+          visibilityTime: 5000,
         });
       }
     } else {
@@ -304,72 +314,30 @@ const Index = ({route, navigation}) => {
   };
 
   const handleSubmit = () => {
-    const finalLoanAmount = showSelectableList
-      ? editableTotal?.split('₹')[1]
-        ? editableTotal?.split('₹')[1]
-        : editableTotal
-      : total;
-    console.log(
-      'handleSubmit->remainingTotal, total, finalLoanAmount',
-      remainingTotal,
-      total,
-      finalLoanAmount,
-    );
+    console.log('emiPlan', emiPlan);
     if (!emiPlan) {
-      Toast.show({
-        type: 'emiPlanWarning',
-        position: 'bottom',
-        visibilityTime: 5000,
-      });
-      return;
-    }
-    if (remainingTotal !== 0 && remainingTotal !== total) {
-      Toast.show({
-        type: 'addMoreSchemesWarning',
-        position: 'bottom',
-        visibilityTime: 5000,
-      });
-      return;
+      showToast('Please select EMI Plan');
+    } else if (remainingTotal > 0) {
+      showToast('Please Add more Schemes');
     } else {
-      console.log(
-        'finalLoanAmount < nbfc?.min_loan_amount: ',
-        finalLoanAmount,
-        nbfc?.min_loan_amount,
-        +finalLoanAmount < +nbfc?.min_loan_amount,
-      );
-      if (+finalLoanAmount < +nbfc?.min_loan_amount) {
-        console.log('minimum amount');
-        Toast.show({
-          type: 'minLoanAmountWarning',
-          position: 'bottom',
-          visibilityTime: 5000,
-        });
-        return;
-      } else {
-        const availableUnits = schemes?.map(scheme => ({
-          scheme_name: scheme?.scheme_name,
-          unit_balance: scheme?.unit_balance,
-          available_units: scheme?.available_units,
-        }));
-        console.log('availableUnits', prettifyJSON(availableUnits));
-        const routeParams = {
-          data: {
-            nbfc: {
-              ...nbfc,
-              tenure: emiPlan?.tenure,
-              tentative_emi_amount: emiPlan?.tentative_emi_amount,
-            },
-            email,
-            schemes: showSelectableList ? selectedSchemes : schemes,
-            pre_approved_loan_amount: finalLoanAmount,
-            user: {
-              pan_number: selectedPan.value,
-              name: selectedPan.label,
-            },
+      navigation.navigate('LienMarking', {
+        data: {
+          nbfc: {
+            ...nbfc,
+            tenure: emiPlan?.label?.split('-')[0],
+            tentative_emi_amount: emiPlan?.label?.split('-')[1],
           },
-        };
-        navigation.navigate('LienMarking', routeParams);
-      }
+          email,
+          schemes: showSelectableList ? selectedSchemes : schemes,
+          pre_approved_loan_amount: showSelectableList
+            ? editableTotal.split('₹')[1]
+            : total,
+          user: {
+            pan_number: selectedPan.value,
+            name: selectedPan.label,
+          },
+        },
+      });
     }
   };
 
@@ -456,7 +424,7 @@ const Index = ({route, navigation}) => {
                   keyboardType="numeric"
                   prefixValue={'₹'}
                   onChangeText={text => {
-                    handleChangeText(text, item?.nbfc?.min_loan_amount);
+                    handleChangeText(text);
                     setSelectedSchemes([]);
                   }}
                   onBlur={() => setEditAmountField(false)}
@@ -476,28 +444,22 @@ const Index = ({route, navigation}) => {
                 Platform.OS === 'android' ? [{scaleX: 1.1}, {scaleY: 2}] : [],
               height: 20,
             }}
-            minimumValue={+item?.nbfc?.min_loan_amount}
-            maximumValue={+total}
+            minimumValue={minLoanAmount}
+            maximumValue={total}
             minimumTrackTintColor={theme.colors.primaryYellow}
             maximumTrackTintColor={theme.colors.primary}
             onSlidingComplete={v => {
-              handleChangeText(
-                `${parseFloat(v).toFixed(2)}`,
-                item?.nbfc?.min_loan_amount,
-              );
+              handleChangeText(`₹ ${parseFloat(v).toFixed(2)}`);
               setSelectedSchemes([]);
               setRefreshEMIPlansOptions(new Date().getTime());
             }}
             thumbTintColor={theme.colors.primaryBlue}
             value={
               editableTotal.split('₹')[1]
-                ? isNumber(parseInt(editableTotal.split('₹')[1], 10))
-                  ? parseInt(editableTotal.split('₹')[1], 10)
-                  : +item?.nbfc?.min_loan_amount
-                : isNumber(parseInt(editableTotal, 10))
-                ? parseInt(editableTotal, 10)
-                : +item?.nbfc?.min_loan_amount
+                ? parseInt(editableTotal.split('₹')[1])
+                : total
             }
+            // value={total}
           />
 
           <View style={{marginTop: 16}}>
@@ -510,37 +472,23 @@ const Index = ({route, navigation}) => {
               EMI Plans
             </Heading>
 
-            {emiPlansLoading ? (
-              <SkeletonEMIPlansDropdown
-                containerStyle={{
-                  right: 34,
-                  width: '120%',
-                  height: 45,
+            <View style={{zIndex: 20, height: selectComponentWrapperHeight}}>
+              <Select
+                dataSource={async () => emiPlans}
+                onChange={v => {
+                  setEmiPlan(v);
                 }}
+                onOpen={() => {
+                  setSelectComponentWrapperHeight(250);
+                }}
+                refresh={refreshEMIPlansOptions}
+                onClose={() => {
+                  setSelectComponentWrapperHeight('auto');
+                }}
+                placeholder="Select EMI Plan"
+                multiple={false}
               />
-            ) : (
-              Array.isArray(emiPlans) &&
-              emiPlans?.length > 0 && (
-                <View
-                  style={{zIndex: 20, height: selectComponentWrapperHeight}}>
-                  <Select
-                    dataSource={async () => emiPlans}
-                    onChange={v => {
-                      setEmiPlan(v);
-                    }}
-                    onOpen={() => {
-                      setSelectComponentWrapperHeight(250);
-                    }}
-                    refresh={refreshEMIPlansOptions}
-                    onClose={() => {
-                      setSelectComponentWrapperHeight('auto');
-                    }}
-                    placeholder="Select EMI Plan"
-                    multiple={false}
-                  />
-                </View>
-              )
-            )}
+            </View>
           </View>
         </View>
       </Card>
@@ -682,6 +630,8 @@ const Index = ({route, navigation}) => {
           backgroundColor: theme.colors.backgroundYellow,
           paddingLeft: 17.25,
           marginHorizontal: 17,
+          // marginTop: 30,
+          // marginBottom: 300,
           position: 'absolute',
           bottom: 100,
           borderRadius: 8,
@@ -702,93 +652,6 @@ const Index = ({route, navigation}) => {
             marginRight: 52,
           }}>
           You have selected enough schemes to reach the desired loan amount
-        </Text>
-      </Card>
-    ),
-    addMoreSchemesWarning: () => (
-      <Card
-        style={{
-          backgroundColor: theme.colors.backgroundYellow,
-          paddingLeft: 17.25,
-          marginHorizontal: 17,
-          position: 'absolute',
-          bottom: 100,
-          borderRadius: 8,
-          paddingVertical: 16,
-          flexDirection: 'row',
-          alignItems: 'center',
-        }}>
-        <View>
-          <InfoIcon fill={theme.colors.error} />
-        </View>
-        <Text
-          style={{
-            ...theme.fontSizes.small,
-            fontWeight: theme.fontWeights.moreBold,
-            color: theme.colors.text,
-            fontFamily: theme.fonts.regular,
-            paddingLeft: 17.25,
-            marginRight: 52,
-          }}>
-          Please Add More Schemes to continue
-        </Text>
-      </Card>
-    ),
-    emiPlanWarning: () => (
-      <Card
-        style={{
-          backgroundColor: theme.colors.backgroundYellow,
-          paddingLeft: 17.25,
-          marginHorizontal: 17,
-          position: 'absolute',
-          bottom: 100,
-          borderRadius: 8,
-          paddingVertical: 16,
-          flexDirection: 'row',
-          alignItems: 'center',
-        }}>
-        <View>
-          <InfoIcon fill={theme.colors.error} />
-        </View>
-        <Text
-          style={{
-            ...theme.fontSizes.small,
-            fontWeight: theme.fontWeights.moreBold,
-            color: theme.colors.text,
-            fontFamily: theme.fonts.regular,
-            paddingLeft: 17.25,
-            marginRight: 52,
-          }}>
-          Please select EMI Plan
-        </Text>
-      </Card>
-    ),
-    minLoanAmountWarning: () => (
-      <Card
-        style={{
-          backgroundColor: theme.colors.backgroundYellow,
-          paddingLeft: 17.25,
-          marginHorizontal: 17,
-          position: 'absolute',
-          bottom: 100,
-          borderRadius: 8,
-          paddingVertical: 16,
-          flexDirection: 'row',
-          alignItems: 'center',
-        }}>
-        <View>
-          <InfoIcon fill={theme.colors.error} />
-        </View>
-        <Text
-          style={{
-            ...theme.fontSizes.small,
-            fontWeight: theme.fontWeights.moreBold,
-            color: theme.colors.text,
-            fontFamily: theme.fonts.regular,
-            paddingLeft: 17.25,
-            marginRight: 52,
-          }}>
-          Loan Amount should be greater than {`${nbfc?.min_loan_amount}`}
         </Text>
       </Card>
     ),
@@ -856,11 +719,7 @@ const Index = ({route, navigation}) => {
                       fontWeight: theme.fontWeights.lightBold,
                     }}
                     value={`₹ ${
-                      showSelectableList
-                        ? editableTotal?.split('₹')[1]
-                          ? editableTotal?.split('₹')[1]
-                          : editableTotal
-                        : total
+                      showSelectableList ? editableTotal.split('₹')[1] : total
                     }`}
                     valueStyle={{
                       ...theme.fontSizes.largeMedium,
@@ -1135,7 +994,7 @@ const Index = ({route, navigation}) => {
                       showSelectableList
                         ? editableTotal.split('₹')[1]
                           ? editableTotal.split('₹')[1]
-                          : editableTotal
+                          : total
                         : total
                     }`}</Heading>
                   </View>
@@ -1265,7 +1124,7 @@ const SchemeCard = ({item}) => {
   );
 };
 
-export const SkeletonListCard = ({containerStyle = {}}) => {
+const SkeletonListCard = ({containerStyle = {}}) => {
   return (
     <SkeletonContent
       containerStyle={{
@@ -1292,54 +1151,6 @@ export const SkeletonListCard = ({containerStyle = {}}) => {
     />
   );
 };
-
-const SkeletonEMIPlansDropdown = ({containerStyle = {}}) => {
-  return (
-    <SkeletonContent
-      containerStyle={{
-        flex: 1,
-        flexDirection: 'row',
-        paddingLeft: 24,
-        borderRadius: 12,
-        ...containerStyle,
-      }}
-      isLoading={true}
-      animationType={'shiver'}
-      boneColor={'#fdfdfd'}
-      layout={[
-        ...Object.values(
-          dropdownBox(
-            1,
-            {x: 26, y: 0, absolutePercentage: {x: 0, y: 1}},
-            {height: 45},
-          ),
-        ),
-      ]}
-    />
-  );
-};
-const dropdownBox = (
-  key = 1,
-  boxPosition = {x: 0, y: 0, absolutePercentage: {x: 0, y: 0}},
-  boxStyles = {},
-) => ({
-  box: {
-    key: `border_box_${key}`,
-    width: '92%',
-    borderColor: '#eeeeee',
-    borderRadius: 12,
-    position: 'absolute',
-    backgroundColor: 'transparent',
-    top: `${
-      boxPosition?.absolutePercentage?.y
-        ? boxPosition?.absolutePercentage?.y + '%'
-        : '0'
-    }`,
-    marginLeft: boxPosition?.x,
-    borderWidth: 1,
-    ...boxStyles,
-  },
-});
 
 const card = (
   key = 1,

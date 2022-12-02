@@ -17,11 +17,11 @@ import {InfoIcon, WarningIcon1} from 'assets';
 import Auth from './stacks/Auth';
 import Protected from './stacks/Protected';
 import EmptyStates from './stacks/EmptyStates';
+import GraphsStack from './stacks/Graphs';
 import NetInfo from '@react-native-community/netinfo';
 import {setNetworkStatus} from 'store';
 import 'react-native-gesture-handler';
 import {useSelector, shallowEqual} from 'react-redux';
-import Development from './stacks/Development';
 import SplashScreen from 'react-native-splash-screen';
 
 const Stack = createStackNavigator();
@@ -71,6 +71,7 @@ const App = () => {
   React.useEffect(() => {
     SplashScreen.hide();
   }, []);
+
   // const {isUserLoggedInWithMPIN} = useSelector(
   //   ({auth}) => ({
   //     isUserLoggedInWithMPIN: auth.isUserLoggedInWithMPIN,
@@ -109,11 +110,6 @@ const App = () => {
           linking={linking}
           ref={RootNavigation.navigationRef}>
           <Stack.Navigator>
-            <Stack.Screen
-              name="Development"
-              options={{headerShown: false}}
-              component={Development}
-            />
             {/* <Stack.Screen
               name="Auth"
               options={{headerShown: false}}
@@ -131,6 +127,11 @@ const App = () => {
               options={{headerShown: false}}
               component={EmptyStates}
             /> */}
+            <Stack.Screen
+              name="GraphsStack"
+              options={{headerShown: false}}
+              component={GraphsStack}
+            />
           </Stack.Navigator>
         </NavigationContainer>
       </ThemeProvider>
