@@ -8,11 +8,11 @@ import SelectSchemes from '../screens/LAMF/SelectSchemes';
 import LienMarking from '../screens/LAMF/LienMarking';
 import UpdatePortfolio from '../screens/LAMF/UpdatePortfolio';
 import CamsSuccess from '../screens/LAMF/CAMSSuccess';
-import NextSteps from '../screens/LAMF/LoanForm/NextSteps';
-import LoanApplication from '../screens/LAMF/LoanForm/Index';
-import LoanSuccess from '../screens/LAMF/LoanForm/Success';
+import LoanApplication from '../screens/LAMF/LoanApplication';
+import NextSteps from '../screens/LAMF/NextSteps';
+import LoanSuccess from '../screens/LAMF/LoanApplication/Steps/Success';
 import LoanDashboard from '../screens/LAMF/LoanDashboard';
-import LoanInfo from '../screens/LAMF/LoanInfo';
+import LoanApplicationInfo from '../screens/LAMF/LoanApplicationInfo';
 import UploadCAS from '../screens/UploadCAS';
 import ImportPortfolio from '../screens/UploadCAS/ImportPortfolio';
 import UploadPortfolio from '../screens/UploadCAS/UploadPortfolio';
@@ -20,7 +20,6 @@ import FAQ from '../screens/UploadCAS/FAQ';
 import DigioSDK from '../reusables/digioSDK';
 import WebBrowser from '../reusables/WebBrowser';
 import EmailActivationLinkScreen from '../screens/VerifyEmailLink';
-import Reports from '../screens/Reports';
 
 const Protected = () => {
   const Stack = createStackNavigator();
@@ -39,16 +38,11 @@ const Protected = () => {
           fontWeight: 'bold',
         },
       }}
-      initialRouteName={'Reports'}>
+      initialRouteName={'Drawer'}>
       <Stack.Screen
         name="EmailActivationLinkScreen"
         options={{headerShown: false}}
         component={EmailActivationLinkScreen}
-      />
-      <Stack.Screen
-        name="Reports"
-        options={{headerShown: false}}
-        component={Reports}
       />
       <Stack.Screen
         name="Drawer"
@@ -210,7 +204,7 @@ const Protected = () => {
         component={LoanDashboard}
       />
       <Stack.Screen
-        name="LoanInfo"
+        name="LoanApplicationInfo"
         options={{
           title: 'Loans Against Mutual Funds',
           headerStyle: {
@@ -225,7 +219,7 @@ const Protected = () => {
             ...theme.fontSizes.large,
           },
         }}
-        component={LoanInfo}
+        component={LoanApplicationInfo}
       />
       <Stack.Screen
         name="UploadCAS"

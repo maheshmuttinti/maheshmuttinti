@@ -20,7 +20,11 @@ import {
   TickCircleSmall,
   TickSquare,
 } from 'assets';
-import {getEligiblePANs, getPreApprovedLoanforPan} from 'services';
+import {
+  getEligiblePANs,
+  getIndicativeEMIsForLoanTenures,
+  getPreApprovedLoanforPan,
+} from 'services';
 import {useSelector, useDispatch} from 'react-redux';
 import {setComapreNbfc, clearNbfc, removeNbfc} from 'store';
 import {ScrollView} from 'react-native';
@@ -29,6 +33,9 @@ import useLayoutBackButtonAction from '../../reusables/useLayoutBackButtonAction
 import SkeletonContent from 'react-native-skeleton-content-nonexpo';
 import BackArrow from 'assets/icons/backArrow';
 import Config from 'react-native-config';
+import {placeholderDecider} from 'utils';
+
+// Todo: This is bad code, refactor the screen
 
 export default function ({navigation, route}) {
   const noLoanAmountLimits =
@@ -64,7 +71,32 @@ export default function ({navigation, route}) {
         filter,
         noLoanAmountLimits,
       );
-      setNbfcs(data);
+
+      const _nbfcs = await Promise.all(
+        data?.map(async nbfc => {
+          const payload = {
+            interest: nbfc?.nbfc?.roi,
+            principal: nbfc?.total_pre_approved_loan_amount,
+            tenures: [
+              {
+                label: `${nbfc?.nbfc?.max_tenure}`,
+                value: `${+nbfc?.nbfc?.max_tenure?.split(' ')[0]}`,
+              },
+            ],
+          };
+          if (payload?.interest && payload?.principal && payload?.tenures) {
+            const indicativeEMIsResponse =
+              await getIndicativeEMIsForLoanTenures(payload);
+            const indicativeEMIAmount =
+              indicativeEMIsResponse?.[0]?.tentative_emi_amount;
+            return {
+              ...nbfc,
+              nbfc: {...nbfc.nbfc, indicative_emi: indicativeEMIAmount},
+            };
+          }
+        }),
+      );
+      setNbfcs(_nbfcs);
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -334,7 +366,7 @@ export default function ({navigation, route}) {
                       navigation.navigate('SelectSchemes', {
                         nbfc_code: item?.nbfc?.nbfc_code,
                         user: selectedPan,
-                        total: item.total_pre_approved_loan_amount,
+                        total: item?.total_pre_approved_loan_amount,
                       });
                     }}
                     key={index}>
@@ -390,7 +422,9 @@ export default function ({navigation, route}) {
                             />
                             <LabelValue
                               title="EMI"
-                              value="-"
+                              value={placeholderDecider(
+                                item?.nbfc?.indicative_emi,
+                              )}
                               style={{flex: 1 / 2}}
                             />
                           </View>
@@ -409,7 +443,7 @@ export default function ({navigation, route}) {
                             />
                             <LabelValue
                               title="Tenure (months)"
-                              value="36"
+                              value={placeholderDecider(item?.nbfc?.max_tenure)}
                               style={{flex: 1 / 2}}
                             />
                           </View>

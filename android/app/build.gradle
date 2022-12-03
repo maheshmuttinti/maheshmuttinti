@@ -138,8 +138,8 @@ android {
         applicationId "com.finezzy"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 174
-        versionName "0.11.1"
+        versionCode 182
+        versionName "0.16.3"
     }
     splits {
         abi {
@@ -205,6 +205,8 @@ dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules
+    
+    implementation 'io.sentry:sentry-android:6.9.1'
 
     implementation project(':react-native-config')
 

@@ -1,39 +1,28 @@
 /* eslint-disable react-native/no-inline-styles */
+import * as React from 'react';
+import {TickCircle} from 'assets';
+import {useEffect, useState} from 'react';
+import {View} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {BackArrow, TickCircle} from 'assets';
-
-import React, {useEffect, useState} from 'react';
-import {Pressable, View} from 'react-native';
 import {useTheme} from 'theme';
 import {Card, Heading} from 'uin';
 import ScreenWrapper from '../../../hocs/screen_wrapper';
-import BankDetails from './BankDetails';
-import BasicDetails from './BasicDetails';
-import DigitalNACH from './DigitalNACH';
-import LoanAgreement from './LoanAgreement';
-import UploadProof from './UploadProof';
-import VideoVerification from './VideoVerification';
+import useLayoutBackButtonAction from '../../../reusables/useLayoutBackButtonAction';
+import BankDetails from './Steps/BankDetails';
+import BasicDetails from './Steps/BasicDetails';
+import DigitalNACH from './Steps/DigitalNACH';
+import LoanAgreement from './Steps/LoanAgreement';
+import UploadProof from './Steps/UploadProof';
+import VideoVerification from './Steps/VideoVerification';
 
-const Index = ({route, navigation}) => {
+export default function ({route, navigation}) {
   const theme = useTheme();
   const [applicationId, setApplicationId] = useState('');
   const [step, setStep] = useState(
     route && route.params && route.params.step ? route.params.step : 1,
   );
-  React.useLayoutEffect(() => {
-    navigation.setOptions({
-      headerLeft: () => (
-        <Pressable
-          hitSlop={{top: 30, left: 30, right: 30, bottom: 30}}
-          onPress={() => {
-            navigation.canGoBack() && navigation.pop();
-          }}
-          style={{width: 50, marginLeft: 16}}>
-          <BackArrow />
-        </Pressable>
-      ),
-    });
-  }, [navigation, step]);
+
+  useLayoutBackButtonAction(theme.colors.black, step);
 
   useEffect(() => {
     (async () => {
@@ -215,6 +204,4 @@ const Index = ({route, navigation}) => {
       </Card>
     </ScreenWrapper>
   );
-};
-
-export default Index;
+}

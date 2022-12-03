@@ -22,7 +22,7 @@ export default function ({
   const dispatch = useDispatch();
   const theme = useTheme();
   const [eligiblePANs, setEligiblePANs] = useState([]);
-  const [disableButton, setDisableButton] = useState(false);
+  const [disableButton, setDisableButton] = useState(true);
   const getEligiblePANsFnRef = useRef(() => {});
   const [selectedPAN, setSelectedPAN] = useState({});
   const [PANSelectError, setPANSelectError] = useState(null);
@@ -65,7 +65,8 @@ export default function ({
         };
       });
       setEligiblePANs(structuredPANs);
-      if (eligiblePANsResponse?.length > 1) {
+      if (structuredPANs?.length === 1) {
+        setSelectedPAN(structuredPANs[0]);
         setDisableButton(false);
       }
     } catch (err) {
@@ -83,10 +84,10 @@ export default function ({
 
   useEffect(() => {
     getEligiblePANsFnRef.current();
-  }, []);
+  }, [visible]);
 
   const handleSubmit = () => {
-    if (selectedPAN.label && selectedPAN.value) {
+    if (selectedPAN?.label && selectedPAN?.value) {
       setVisible(false);
       navigation.navigate('Protected', {
         screen: 'ChooseNBFC',
@@ -111,11 +112,10 @@ export default function ({
       style={{
         justifyContent: 'flex-end',
         margin: 0,
-        marginBottom: 24,
         borderRadius: 12,
       }}>
       <Card style={{width: '100%', borderRadius: 12}}>
-        <View style={{paddingHorizontal: 24, paddingTop: 32, zIndex: 100}}>
+        <View style={{paddingHorizontal: 24, paddingTop: 32}}>
           <View>
             <Heading
               style={{
@@ -138,7 +138,41 @@ export default function ({
             }}>
             Please provide the following details
           </Heading>
-          {eligiblePANs?.length > 0 && (
+          {eligiblePANs?.length === 1 && (
+            <>
+              <Text
+                style={{
+                  fontFamily: theme.fonts.medium,
+                  fontWeight: theme.fontWeights.bold,
+                  color: theme.colors.primaryBlue,
+                  ...theme.fontSizes.medium,
+                  paddingLeft: 0,
+                  paddingTop: 24,
+                }}>
+                LOAN APPLICANT
+              </Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingTop: 8,
+                }}>
+                <View style={{paddingRight: 8}}>
+                  <UserSmall />
+                </View>
+                <Heading
+                  style={{
+                    color: theme.colors.text,
+                    fontWeight: theme.fontWeights.veryBold,
+                    ...theme.fontSizes.small,
+                    fontFamily: theme.fonts.regular,
+                  }}>
+                  {`${eligiblePANs[0]?.label} - ${eligiblePANs[0]?.value}`}
+                </Heading>
+              </View>
+            </>
+          )}
+          {eligiblePANs?.length > 1 && (
             <>
               <View style={{paddingTop: 24, zIndex: 10}}>
                 <Select
@@ -146,6 +180,7 @@ export default function ({
                   defaultSelected={[selectedPAN]}
                   onChange={v => {
                     setSelectedPAN(v);
+                    setDisableButton(false);
                     setPANSelectError(null);
                   }}
                   error={PANSelectError}

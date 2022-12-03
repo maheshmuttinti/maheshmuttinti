@@ -37,7 +37,7 @@ target 'mobile' do
 
   pod 'react-native-blur', :path => '../../../node_modules/@react-native-community/blur'
 
-  pod 'react-native-skia', :path => '../node_modules/@shopify/react-native-skia'
+  pod 'RNSentry', :path => '../node_modules/@sentry/react-native'
 
   target 'mobileTests' do
     inherit! :complete

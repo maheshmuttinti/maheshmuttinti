@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useEffect, useState} from 'react';
-import {Text, View} from 'react-native';
+import {Platform, Text, View} from 'react-native';
 import {useTheme} from 'theme';
 import {Heading, BaseTextInput, BaseButton, Select, RadioInput} from 'uin';
 import useBetaForm from '@reusejs/react-form-hook';
@@ -10,7 +10,7 @@ import {
   getStateByCountryCode,
   updateApplication,
 } from 'services';
-import useUser from '../../../reusables/useUser';
+import useUser from '../../../../reusables/useUser';
 
 export default function ({
   currentStep,
@@ -37,6 +37,7 @@ export default function ({
     state: '',
     city: '',
     pin: '',
+    aadhar_number: '',
   });
 
   useEffect(() => {
@@ -75,6 +76,7 @@ export default function ({
       form.setField('state', details.state);
       form.setField('city', details.city);
       form.setField('pin', details.pin);
+      form.setField('aadhar_number', details.aadhar_number);
     }
   };
 
@@ -148,6 +150,22 @@ export default function ({
           }}
           value={form.getField('fathers_name')}
           error={form.errors.get('fathers_name')}
+        />
+      </View>
+      <View style={{paddingTop: 16}}>
+        <BaseTextInput
+          keyboardType="numeric"
+          placeholder="Enter Aadhar Number"
+          label="AADHAR NUMBER"
+          onChangeText={v => {
+            form.setField('aadhar_number', v);
+          }}
+          labelStyles={{
+            color: theme.colors.primaryBlue,
+            ...theme.fontSizes.small,
+          }}
+          value={form.getField('aadhar_number')}
+          error={form.errors.get('aadhar_number')}
         />
       </View>
       <View style={{paddingTop: 16}}>
@@ -240,7 +258,12 @@ export default function ({
         />
       </View>
 
-      <View style={{paddingTop: 16, zIndex: 11}}>
+      <View
+        style={
+          Platform.OS === 'ios'
+            ? {paddingTop: 16, zIndex: 11}
+            : {paddingTop: 16}
+        }>
         <Select
           dataSource={async q => await getStateByCountryCode('IN', q)}
           defaultSelected={form.value.state ? [form.value.state] : []}
@@ -260,7 +283,12 @@ export default function ({
         />
       </View>
 
-      <View style={{paddingTop: 16, zIndex: 10}}>
+      <View
+        style={
+          Platform.OS === 'ios'
+            ? {paddingTop: 16, zIndex: 10}
+            : {paddingTop: 16}
+        }>
         <Select
           dataSource={async q => await getCitiesOfState('IN', stateCode, q)}
           defaultSelected={form.value.city ? [form.value.city] : []}
@@ -284,7 +312,7 @@ export default function ({
         />
       </View>
 
-      <View style={{paddingTop: 16}}>
+      <View style={{marginTop: 16}}>
         <BaseTextInput
           keyboardType="numeric"
           placeholder="Enter Pincode"

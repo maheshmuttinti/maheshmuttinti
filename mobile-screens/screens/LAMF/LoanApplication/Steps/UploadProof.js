@@ -16,20 +16,18 @@ import {
   CameraIcon,
   RadioCircleFill,
 } from 'assets';
-import Loader from '../../../reusables/loader';
+import Loader from '../../../../reusables/loader';
 import useBetaForm from '@reusejs/react-form-hook';
-import SingleImageUpload from '../../../mobile-scope-components/FileUpload/singleImageUpload';
-import {prettifyJSON, showToast} from 'utils';
+import SingleImageUpload from '../../../../mobile-scope-components/FileUpload/singleImageUpload';
+import {showToast} from 'utils';
 
-const UploadProof = ({navigation, applicationId, setStep, currentStep}) => {
+export default function ({navigation, applicationId, setStep, currentStep}) {
   const theme = useTheme();
-  const [redirecting, setRedirecting] = useState(false);
   const [loading, setLoading] = useState(false);
   const [applicationData, setApplicationData] = useState({});
   const [digilockerUploadSuccess, setDigilockerUploadSuccess] = useState(false);
   const [manualUploadSuccess, setManualUploadSuccess] = useState(false);
-  const [redirectingToDigilockerStatus, setRedirectingToDigilockerStatus] =
-    useState(false);
+  const [redirectingToDigilocker, setRedirectingToDigilocker] = useState(false);
 
   const form = useBetaForm({
     proofs_Upload_via: '',
@@ -40,6 +38,11 @@ const UploadProof = ({navigation, applicationId, setStep, currentStep}) => {
     address_proof_id: '',
   });
 
+  const getLoanApplicationData = async () => {
+    const application = await getLoanApplicationById(applicationId);
+    setApplicationData(application);
+  };
+
   useEffect(() => {
     (async () => {
       await getLoanApplicationData();
@@ -49,51 +52,55 @@ const UploadProof = ({navigation, applicationId, setStep, currentStep}) => {
   useEffect(() => {
     (async () => {
       if (
-        applicationData.loan_application_data &&
-        applicationData.loan_application_data.digilocker_req_id &&
-        applicationData.loan_application_data.proofs_Upload_via ===
+        applicationData?.loan_application_data &&
+        applicationData?.loan_application_data?.digilocker_req_id &&
+        applicationData?.loan_application_data?.proofs_Upload_via ===
           'digilocker' &&
-        applicationData.loan_application_data.digilockerData
+        applicationData?.loan_application_data?.digilockerData
       ) {
         setDigilockerUploadSuccess(true);
         setLoading(false);
       } else if (
-        applicationData.loan_application_data &&
-        applicationData.loan_application_data.digilocker_req_id
+        applicationData?.loan_application_data &&
+        applicationData?.loan_application_data?.digilocker_req_id
       ) {
         setLoading(true);
-        if (!redirecting) {
-          await checkDigilockerStatus(
-            applicationData.loan_application_data.digilocker_req_id,
-          );
-        }
+        await checkDigilockerStatus(
+          applicationData?.loan_application_data?.digilocker_req_id,
+        );
         setLoading(false);
       }
     })();
   }, [applicationData]);
 
   useEffect(() => {
-    if (applicationData.loan_application_data) {
-      const details = applicationData.loan_application_data;
-      form.setField('proofs_Upload_via', details.proofs_Upload_via);
-      form.setField('digilocker_req_id', details.digilocker_req_id);
-      form.setField('digilockerData', details.digilockerData);
+    if (applicationData?.loan_application_data) {
+      const loanApplicationData = applicationData?.loan_application_data;
+      form.setField('proofs_Upload_via', loanApplicationData.proofs_Upload_via);
+      form.setField('digilocker_req_id', loanApplicationData.digilocker_req_id);
+      form.setField('digilockerData', loanApplicationData.digilockerData);
       form.setField(
         'pan_card_id',
-        details.pan_card_id ? details.pan_card_id : '',
+        loanApplicationData.pan_card_id ? loanApplicationData.pan_card_id : '',
       );
       form.setField(
         'address_proof_id',
-        details.address_proof_id ? details.address_proof_id : '',
+        loanApplicationData.address_proof_id
+          ? loanApplicationData.address_proof_id
+          : '',
       );
     }
   }, [applicationData]);
 
   const createDigilockerLink = async () => {
     try {
-      setRedirectingToDigilockerStatus(true);
+      setRedirectingToDigilocker(true);
       const response = await digiLockerRequest();
-      setRedirecting(true);
+      if (response?.error?.message) {
+        showToast(response.error.message);
+        setRedirectingToDigilocker(false);
+        return;
+      }
       const applicationPayload = {
         loan_application_data: {
           ...applicationData.loan_application_data,
@@ -101,25 +108,22 @@ const UploadProof = ({navigation, applicationId, setStep, currentStep}) => {
           digilocker_req_id: response.requestId,
         },
       };
-      setRedirectingToDigilockerStatus(false);
 
       await updateApplication(applicationId, applicationPayload);
       navigation.navigate('WebBrowser', {
         uri: response.url,
         applicationId,
       });
+      setRedirectingToDigilocker(false);
     } catch (err) {
-      setRedirectingToDigilockerStatus(false);
-
-      console.log(err);
+      setRedirectingToDigilocker(false);
     }
   };
 
   const checkDigilockerStatus = async id => {
     try {
       const details = await digiLockerStatus(id);
-      console.log('details of digilocker', prettifyJSON(details));
-      if (details.userDetails && details.files) {
+      if (details?.userDetails && details?.files) {
         const loanData = {
           ...applicationData?.loan_application_data,
           proofs_Upload_via: 'digilocker',
@@ -134,27 +138,18 @@ const UploadProof = ({navigation, applicationId, setStep, currentStep}) => {
         await updateApplication(applicationId, loanPayload);
         setLoading(false);
         setDigilockerUploadSuccess(true);
-        setRedirecting(false);
       } else {
         setLoading(false);
         showToast('Error in Document Fetching');
       }
     } catch (err) {
       setLoading(false);
-      showToast(`Error: ${JSON.stringify(err.response.data)}`);
+      showToast('Error in Document Fetching');
     }
   };
 
-  const getLoanApplicationData = async () => {
-    const application = await getLoanApplicationById(applicationId);
-    setApplicationData(application);
-  };
-  console.log('manual upload sucess', manualUploadSuccess);
-  console.log('digilocker upload sucess', digilockerUploadSuccess);
-
   useEffect(() => {
     if (form?.value?.pan_card_id && form?.value?.address_proof_id) {
-      console.log('manual upload success true');
       setManualUploadSuccess(true);
     }
   }, [form?.value?.pan_card_id, form?.value?.address_proof_id]);
@@ -188,11 +183,7 @@ const UploadProof = ({navigation, applicationId, setStep, currentStep}) => {
   };
   return (
     <>
-      <Loader loading={loading} text="" />
-      <Loader
-        loading={redirectingToDigilockerStatus}
-        text="You are being redirected to Digilocker screen"
-      />
+      <Loader loading={loading} text="Checking Digilocker status..." />
 
       <View style={{paddingTop: 8}}>
         <Heading
@@ -249,7 +240,9 @@ const UploadProof = ({navigation, applicationId, setStep, currentStep}) => {
                       color: theme.colors.primary,
                       ...theme.fontSizes.medium,
                     }}>
-                    Click Here
+                    {redirectingToDigilocker === true
+                      ? 'Please wait...'
+                      : 'Click Here'}
                   </OutlinedButton>
                 </View>
               </View>
@@ -539,8 +532,8 @@ const UploadProof = ({navigation, applicationId, setStep, currentStep}) => {
         <View style={{paddingTop: 39, paddingBottom: 24}}>
           <BaseButton
             disable={!digilockerUploadSuccess && !manualUploadSuccess}
-            onPress={() => {
-              handleSubmit();
+            onPress={async () => {
+              await handleSubmit();
             }}>
             Continue To Next Step
           </BaseButton>
@@ -548,6 +541,4 @@ const UploadProof = ({navigation, applicationId, setStep, currentStep}) => {
       </View>
     </>
   );
-};
-
-export default UploadProof;
+}

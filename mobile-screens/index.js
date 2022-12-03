@@ -17,12 +17,15 @@ import {InfoIcon, WarningIcon1} from 'assets';
 import Auth from './stacks/Auth';
 import Protected from './stacks/Protected';
 import EmptyStates from './stacks/EmptyStates';
-import GraphsStack from './stacks/Graphs';
 import NetInfo from '@react-native-community/netinfo';
 import {setNetworkStatus} from 'store';
 import 'react-native-gesture-handler';
 import {useSelector, shallowEqual} from 'react-redux';
-import SplashScreen from 'react-native-splash-screen';
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: Config.SENTRY_DSN,
+});
 
 const Stack = createStackNavigator();
 
@@ -68,40 +71,36 @@ const App = () => {
     selectSchemeWarning: () => <SelectSchemeWarningComponent />,
   };
 
-  React.useEffect(() => {
-    SplashScreen.hide();
+  const {isUserLoggedInWithMPIN} = useSelector(
+    ({auth}) => ({
+      isUserLoggedInWithMPIN: auth.isUserLoggedInWithMPIN,
+    }),
+    shallowEqual,
+  );
+
+  const init = async () => {
+    try {
+      let tokenFromStorage = await AsyncStorage.getItem('@access_token');
+
+      if (tokenFromStorage !== null) {
+        dispatch(setTokens(JSON.parse(tokenFromStorage)));
+        let userProfile = await getUser();
+        if (userProfile) {
+          dispatch(setUser(userProfile));
+        }
+      }
+    } catch (error) {
+      Sentry.captureException(error);
+    }
+  };
+
+  useEffect(() => {
+    init();
+    const unsubscribe = NetInfo.addEventListener(state => {
+      dispatch(setNetworkStatus(state.isConnected ? 'online' : 'offline'));
+    });
+    return () => unsubscribe();
   }, []);
-
-  // const {isUserLoggedInWithMPIN} = useSelector(
-  //   ({auth}) => ({
-  //     isUserLoggedInWithMPIN: auth.isUserLoggedInWithMPIN,
-  //   }),
-  //   shallowEqual,
-  // );
-
-  // const init = async () => {
-  //   try {
-  //     let tokenFromStorage = await AsyncStorage.getItem('@access_token');
-  //     if (tokenFromStorage !== null) {
-  //       dispatch(setTokens(JSON.parse(tokenFromStorage)));
-  //       let userProfile = await getUser();
-  //       if (userProfile) {
-  //         dispatch(setUser(userProfile));
-  //       }
-  //     }
-  //   } catch (error) {
-  //     return error;
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   init();
-  //   const unsubscribe = NetInfo.addEventListener(state => {
-  //     dispatch(setNetworkStatus(state.isConnected ? 'online' : 'offline'));
-  //   });
-
-  //   return () => unsubscribe();
-  // }, []);
 
   return (
     <>
@@ -110,7 +109,7 @@ const App = () => {
           linking={linking}
           ref={RootNavigation.navigationRef}>
           <Stack.Navigator>
-            {/* <Stack.Screen
+            <Stack.Screen
               name="Auth"
               options={{headerShown: false}}
               component={Auth}
@@ -126,11 +125,6 @@ const App = () => {
               name="EmptyStates"
               options={{headerShown: false}}
               component={EmptyStates}
-            /> */}
-            <Stack.Screen
-              name="GraphsStack"
-              options={{headerShown: false}}
-              component={GraphsStack}
             />
           </Stack.Navigator>
         </NavigationContainer>
@@ -207,4 +201,4 @@ function SelectSchemeWarningComponent() {
   );
 }
 
-export default App;
+export default Sentry.wrap(App);

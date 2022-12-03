@@ -4,7 +4,7 @@ import * as React from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {BackArrow} from 'assets';
 
-export default function (fill) {
+export default function (fill, dependencies = [], preventGoBack = false) {
   const navigation = useNavigation();
   React.useLayoutEffect(() => {
     navigation.setOptions({
@@ -12,13 +12,17 @@ export default function (fill) {
         <Pressable
           hitSlop={{top: 30, left: 30, right: 30, bottom: 30}}
           onPress={() => {
-            navigation.canGoBack() && navigation.pop();
+            if (preventGoBack === true) {
+              return;
+            } else {
+              navigation.canGoBack() && navigation.pop();
+            }
           }}
           style={{width: 50, marginLeft: 16}}>
-          <BackArrow fill={fill} />
+          <BackArrow fill={fill ? fill : '#000000'} />
         </Pressable>
       ),
     });
-  }, [navigation, fill]);
+  }, [navigation, fill, dependencies, preventGoBack]);
   return null;
 }

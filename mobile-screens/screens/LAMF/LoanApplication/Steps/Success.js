@@ -1,13 +1,18 @@
 /* eslint-disable react-native/no-inline-styles */
 import React from 'react';
-import ScreenWrapper from '../../../hocs/screen_wrapper';
+import ScreenWrapper from '../../../../hocs/screen_wrapper';
 import {useTheme} from 'theme';
 import {Heading, OutlinedButton} from 'uin';
 import {View} from 'react-native';
 import {LoanSuccessBanner} from 'assets';
+import useLayoutBackButtonAction from '../../../../reusables/useLayoutBackButtonAction';
+import useHardwareButtonGoBack from '../../../../reusables/useHardwareButtonGoBack';
 
-const CamsSuccess = ({navigation}) => {
+export default function ({navigation}) {
   const theme = useTheme();
+  useLayoutBackButtonAction(null, null, true);
+  useHardwareButtonGoBack(true);
+
   return (
     <ScreenWrapper>
       <View style={{paddingHorizontal: 24, paddingTop: 70}}>
@@ -43,6 +48,4 @@ const CamsSuccess = ({navigation}) => {
       </View>
     </ScreenWrapper>
   );
-};
-
-export default CamsSuccess;
+}
