@@ -63,7 +63,6 @@ export default function ({navigation}) {
         return;
       } else {
         setApiCallStatus('success');
-        showToast('Basic PAN Validation Successful');
       }
     } catch (err) {
       setApiCallStatus('failed');
