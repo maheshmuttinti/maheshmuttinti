@@ -37,8 +37,6 @@ target 'mobile' do
 
   pod 'react-native-blur', :path => '../../../node_modules/@react-native-community/blur'
 
-  pod 'RNSentry', :path => '../node_modules/@sentry/react-native'
-
   target 'mobileTests' do
     inherit! :complete
     # Pods for testing

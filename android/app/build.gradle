@@ -205,8 +205,6 @@ dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules
-    
-    implementation 'io.sentry:sentry-android:6.9.1'
 
     implementation project(':react-native-config')
 
