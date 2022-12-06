@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {Pressable, View} from 'react-native';
 import {
   AuthHeading,
@@ -14,8 +14,6 @@ import {useTheme} from 'theme';
 import ScreenWrapper from '../../../../../hocs/screen_wrapper';
 import {BackArrow, ForwardEmail, TickCircle, WarningIcon1} from 'assets';
 import useExitApp from '../../../../../reusables/useExitApp';
-import useOnboardingHandleRedirection from '../../../../../reusables/useOnboardingHandleRedirection';
-import useUser from '../../../../../reusables/useUser';
 import {showToast, validatePAN} from 'utils';
 
 export default function ({navigation}) {
@@ -27,12 +25,7 @@ export default function ({navigation}) {
 
   const showGreenTickCircleIcon = useRef(() => {});
 
-  const inputRef = useRef(null);
-
   useExitApp();
-  //   const user = useUser();
-
-  //   const {handleUpdateOnboardingStep} = useOnboardingHandleRedirection();
 
   const backArrowIconWrapperStyle = {
     paddingTop: 48,
@@ -46,10 +39,6 @@ export default function ({navigation}) {
     validatePAN(panNumber)
       ? setShowGreenCircleIcon(true)
       : setShowGreenCircleIcon(false);
-
-  //   useEffect(() => {
-  //     showGreenTickCircleIcon.current();
-  //   }, [pan]);
 
   const handleChangeText = text => {
     console.log('handleChangeText called: ', text);
@@ -72,23 +61,6 @@ export default function ({navigation}) {
         setApiCallStatus('failed');
 
         return;
-
-        // const updateProfileResponse = await handleUpdateOnboardingStep(user, {
-        //   risk_profiling: {
-        //     status: 'completed',
-        //     data: {
-        //       pan: pan,
-        //     },
-        //   },
-        // });
-        // console.log(
-        //   'updateProfileResponse of enter pan screen',
-        //   updateProfileResponse,
-        // );
-        // if (updateProfileResponse) {
-        //   setApiCallStatus('success');
-        //   navigation.replace('Protected');
-        // }
       } else {
         setApiCallStatus('success');
         showToast('Basic PAN Validation Successful');
@@ -145,7 +117,6 @@ export default function ({navigation}) {
 
           <View style={{paddingTop: 17}}>
             <BaseTextInput
-              autoFocus={true}
               placeholder="Enter PAN Card Number"
               onChangeText={text => handleChangeText(text)}
               value={pan}
