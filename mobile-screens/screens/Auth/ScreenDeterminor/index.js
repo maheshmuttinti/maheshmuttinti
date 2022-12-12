@@ -13,7 +13,7 @@ import {AnimatedEllipsis} from 'uin';
 
 export default function ({navigation, route}) {
   const theme = useTheme();
-  console.log('screen determinor called');
+
   const redirectionFnRef = useRef(() => {});
   const handleRedirectionsFnRef = useRef(() => {});
   const redirectToNoInternetScreen = useRef(() => {});
