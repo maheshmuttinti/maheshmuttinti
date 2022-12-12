@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect, useCallback} from 'react';
 import {Platform, View} from 'react-native';
 import {CustomKeyboard} from 'uin';
 import AuthWrapper from '../../../hocs/AuthWrapper';
@@ -23,51 +23,56 @@ export default function ({navigation, route}) {
   const pinScreenRef = useRef(null);
   const {handleRedirection} = useOnboardingHandleRedirection();
 
-  const updatePasswordCallback = async () => {
+  const updatePasswordCallback = useCallback(async () => {
     try {
-      setLoading(true);
       const user = await getUser();
-
-      if (confirmMpin === mpin) {
-        const payload = {
-          password: confirmMpin,
-        };
-        const updatePasswordResponse = await updatePassword(payload);
-
-        if (
-          updatePasswordResponse?.message === 'Password successfully updated'
-        ) {
-          const updateProfilePayload = {
-            meta: {
-              ...user?.profile?.meta,
-              mpin_set: true,
-            },
+      if (confirmMpin?.length === 4) {
+        if (confirmMpin === mpin) {
+          setLoading(true);
+          const payload = {
+            password: confirmMpin,
           };
-          const updateProfileResponse = await updateUserProfile(
-            updateProfilePayload,
-          );
+          const updatePasswordResponse = await updatePassword(payload);
 
-          if (updateProfileResponse) {
-            dispatch(setIsUserLoggedInWithMPIN(true));
-            await handleRedirection(user);
-            setConfirmMpinError('');
+          if (
+            updatePasswordResponse?.message === 'Password successfully updated'
+          ) {
+            const updateProfilePayload = {
+              meta: {
+                ...user?.profile?.meta,
+                mpin_set: true,
+              },
+            };
+            const updateProfileResponse = await updateUserProfile(
+              updateProfilePayload,
+            );
+
+            if (updateProfileResponse) {
+              dispatch(setIsUserLoggedInWithMPIN(true));
+              await handleRedirection(user);
+              setConfirmMpinError('');
+              setLoading(false);
+            }
+          } else {
             setLoading(false);
+
+            return;
           }
         } else {
           setLoading(false);
 
-          return;
+          setConfirmMpinError('Pin should match');
         }
-      } else {
-        setLoading(false);
-
-        setConfirmMpinError('Pin should match');
       }
     } catch (err) {
       setLoading(false);
       return err;
     }
-  };
+  }, [confirmMpin, dispatch, mpin]);
+
+  useEffect(() => {
+    updatePasswordCallback();
+  }, [updatePasswordCallback]);
 
   return (
     <AuthWrapper>
@@ -140,12 +145,18 @@ export default function ({navigation, route}) {
                   transform: [{translateY: 2.5}, {scale: 0.98}],
                 }
               }>
-              <KeyboardDoneIcon />
+              <KeyboardDoneIcon
+                fill={
+                  confirmMpin?.length === 4 &&
+                  confirmMpin === mpin &&
+                  theme.colors.primaryBlue
+                }
+              />
             </View>,
           ],
         ]}
         rippleContainerBorderRadius={50}
-        onEnterPress={() => updatePasswordCallback()}
+        // onEnterPress={() => updatePasswordCallback()}
         ItemFooter={
           <SetupLaterButton
             navigation={navigation}

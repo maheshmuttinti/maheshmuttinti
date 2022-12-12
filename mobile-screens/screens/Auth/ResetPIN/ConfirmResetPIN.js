@@ -22,6 +22,8 @@ export default function ({navigation, route}) {
     try {
       setConfirmMpinError('');
       if (confirmMpin?.length === 4) {
+        console.log('confirmMpin: ', confirmMpin);
+        console.log('mpin: ', mpin);
         if (confirmMpin === mpin) {
           console.log('user', user);
           const mobileNumberAttribute = user?.attributes?.find(
@@ -143,7 +145,11 @@ export default function ({navigation, route}) {
                   }
                 }>
                 <KeyboardDoneIcon
-                  fill={confirmMpin === mpin && theme.colors.primaryBlue}
+                  fill={
+                    confirmMpin?.length === 4 &&
+                    confirmMpin === mpin &&
+                    theme.colors.primaryBlue
+                  }
                 />
               </View>,
             ],

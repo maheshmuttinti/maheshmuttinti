@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState, useRef, useEffect, useCallback} from 'react';
 import {Platform, View} from 'react-native';
 import {TextButton, CustomKeyboard} from 'uin';
 import AuthWrapper from '../../../hocs/AuthWrapper';
@@ -9,6 +9,7 @@ import useOnboardingHandleRedirection from '../../../reusables/useOnboardingHand
 import {useDispatch} from 'react-redux';
 import {setIsUserLoggedInWithMPIN} from 'store';
 import OverLayLoader from '../../../reusables/loader';
+import {useAutoRedirectOnEnterMPIN} from '../../../reusables/useAutoRedirectOnEnterMPIN';
 
 export default function ({navigation}) {
   const theme = useTheme();
@@ -22,6 +23,15 @@ export default function ({navigation}) {
       setMpin('');
     });
   }, [navigation]);
+
+  const redirectTo = useCallback(() => {
+    navigation.navigate('Auth', {
+      screen: 'ConfirmPIN',
+      params: {mpin},
+    });
+  }, [mpin, navigation]);
+
+  useAutoRedirectOnEnterMPIN(mpin, redirectTo);
 
   const {handleRedirection} = useOnboardingHandleRedirection();
 
@@ -95,20 +105,14 @@ export default function ({navigation}) {
                   transform: [{translateY: 2.5}, {scale: 0.98}],
                 }
               }>
-              <KeyboardDoneIcon />
+              <KeyboardDoneIcon
+                fill={mpin?.length === 4 && theme.colors.primaryBlue}
+              />
             </View>,
           ],
         ]}
         navigation={navigation}
         rippleContainerBorderRadius={50}
-        onEnterPress={() => {
-          if (mpin?.length === 4) {
-            navigation.navigate('Auth', {
-              screen: 'ConfirmPIN',
-              params: {mpin},
-            });
-          }
-        }}
         ItemFooter={
           <SetupLaterButton
             navigation={navigation}

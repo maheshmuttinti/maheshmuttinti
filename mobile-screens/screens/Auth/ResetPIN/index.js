@@ -1,10 +1,11 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {Platform, View} from 'react-native';
 import {CustomKeyboard} from 'uin';
 import AuthWrapper from '../../../hocs/AuthWrapper';
 import {useTheme} from 'theme';
 import {KeyboardDoneIcon, KeyboardDeleteIcon} from 'assets';
+import {useAutoRedirectOnEnterMPIN} from '../../../reusables/useAutoRedirectOnEnterMPIN';
 
 export default function ({navigation}) {
   const [mpin, setMpin] = useState('');
@@ -18,14 +19,14 @@ export default function ({navigation}) {
     });
   }, [navigation]);
 
-  useEffect(() => {
-    if (mpin?.length === 4) {
-      navigation.navigate('Auth', {
-        screen: 'ConfirmResetPIN',
-        params: {mpin},
-      });
-    }
+  const redirectTo = useCallback(() => {
+    navigation.navigate('Auth', {
+      screen: 'ConfirmResetPIN',
+      params: {mpin},
+    });
   }, [mpin, navigation]);
+
+  useAutoRedirectOnEnterMPIN(mpin, redirectTo);
 
   return (
     <AuthWrapper>
