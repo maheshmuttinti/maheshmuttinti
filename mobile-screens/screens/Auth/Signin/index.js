@@ -175,20 +175,8 @@ export default function SignInScreen({navigation}) {
     }
   };
 
-  const handleBackPress = async () => {
-    try {
-      if (navigation.canGoBack()) {
-        navigation.pop();
-      }
-    } catch (error) {
-      return error;
-    }
-  };
-
   return (
-    <AuthWrapper
-      onBackPress={() => handleBackPress()}
-      showBackArrowIcon={navigation.canGoBack()}>
+    <AuthWrapper showBackArrowIcon={navigation.canGoBack()}>
       <AuthHeading>Welcome Back!</AuthHeading>
 
       <View style={{paddingTop: 24}}>

@@ -7,10 +7,11 @@ import {updatePassword, updateUserProfile, getUser} from 'services';
 import {useTheme} from 'theme';
 import {KeyboardDoneIcon, KeyboardDeleteIcon} from 'assets';
 import {SetupLaterButton} from '.';
-import useOnboardingHandleRedirection from '../../../reusables/useOnboardingHandleRedirection';
 import {setIsUserLoggedInWithMPIN} from 'store';
 import {useDispatch} from 'react-redux';
 import OverLayLoader from '../../../reusables/loader';
+import {useSetPINLaterRedirection} from '../../../reusables/useSetPINLaterRedirection';
+import useOnboardingHandleRedirection from '../../../reusables/useOnboardingHandleRedirection';
 
 export default function ({navigation, route}) {
   const theme = useTheme();
@@ -21,7 +22,9 @@ export default function ({navigation, route}) {
 
   const mpin = route?.params?.mpin;
   const pinScreenRef = useRef(null);
+
   const {handleRedirection} = useOnboardingHandleRedirection();
+  const handleSkipRedirection = useSetPINLaterRedirection(navigation);
 
   const updatePasswordCallback = useCallback(async () => {
     try {
@@ -162,7 +165,7 @@ export default function ({navigation, route}) {
             navigation={navigation}
             onSkip={async () => {
               setLoading(true);
-              await handleRedirection();
+              await handleSkipRedirection();
               setLoading(false);
             }}
           />

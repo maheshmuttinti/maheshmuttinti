@@ -335,7 +335,7 @@ export default function ({navigation}) {
   };
 
   return (
-    <AuthWrapper onBackPress={() => {}} showBackArrowIcon={false}>
+    <AuthWrapper onBackPress={() => {}}>
       <AuthHeading>Welcome!</AuthHeading>
 
       <View style={{paddingTop: 24}}>

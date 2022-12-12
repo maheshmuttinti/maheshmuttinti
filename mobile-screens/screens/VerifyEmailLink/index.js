@@ -29,7 +29,7 @@ export default function ({navigation, route}) {
   console.log('mpinStatus', isUserLoggedInWithMPIN);
 
   return (
-    <AuthWrapper showBackArrowIcon={false}>
+    <AuthWrapper>
       <AuthHeading>Activation Link Sent</AuthHeading>
 
       <GroupText style={{paddingTop: 24}}>

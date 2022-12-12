@@ -5,11 +5,11 @@ import {TextButton, CustomKeyboard} from 'uin';
 import AuthWrapper from '../../../hocs/AuthWrapper';
 import {useTheme} from 'theme';
 import {KeyboardDoneIcon, KeyboardDeleteIcon} from 'assets';
-import useOnboardingHandleRedirection from '../../../reusables/useOnboardingHandleRedirection';
 import {useDispatch} from 'react-redux';
 import {setIsUserLoggedInWithMPIN} from 'store';
 import OverLayLoader from '../../../reusables/loader';
 import {useAutoRedirectOnEnterMPIN} from '../../../reusables/useAutoRedirectOnEnterMPIN';
+import {useSetPINLaterRedirection} from '../../../reusables/useSetPINLaterRedirection';
 
 export default function ({navigation}) {
   const theme = useTheme();
@@ -33,7 +33,7 @@ export default function ({navigation}) {
 
   useAutoRedirectOnEnterMPIN(mpin, redirectTo);
 
-  const {handleRedirection} = useOnboardingHandleRedirection();
+  const handleRedirection = useSetPINLaterRedirection(navigation);
 
   return (
     <AuthWrapper showBackArrowIcon={false}>
