@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useState, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import {GrayBodyText, AuthHeading, CustomOtpInput} from 'uin';
+import {GrayBodyText, AuthHeading, CustomOTPInputWithAutoFill} from 'uin';
 import AuthWrapper from '../../../hocs/AuthWrapper';
 import useBetaForm from '@reusejs/react-form-hook';
 import {
@@ -14,9 +14,12 @@ import BackgroundTimer from '../../../reusables/BackgroundTimer';
 import {useTheme} from 'theme';
 import {prettifyJSON} from 'utils';
 import useUser from '../../../reusables/useUser';
+import * as Sentry from '@sentry/react-native';
+import {VerifyOTPLoader} from '../../../reusables/VerifyOTPLoader';
 
 export default function ({route, navigation}) {
   const [infoText, setInfoText] = useState('');
+  const [verifyingOTP, setVerifyingOTP] = useState(false);
   const value = route?.params?.value;
   const type = route?.params?.type;
   const handleVerifyPhoneNumberOTP = useRef(() => {});
@@ -63,24 +66,29 @@ export default function ({route, navigation}) {
 
   useEffect(() => {
     if (form.value.token.length === 6) {
+      setVerifyingOTP(true);
       handleVerifyPhoneNumberOTP.current();
+      setVerifyingOTP(false);
     }
   }, [form.value.token]);
 
   handleVerifyPhoneNumberOTP.current = async () => {
     try {
+      form.setErrors({token: ''});
       const verifyOtpPayload = {
         ...form.value,
       };
       const verificationResponse = await verifyAttribute(verifyOtpPayload);
 
       if (verificationResponse) {
+        setVerifyingOTP(false);
         console.log('verificationResponse', prettifyJSON(verificationResponse));
         navigation.replace('Auth', {
           screen: 'ScreenDeterminor',
         });
       }
     } catch (error) {
+      setVerifyingOTP(false);
       console.log('error', error);
       if (error?.errors?.token[0] === 'Please provide token') {
         form.setErrors({token: 'Please enter verification code'});
@@ -100,6 +108,8 @@ export default function ({route, navigation}) {
   const handleResendOTP = async () => {
     try {
       console.log('form.value for resend otp', form.value);
+      form.setField('token', '');
+      form.setErrors({token: ''});
       const payload = {
         type: form.value.type,
         value: form.value.value,
@@ -133,7 +143,7 @@ export default function ({route, navigation}) {
       </View>
 
       <View style={{paddingTop: 24}}>
-        <CustomOtpInput
+        <CustomOTPInputWithAutoFill
           defaultValue={''}
           onChangeText={text => form.setField('token', text)}
           value={form.getField('token')}
@@ -149,16 +159,27 @@ export default function ({route, navigation}) {
                   borderColor: 'transparent',
                 }
           }
+          otpLength={6}
+          onSubmit={async otp => {
+            form.setField('token', otp);
+          }}
+          onGetHashSuccess={hash => {
+            Sentry.captureMessage(`hash code of the finezzy app: ${hash}`);
+          }}
+          onGetHashError={error => {
+            Sentry.captureException(error);
+          }}
+          onOTPRetrieveError={message => {
+            Sentry.captureException(`OTP Retrieve Error: ${message}`);
+          }}
           tintColor={
             form.errors.get('token')
               ? theme.colors.error
               : theme.colors.primaryBlue
           }
-          // left={-21}
-          // scale={0.9}
-          // inputCount={6}
           secureTextEntry={false}
         />
+        <VerifyOTPLoader loading={verifyingOTP} />
       </View>
 
       <BackgroundTimer

@@ -11,9 +11,15 @@ import AppIntro from './IntroSlider';
 import {View, Text, Dimensions} from 'react-native';
 import {RoundedFilledButton} from 'uin';
 import {Arrow} from 'assets';
+import * as Sentry from '@sentry/react-native';
+import {useDispatch} from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {setHideIntro} from 'store';
+
 const {width} = Dimensions.get('window');
 
 export default function ({navigation}) {
+  const dispatch = useDispatch();
   const theme = useTheme();
   const propData = {
     sourceType: 'SVG',
@@ -99,6 +105,16 @@ export default function ({navigation}) {
       // },
     ],
   };
+
+  const handleSubmit = async () => {
+    try {
+      dispatch(setHideIntro(true));
+      await AsyncStorage.setItem('@hide_intro', JSON.stringify(true));
+      return navigation.replace('Auth', {screen: 'SignupHome'});
+    } catch (error) {
+      Sentry.captureException(error);
+    }
+  };
   return (
     <View
       style={{
@@ -139,7 +155,9 @@ export default function ({navigation}) {
         }}
         footerButton={
           <RoundedFilledButton
-            onPress={() => navigation.navigate('Auth', {screen: 'SignupHome'})}
+            onPress={async () => {
+              await handleSubmit();
+            }}
             bgColor="#FF5500"
             textColor="#ffffff">
             <Arrow stroke="#fff" />

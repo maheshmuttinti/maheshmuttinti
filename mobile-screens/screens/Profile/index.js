@@ -47,14 +47,16 @@ export default function () {
   const theme = useTheme();
   const navigation = useNavigation();
   const [selectedOptionIndex, setSelectedOptionIndex] = useState(null);
+  const [disableButton, setDisableButton] = useState(false);
   const [openConfirmDeletePopup, setOpenConfirmDeletePopup] = useState(false);
 
   const handleLogout = async () => {
     try {
+      setDisableButton(true);
       const logoutResponse = await logout();
       console.log('logoutResponse', logoutResponse);
       dispatch(clearAuth());
-      AsyncStorage.clear();
+      await AsyncStorage.clear();
       dispatch(setHideIntro(true));
       await AsyncStorage.setItem('@loggedin_status', JSON.stringify(true));
       await AsyncStorage.setItem('@hide_intro', JSON.stringify(true));
@@ -69,7 +71,7 @@ export default function () {
       const deleteAccountResponse = await deleteAccount();
       console.log('deleteAccountResponse', deleteAccountResponse);
       dispatch(clearAuth());
-      AsyncStorage.clear();
+      await AsyncStorage.clear();
       dispatch(setHideIntro(true));
       await AsyncStorage.setItem('@loggedin_status', JSON.stringify(true));
       await AsyncStorage.setItem('@hide_intro', JSON.stringify(true));
@@ -522,7 +524,9 @@ export default function () {
 
         <Ripple
           rippleColor={theme.colors.primaryBlue100}
-          onPress={async () => await handleLogout()}>
+          onPress={async () => {
+            disableButton === true ? null : await handleLogout();
+          }}>
           <TextButton
             style={{
               color: theme.colors.primaryBlue,

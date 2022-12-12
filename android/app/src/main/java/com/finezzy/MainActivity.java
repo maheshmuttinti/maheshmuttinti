@@ -1,4 +1,4 @@
-package com.finezzy;
+package com.finezzyvtwo;
 
 import com.facebook.react.ReactActivity;
 import org.devio.rn.splashscreen.SplashScreen;

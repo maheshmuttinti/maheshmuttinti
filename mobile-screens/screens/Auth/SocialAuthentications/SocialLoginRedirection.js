@@ -9,6 +9,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import {useDispatch} from 'react-redux';
 import {useTheme} from 'theme';
 import {AnimatedEllipsis} from 'uin';
+import * as Sentry from '@sentry/react-native';
 
 export default function ({navigation, route}) {
   const dispatch = useDispatch();
@@ -58,19 +59,28 @@ export default function ({navigation, route}) {
 
   getUserFnRef.current = async () => {
     try {
-      await AsyncStorage.setItem(
-        '@access_token',
-        JSON.stringify({
-          accessToken: accessToken,
-        }),
+      Sentry.captureMessage(
+        `AccessToken in SocialLoginRedirection ${accessToken}`,
       );
-      dispatch(setTokens({access_token: accessToken}));
-      await AsyncStorage.setItem('@loggedin_status', JSON.stringify(true));
-      const user = await getUser();
-      dispatch(setUser(user));
-      await handleUpdateUser(user);
+      if (accessToken) {
+        await AsyncStorage.setItem(
+          '@access_token',
+          JSON.stringify({
+            accessToken: accessToken,
+          }),
+        );
+        dispatch(setTokens({access_token: accessToken}));
+        await AsyncStorage.setItem('@loggedin_status', JSON.stringify(true));
+        const user = await getUser();
+        dispatch(setUser(user));
+        await handleUpdateUser(user);
+      }
     } catch (error) {
-      console.log('error', error);
+      console.log('error in getUserFnRef function', error);
+      Sentry.captureException(JSON.stringify(error));
+      navigation.replace('Auth', {
+        screen: 'SigninHome',
+      });
     }
   };
 

@@ -18,6 +18,15 @@ export default function ({navigation}) {
     });
   }, [navigation]);
 
+  useEffect(() => {
+    if (mpin?.length === 4) {
+      navigation.navigate('Auth', {
+        screen: 'ConfirmResetPIN',
+        params: {mpin},
+      });
+    }
+  }, [mpin, navigation]);
+
   return (
     <AuthWrapper>
       <View>
@@ -88,20 +97,14 @@ export default function ({navigation}) {
                     transform: [{translateY: 2.5}, {scale: 0.98}],
                   }
                 }>
-                <KeyboardDoneIcon />
+                <KeyboardDoneIcon
+                  fill={mpin?.length === 4 && theme.colors.primaryBlue}
+                />
               </View>,
             ],
           ]}
           navigation={navigation}
           rippleContainerBorderRadius={50}
-          onEnterPress={() => {
-            if (mpin?.length === 4) {
-              navigation.navigate('Auth', {
-                screen: 'ConfirmResetPIN',
-                params: {mpin},
-              });
-            }
-          }}
         />
       </View>
     </AuthWrapper>

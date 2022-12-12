@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {Platform, View} from 'react-native';
 import {CustomKeyboard} from 'uin';
 import AuthWrapper from '../../../hocs/AuthWrapper';
@@ -18,52 +18,58 @@ export default function ({navigation, route}) {
 
   const user = useUser();
 
-  const requestResetPasswordCallback = async () => {
+  const requestResetPasswordCallback = useCallback(async () => {
     try {
       setConfirmMpinError('');
-      if (confirmMpin === mpin) {
-        console.log('user', user);
-        const mobileNumberAttribute = user?.attributes?.find(
-          item => item.type === 'mobile_number',
-        );
-        console.log(
-          'mobileNumberAttribute',
-          prettifyJSON(mobileNumberAttribute),
-        );
-        const requestResetPasswordPayload = {
-          ...mobileNumberAttribute,
-        };
-        console.log(
-          'requestResetPasswordPayload while logged in user enters the pin',
-          prettifyJSON(requestResetPasswordPayload),
-        );
-        const requestResetPasswordResponse = await requestResetPassword(
-          requestResetPasswordPayload,
-        );
-        console.log('response', prettifyJSON(requestResetPasswordResponse));
-        if (
-          requestResetPasswordResponse?.message ===
-          'Request for verification successfully'
-        ) {
-          console.log('success');
-          navigation.navigate('Auth', {
-            screen: 'VerifyOTPForResetPIN',
-            params: {
-              userAttributes: {...mobileNumberAttribute},
-              newPin: confirmMpin,
-            },
-          });
+      if (confirmMpin?.length === 4) {
+        if (confirmMpin === mpin) {
+          console.log('user', user);
+          const mobileNumberAttribute = user?.attributes?.find(
+            item => item.type === 'mobile_number',
+          );
+          console.log(
+            'mobileNumberAttribute',
+            prettifyJSON(mobileNumberAttribute),
+          );
+          const requestResetPasswordPayload = {
+            ...mobileNumberAttribute,
+          };
+          console.log(
+            'requestResetPasswordPayload while logged in user enters the pin',
+            prettifyJSON(requestResetPasswordPayload),
+          );
+          const requestResetPasswordResponse = await requestResetPassword(
+            requestResetPasswordPayload,
+          );
+          console.log('response', prettifyJSON(requestResetPasswordResponse));
+          if (
+            requestResetPasswordResponse?.message ===
+            'Request for verification successfully'
+          ) {
+            console.log('success');
+            navigation.navigate('Auth', {
+              screen: 'VerifyOTPForResetPIN',
+              params: {
+                userAttributes: {...mobileNumberAttribute},
+                newPin: confirmMpin,
+              },
+            });
+          }
+        } else {
+          console.log('got it mannnnn', mpin, confirmMpin);
+          setConfirmMpinError('Pin should match');
         }
-      } else {
-        console.log('got it mannnnn', mpin, confirmMpin);
-        setConfirmMpinError('Pin should match');
       }
     } catch (err) {
       console.log('error while calling reset request otp', err);
     }
-  };
+  }, [confirmMpin, mpin, navigation, user]);
 
   console.log('confirmMpinError', confirmMpinError);
+
+  useEffect(() => {
+    requestResetPasswordCallback();
+  }, [requestResetPasswordCallback]);
 
   return (
     <AuthWrapper>
@@ -136,12 +142,14 @@ export default function ({navigation, route}) {
                     transform: [{translateY: 2.5}, {scale: 0.98}],
                   }
                 }>
-                <KeyboardDoneIcon />
+                <KeyboardDoneIcon
+                  fill={confirmMpin === mpin && theme.colors.primaryBlue}
+                />
               </View>,
             ],
           ]}
           rippleContainerBorderRadius={50}
-          onEnterPress={() => requestResetPasswordCallback()}
+          // onEnterPress={() => requestResetPasswordCallback()}
         />
       </View>
     </AuthWrapper>

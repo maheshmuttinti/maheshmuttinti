@@ -140,6 +140,7 @@ const Index = ({route, navigation}) => {
           setEditableTotal(`${item.total_pre_approved_loan_amount}`);
         }
       });
+      setLoading(false);
     } catch (error) {
       setLoading(false);
 

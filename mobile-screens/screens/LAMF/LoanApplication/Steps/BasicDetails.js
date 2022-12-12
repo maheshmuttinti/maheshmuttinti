@@ -37,6 +37,7 @@ export default function ({
     state: '',
     city: '',
     pin: '',
+    aadhar_number: '',
   });
 
   useEffect(() => {
@@ -75,6 +76,7 @@ export default function ({
       form.setField('state', details.state);
       form.setField('city', details.city);
       form.setField('pin', details.pin);
+      form.setField('aadhar_number', details.aadhar_number);
     }
   };
 
@@ -148,6 +150,22 @@ export default function ({
           }}
           value={form.getField('fathers_name')}
           error={form.errors.get('fathers_name')}
+        />
+      </View>
+      <View style={{paddingTop: 16}}>
+        <BaseTextInput
+          keyboardType="numeric"
+          placeholder="Enter Aadhar Number"
+          label="AADHAR NUMBER"
+          onChangeText={v => {
+            form.setField('aadhar_number', v);
+          }}
+          labelStyles={{
+            color: theme.colors.primaryBlue,
+            ...theme.fontSizes.small,
+          }}
+          value={form.getField('aadhar_number')}
+          error={form.errors.get('aadhar_number')}
         />
       </View>
       <View style={{paddingTop: 16}}>

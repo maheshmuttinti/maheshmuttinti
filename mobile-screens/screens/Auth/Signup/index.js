@@ -119,6 +119,7 @@ export default function SignupOptionsScreen({navigation}) {
   const handleGoogleLogin = async () => {
     try {
       const data = await googleLogin();
+      console.log('handleGoogleLogin->data: ', data);
       const url = data?.redirect_to;
       await openBrowser(url);
     } catch (error) {
@@ -218,7 +219,7 @@ export default function SignupOptionsScreen({navigation}) {
   };
 
   return (
-    <AuthWrapper>
+    <AuthWrapper showBackArrowIcon={navigation.canGoBack()}>
       <AuthHeading>Enhance your Financial Well-Being!</AuthHeading>
 
       <View style={{paddingTop: 18}}>

@@ -54,6 +54,7 @@ export default function SignInScreen({navigation}) {
   const handleGoogleLogin = async () => {
     try {
       const data = await googleLogin();
+      console.log('handleGoogleLogin->data: ', data);
       const url = data?.redirect_to;
       await openBrowser(url);
     } catch (error) {
@@ -176,21 +177,18 @@ export default function SignInScreen({navigation}) {
 
   const handleBackPress = async () => {
     try {
-      // let hideIntro = JSON.parse(await AsyncStorage.getItem('@hide_intro'));
-      // if (hideIntro === true) {
-      //   BackHandler.exitApp();
-      // } else {
       if (navigation.canGoBack()) {
         navigation.pop();
       }
-      // }
     } catch (error) {
       return error;
     }
   };
 
   return (
-    <AuthWrapper onBackPress={() => handleBackPress()}>
+    <AuthWrapper
+      onBackPress={() => handleBackPress()}
+      showBackArrowIcon={navigation.canGoBack()}>
       <AuthHeading>Welcome Back!</AuthHeading>
 
       <View style={{paddingTop: 24}}>

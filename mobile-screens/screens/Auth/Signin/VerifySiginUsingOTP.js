@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useState, useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import {GrayBodyText, AuthHeading, CustomOtpInput} from 'uin';
+import {ActivityIndicator, View} from 'react-native';
+import {GrayBodyText, AuthHeading, CustomOTPInputWithAutoFill} from 'uin';
 import AuthWrapper from '../../../hocs/AuthWrapper';
 import useBetaForm from '@reusejs/react-form-hook';
 import {
@@ -14,7 +14,9 @@ import {setTokens, setUser} from 'store';
 import {useDispatch} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BackgroundTimer from '../../../reusables/BackgroundTimer';
+import {VerifyOTPLoader} from '../../../reusables/VerifyOTPLoader';
 import {useTheme} from 'theme';
+import * as Sentry from '@sentry/react-native';
 
 export default function ({route, navigation}) {
   const [infoText, setInfoText] = useState('');
@@ -25,6 +27,7 @@ export default function ({route, navigation}) {
   const handleLogin = useRef(() => {});
   const persistLogin = useRef(() => {});
   const updateUserProfileFnRef = useRef(() => {});
+  const [verifyingOTP, setVerifyingOTP] = useState(false);
   const theme = useTheme();
 
   const form = useBetaForm({
@@ -73,6 +76,7 @@ export default function ({route, navigation}) {
         console.log(
           'updated the profile in verify signin using otp screen adn redirecting to screen determinor screen',
         );
+        setVerifyingOTP(false);
         navigation.replace('Auth', {
           screen: 'ScreenDeterminor',
         });
@@ -112,6 +116,8 @@ export default function ({route, navigation}) {
 
   handleLogin.current = async () => {
     try {
+      setVerifyingOTP(true);
+      form.setErrors({token: ''});
       console.log('form.value', form.value);
       const payload = {
         type: form.value.type,
@@ -138,6 +144,7 @@ export default function ({route, navigation}) {
       }
     } catch (error) {
       console.log('error', error);
+      setVerifyingOTP(false);
       if (error?.errors?.token[0] === 'Please provide token') {
         form.setErrors({token: 'Please enter verification code'});
       } else if (error?.message === 'Invalid Token') {
@@ -149,6 +156,8 @@ export default function ({route, navigation}) {
 
   const handleResendOTP = async () => {
     try {
+      form.setField('token', '');
+      form.setErrors({token: ''});
       console.log('form.value', form.value);
       const payload = {
         type: form.value.type,
@@ -181,7 +190,7 @@ export default function ({route, navigation}) {
       </View>
 
       <View style={{paddingTop: 24}}>
-        <CustomOtpInput
+        <CustomOTPInputWithAutoFill
           defaultValue={''}
           onChangeText={text => form.setField('token', text)}
           value={form.getField('token')}
@@ -197,16 +206,37 @@ export default function ({route, navigation}) {
                   borderColor: 'transparent',
                 }
           }
+          otpLength={6}
+          onSubmit={async otp => {
+            form.setField('token', otp);
+          }}
+          onGetHashSuccess={hash => {
+            Sentry.captureMessage(`hash code of the finezzy app: ${hash}`);
+          }}
+          onGetHashError={error => {
+            Sentry.captureException(error);
+          }}
+          onOTPRetrieveError={message => {
+            Sentry.captureException(`OTP Retrieve Error: ${message}`);
+          }}
           tintColor={
             form.errors.get('token')
               ? theme.colors.error
               : theme.colors.primaryBlue
           }
-          // left={-21}
-          // scale={0.9}
-          // inputCount={1}
+          // overlappingIcon={() => {
+          //   if (verifyingOTP === true) {
+          //     return (
+          //       <View style={{position: 'absolute', right: 13.24}}>
+          //         <ActivityIndicator color={theme.colors.primaryBlue} />
+          //       </View>
+          //     );
+          //   }
+          //   return null;
+          // }}
           secureTextEntry={false}
         />
+        <VerifyOTPLoader loading={verifyingOTP} />
       </View>
 
       <BackgroundTimer

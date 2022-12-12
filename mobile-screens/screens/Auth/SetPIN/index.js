@@ -26,7 +26,7 @@ export default function ({navigation}) {
   const {handleRedirection} = useOnboardingHandleRedirection();
 
   return (
-    <AuthWrapper>
+    <AuthWrapper showBackArrowIcon={false}>
       <OverLayLoader loading={loading} backdropOpacity={0.5} />
       <CustomKeyboard
         onRef={() => pinScreenRef}

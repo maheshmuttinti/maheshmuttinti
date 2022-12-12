@@ -74,10 +74,16 @@ export default function ({navigation, route}) {
     }
   };
 
+  useEffect(() => {
+    if (mpin?.length === 4) {
+      handleValidateMPIN();
+    }
+  }, [mpin]);
+
   const pinScreenRef = useRef(null);
 
   return (
-    <AuthWrapper>
+    <AuthWrapper showBackArrowIcon={false}>
       <OverLayLoader loading={loading} backdropOpacity={0.5} />
       <View>
         <CustomKeyboard
@@ -146,7 +152,9 @@ export default function ({navigation, route}) {
                     transform: [{translateY: 2.5}, {scale: 0.98}],
                   }
                 }>
-                <KeyboardDoneIcon />
+                <KeyboardDoneIcon
+                  fill={mpin?.length === 4 && theme.colors.primaryBlue}
+                />
               </View>,
             ],
           ]}
@@ -170,7 +178,7 @@ export default function ({navigation, route}) {
               </TextButton>
             </View>
           }
-          onEnterPress={() => handleValidateMPIN()}
+          // onEnterPress={() => handleValidateMPIN()}
         />
       </View>
     </AuthWrapper>

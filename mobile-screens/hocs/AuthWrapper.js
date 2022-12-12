@@ -103,7 +103,7 @@ const AuthScreenWrapper = ({children, showBackArrowIcon = true, ...props}) => {
                 ...props.childrenWrapperStyles,
               }}>
               <View style={{...backArrowIconWrapperStyle}}>
-                {showBackArrowIcon && (
+                {showBackArrowIcon ? (
                   <Pressable
                     hitSlop={{top: 30, left: 30, right: 30, bottom: 30}}
                     onPress={() => {
@@ -114,6 +114,8 @@ const AuthScreenWrapper = ({children, showBackArrowIcon = true, ...props}) => {
                     style={{width: 50}}>
                     <BackArrow />
                   </Pressable>
+                ) : (
+                  <View style={{height: 24}} />
                 )}
               </View>
               {children}

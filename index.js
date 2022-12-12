@@ -8,15 +8,15 @@ import {name as appName} from './app.json';
 import {Provider} from 'react-redux';
 import {mobileStore} from 'store';
 import React from 'react';
-import {StepperProvider} from 'uin';
+import * as Sentry from '@sentry/react-native';
 
 const MobileApp = () => {
   return (
-    <Provider store={mobileStore}>
-      <StepperProvider>
+    <Sentry.TouchEventBoundary>
+      <Provider store={mobileStore}>
         <App />
-      </StepperProvider>
-    </Provider>
+      </Provider>
+    </Sentry.TouchEventBoundary>
   );
 };
 

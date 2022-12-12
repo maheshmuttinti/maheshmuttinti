@@ -1,12 +1,11 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {GrayBodyText, AuthHeading, CustomOtpInput} from 'uin';
+import {GrayBodyText, AuthHeading, CustomOTPInputWithAutoFill} from 'uin';
 import AuthWrapper from '../../../hocs/AuthWrapper';
 import useBetaForm from '@reusejs/react-form-hook';
 import {
   verifyRegistration,
-  login,
   requestVerifyRegistration,
   updateUserProfile,
   getUser,
@@ -16,49 +15,62 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useDispatch} from 'react-redux';
 import {setTokens} from 'store';
 import BackgroundTimer from '../../../reusables/BackgroundTimer';
+import {VerifyOTPLoader} from '../../../reusables/VerifyOTPLoader';
 import {useTheme} from 'theme';
-import {getUserPassword, prettifyJSON, showToast} from 'utils';
+import {prettifyJSON, showToast} from 'utils';
+import * as Sentry from '@sentry/react-native';
 
 export default function ({route, navigation}) {
   const value = route?.params?.value;
   const type = route?.params?.type;
   const casEmail = route?.params?.casEmail;
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const theme = useTheme();
 
   console.log('casEmail', casEmail);
 
-  const handleUpdateUserProfile = async () => {
+  const updateUsernameTypeOfUser = async () => {
     try {
-      const user = await getUser();
-      console.log('verifySignupUsingOtp - user', JSON.stringify(user, null, 2));
+      const tokenFromStorage = await AsyncStorage.getItem('@access_token');
+      dispatch(setTokens(JSON.parse(tokenFromStorage)));
 
-      let usernameType = null;
-      if (type === 'email') {
-        usernameType = 'non_gmail';
-      }
-      if (type === 'mobile_number') {
-        usernameType = 'mobile_number';
-      }
-      const meta = {
-        meta: {...user?.profile?.meta, username_type: usernameType},
-      };
+      if (tokenFromStorage !== null) {
+        const user = await getUser();
 
-      const updateProfilePayload = {
-        ...meta,
-      };
-      const updateProfileResponse = await updateUserProfile(
-        updateProfilePayload,
-      );
+        let usernameType = null;
+        if (type === 'email') {
+          usernameType = 'non_gmail';
+        }
+        if (type === 'mobile_number') {
+          usernameType = 'mobile_number';
+        }
+        const meta = {
+          meta: {...user?.profile?.meta, username_type: usernameType},
+        };
 
-      await handleAddCASEmail();
-      if (updateProfileResponse) {
-        navigation.replace('Auth', {
-          screen: 'ScreenDeterminor',
-        });
+        const updateProfilePayload = {
+          ...meta,
+        };
+        const updateProfileResponse = await updateUserProfile(
+          updateProfilePayload,
+        );
+
+        await handleAddCASEmail();
+        if (updateProfileResponse) {
+          navigation.replace('Auth', {
+            screen: 'ScreenDeterminor',
+          });
+        }
+      } else {
+        setLoading(false);
+        showToast('Unable to Logged into the App, Please try again!');
       }
     } catch (err) {
       console.log('error', err);
+      setLoading(false);
+      Sentry.captureException(err);
+      throw err;
     }
   };
 
@@ -76,20 +88,25 @@ export default function ({route, navigation}) {
 
   const handleVerifyOTP = async () => {
     try {
+      setLoading(true);
+      form.setErrors({token: ''});
       const payload = {
         type: form.value.type,
         value: form.value.value,
         token: form.value.token,
+        after_verification: 'respond_with_token',
       };
 
       const response = await verifyRegistration(payload);
 
-      if (response?.message === 'Verification Successful') {
+      if (response?.access_token) {
         form.setErrors({});
-
-        await loginUserAfterVerification();
+        await storeTheTokenInAsyncStorage(response?.access_token);
+        setLoading(false);
       }
     } catch (error) {
+      setLoading(false);
+
       console.log('error while verifying otp', prettifyJSON(error));
       if (error?.message === 'Invalid Token') {
         form.setErrors({token: 'Please enter a valid code.'});
@@ -109,45 +126,42 @@ export default function ({route, navigation}) {
       console.log('addCASEmailPayload', addCASEmailPayload);
 
       await addCASEmail(addCASEmailPayload);
+      setLoading(false);
     } catch (error) {
       showToast(
         "Something went wrong while adding CAS Email, Can't Request CAS Statement with email that you have entered",
       );
       console.log('error', error);
+      Sentry.captureException(error);
       return error;
     }
   };
 
-  const loginUserAfterVerification = async () => {
+  const storeTheTokenInAsyncStorage = async accessToken => {
+    console.log('storeTheTokenInAsyncStorage->accessToken: ', accessToken);
     try {
-      const loginPayload = {
-        type: form.value.type,
-        value: form.value.value,
-        password: await getUserPassword(form.value.value),
-      };
-
-      console.log('loginPayload-1234', loginPayload);
-
-      const loginResponse = await login(loginPayload);
-
-      if (loginResponse) {
+      if (accessToken) {
         await AsyncStorage.setItem(
           '@access_token',
           JSON.stringify({
-            accessToken: loginResponse?.access_token,
+            accessToken: accessToken,
           }),
         );
-        dispatch(setTokens(loginResponse));
         await AsyncStorage.setItem('@loggedin_status', JSON.stringify(true));
-        await handleUpdateUserProfile();
+        await updateUsernameTypeOfUser();
+        setLoading(false);
       }
     } catch (error) {
-      console.log('loginUserAfterVerification-error', error);
+      setLoading(false);
+      console.log('storeTheTokenInAsyncStorage-error', error);
+      Sentry.captureException(error);
     }
   };
-
   const handleResendOTP = async () => {
     try {
+      console.log('handleResendOTP called');
+      form.setField('token', '');
+      form.setErrors({token: ''});
       const resendPayload = {
         type: form.value.type,
         value: form.value.value,
@@ -168,7 +182,7 @@ export default function ({route, navigation}) {
       </View>
 
       <View style={{paddingTop: 24}}>
-        <CustomOtpInput
+        <CustomOTPInputWithAutoFill
           defaultValue={''}
           onChangeText={text => form.setField('token', text)}
           value={form.getField('token')}
@@ -184,16 +198,27 @@ export default function ({route, navigation}) {
                   borderColor: 'transparent',
                 }
           }
+          otpLength={6}
+          onSubmit={async otp => {
+            form.setField('token', otp);
+          }}
+          onGetHashSuccess={hash => {
+            Sentry.captureMessage(`hash code of the finezzy app: ${hash}`);
+          }}
+          onGetHashError={error => {
+            Sentry.captureException(error);
+          }}
+          onOTPRetrieveError={message => {
+            Sentry.captureException(`OTP Retrieve Error: ${message}`);
+          }}
           tintColor={
             form.errors.get('token')
               ? theme.colors.error
               : theme.colors.primaryBlue
           }
-          // left={-21}
-          // scale={0.9}
-          // inputCount={6}
           secureTextEntry={false}
         />
+        <VerifyOTPLoader loading={loading} />
       </View>
 
       <BackgroundTimer

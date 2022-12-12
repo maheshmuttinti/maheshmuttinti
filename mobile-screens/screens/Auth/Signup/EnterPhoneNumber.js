@@ -23,6 +23,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function ({navigation}) {
   const [error, setError] = useState('');
   const [showGreenCircleIcon, setShowGreenCircleIcon] = useState(false);
+  const [disableButton, setDisableButton] = useState(false);
   const theme = useTheme();
   const dispatch = useDispatch();
 
@@ -57,6 +58,7 @@ export default function ({navigation}) {
 
   const handleLogout = async () => {
     try {
+      setDisableButton(true);
       const logoutResponse = await logout();
       console.log('logoutResponse', logoutResponse);
       dispatch(clearAuth());
@@ -140,7 +142,9 @@ export default function ({navigation}) {
       <Ripple
         rippleColor={theme.colors.primaryBlue100}
         style={{width: '100%', marginTop: 12, alignItems: 'center'}}
-        onPress={async () => await handleLogout()}>
+        onPress={async () => {
+          disableButton === true ? null : await handleLogout();
+        }}>
         <TextButton
           style={{
             color: theme.colors.primaryBlue,

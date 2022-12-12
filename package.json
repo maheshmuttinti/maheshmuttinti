@@ -1,6 +1,6 @@
 {
   "name": "mobile",
-  "version": "0.16.3",
+  "version": "0.17.1",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -36,6 +36,7 @@
     "@react-navigation/stack": "^6.2.1",
     "@reusejs/react-native-component-template": "^0.0.4",
     "@rpldy/native-uploady": "^1.0.0",
+    "@sentry/react-native": "^4.10.1",
     "assets": "*",
     "axios": "^0.27.2",
     "digio-sdk-rn": "^0.1.1",

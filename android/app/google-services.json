@@ -1,33 +1,33 @@
 {
   "project_info": {
-    "project_number": "899894535306",
-    "project_id": "finezzy-cb279",
-    "storage_bucket": "finezzy-cb279.appspot.com"
+    "project_number": "369682901081",
+    "project_id": "finezzyv2",
+    "storage_bucket": "finezzyv2.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:899894535306:android:8ce77618925c248af57973",
+        "mobilesdk_app_id": "1:369682901081:android:27d608228d60ddcc476948",
         "android_client_info": {
-          "package_name": "com.finezzy"
+          "package_name": "com.finezzyvtwo"
         }
       },
       "oauth_client": [
         {
-          "client_id": "899894535306-5ng228isi1r0h9feq0o7ov41pvf89adg.apps.googleusercontent.com",
+          "client_id": "369682901081-8t5pr5dc01rfiar77ekoug59jbd81rje.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDT1qAO5-N3c5A0YncNGy_VTOG6DiO-2E0"
+          "current_key": "AIzaSyDx2U6pYten-zrkHk7CWPFZ3Dv4_mJ-ZAI"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "899894535306-5ng228isi1r0h9feq0o7ov41pvf89adg.apps.googleusercontent.com",
+              "client_id": "369682901081-8t5pr5dc01rfiar77ekoug59jbd81rje.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

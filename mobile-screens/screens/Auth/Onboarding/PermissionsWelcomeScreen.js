@@ -263,7 +263,7 @@ export default function ({navigation}) {
 
       if (isCasEmailAddedNonGmailType && isCasEmailNotVerified) {
         setProcessing(false);
-        navigation.navigate('Protected', {
+        navigation.replace('Protected', {
           screen: 'EmailActivationLinkScreen',
         });
       } else if (
@@ -335,7 +335,7 @@ export default function ({navigation}) {
   };
 
   return (
-    <AuthWrapper onBackPress={() => {}}>
+    <AuthWrapper onBackPress={() => {}} showBackArrowIcon={false}>
       <AuthHeading>Welcome!</AuthHeading>
 
       <View style={{paddingTop: 24}}>
