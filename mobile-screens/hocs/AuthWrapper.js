@@ -115,6 +115,7 @@ const AuthScreenWrapper = ({children, showBackArrowIcon = true, ...props}) => {
                     <BackArrow />
                   </Pressable>
                 ) : (
+                  // height = <BackArrow /> icon height
                   <View style={{height: 24}} />
                 )}
               </View>
