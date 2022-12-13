@@ -74,65 +74,48 @@ export default function ({navigation, route}) {
         const isUserEnteredMPINForAppServices = isUserLoggedInWithMPIN === true;
         if (isUserEnteredMPINForAppServices) {
           await handleRequestCAS(requestCASPayload);
-          navigation.replace('Auth', {
-            screen: 'ScreenDeterminor',
-            params: {
-              verificationStatus,
-              verifiedEmail,
-            },
+
+          navigation.replace('ScreenDeterminer', {
+            verificationStatus,
+            verifiedEmail,
           });
         } else {
-          navigation.replace('Auth', {
-            screen: 'ScreenDeterminor',
-            params: {
-              verificationStatus,
-              verifiedEmail,
-            },
+          navigation.replace('ScreenDeterminer', {
+            verificationStatus,
+            verifiedEmail,
           });
         }
       } else if (verificationStatus === 'failed') {
         showToast('Email verification failed');
-        navigation.replace('Auth', {
-          screen: 'ScreenDeterminor',
-          params: {
-            verificationStatus,
-            verifiedEmail,
-          },
+
+        navigation.replace('ScreenDeterminer', {
+          verificationStatus,
+          verifiedEmail,
         });
       } else if (verificationStatus === 'link_expired') {
         showToast('Email link expired');
-        navigation.replace('Auth', {
-          screen: 'ScreenDeterminor',
-          params: {
-            verificationStatus,
-            verifiedEmail,
-          },
+
+        navigation.replace('ScreenDeterminer', {
+          verificationStatus,
+          verifiedEmail,
         });
       } else if (verificationStatus === 'already_verified_by_other_user') {
         showToast('Email already verified by other user');
-        navigation.replace('Auth', {
-          screen: 'ScreenDeterminor',
-          params: {
-            verificationStatus,
-            verifiedEmail,
-          },
+
+        navigation.replace('ScreenDeterminer', {
+          verificationStatus,
+          verifiedEmail,
         });
       } else {
-        navigation.replace('Auth', {
-          screen: 'ScreenDeterminor',
-          params: {
-            verificationStatus,
-            verifiedEmail,
-          },
+        navigation.replace('ScreenDeterminer', {
+          verificationStatus,
+          verifiedEmail,
         });
       }
     } catch (err) {
-      navigation.replace('Auth', {
-        screen: 'ScreenDeterminor',
-        params: {
-          verificationStatus,
-          verifiedEmail,
-        },
+      navigation.replace('ScreenDeterminer', {
+        verificationStatus,
+        verifiedEmail,
       });
     }
   };

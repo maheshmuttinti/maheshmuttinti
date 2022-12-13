@@ -49,7 +49,7 @@ export default function ({navigation, route}) {
             'Request for verification successfully'
           ) {
             console.log('success');
-            navigation.navigate('Auth', {
+            navigation.navigate('PINSetup', {
               screen: 'VerifyOTPForResetPIN',
               params: {
                 userAttributes: {...mobileNumberAttribute},

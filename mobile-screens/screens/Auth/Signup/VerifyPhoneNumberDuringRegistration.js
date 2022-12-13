@@ -58,9 +58,7 @@ export default function ({route, navigation}) {
 
         await handleAddCASEmail();
         if (updateProfileResponse) {
-          navigation.replace('Auth', {
-            screen: 'ScreenDeterminor',
-          });
+          navigation.replace('ScreenDeterminer');
         }
       } else {
         setLoading(false);

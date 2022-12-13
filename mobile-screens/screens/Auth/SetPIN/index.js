@@ -10,6 +10,7 @@ import {setIsUserLoggedInWithMPIN} from 'store';
 import OverLayLoader from '../../../reusables/loader';
 import {useAutoRedirectOnEnterMPIN} from '../../../reusables/useAutoRedirectOnEnterMPIN';
 import {useSetPINLaterRedirection} from '../../../reusables/useSetPINLaterRedirection';
+import {useFocusEffect} from '@react-navigation/native';
 
 export default function ({navigation}) {
   const theme = useTheme();
@@ -24,8 +25,18 @@ export default function ({navigation}) {
     });
   }, [navigation]);
 
+  useFocusEffect(
+    useCallback(() => {
+      setMpin('');
+      return () => {
+        setMpin('');
+      };
+    }, []),
+  );
+
   const redirectTo = useCallback(() => {
-    navigation.navigate('Auth', {
+    console.log('redirectTo set pin screen: ');
+    navigation.navigate('PINSetup', {
       screen: 'ConfirmPIN',
       params: {mpin},
     });
@@ -34,6 +45,7 @@ export default function ({navigation}) {
   useAutoRedirectOnEnterMPIN(mpin, redirectTo);
 
   const handleRedirection = useSetPINLaterRedirection(navigation);
+  console.log('mpin: ', mpin);
 
   return (
     <AuthWrapper showBackArrowIcon={false}>

@@ -10,6 +10,7 @@ import {setHideIntro} from 'store';
 import {useTheme} from 'theme';
 import SplashScreen from 'react-native-splash-screen';
 import {AnimatedEllipsis} from 'uin';
+import {sleep} from 'utils';
 
 export default function ({navigation, route}) {
   const theme = useTheme();
@@ -72,13 +73,13 @@ export default function ({navigation, route}) {
   handleRedirectionsFnRef.current = async () => {
     try {
       let tokenFromStorage = await AsyncStorage.getItem('@access_token');
+      console.log('ScreenDeterminer->tokenFromStorage: ', tokenFromStorage);
 
-      let hideIntro = JSON.parse(await AsyncStorage.getItem('@hide_intro'));
-
-      await AsyncStorage.setItem('@hide_intro', JSON.stringify(true));
+      // await AsyncStorage.setItem('@hide_intro', JSON.stringify(true));
 
       if (tokenFromStorage !== null) {
         let user = await getUser();
+        console.log('user: ', user);
         let CASEmailsResponse = await getCASEmails();
 
         const isMobileNumberExists = user?.attributes
@@ -98,6 +99,8 @@ export default function ({navigation, route}) {
           user?.profile?.meta?.username_type === 'apple_id';
 
         const isUserSetMPIN = user?.profile?.meta?.mpin_set === true;
+        const isUserSkipMPIN = user?.profile?.meta?.mpin_set === 'skip';
+        console.log('isUserSkipMPIN: ', isUserSkipMPIN);
 
         const isMoreThanOneCASEmailsPresent =
           CASEmailsResponse && CASEmailsResponse?.length > 1;
@@ -181,6 +184,10 @@ export default function ({navigation, route}) {
           isCASEmailIsNonGmail && isCASEmailVerificationSuccess;
 
         const isUserEnteredMPINForAppServices = isUserLoggedInWithMPIN === true;
+        console.log(
+          'isUserEnteredMPINForAppServices: ',
+          isUserEnteredMPINForAppServices,
+        );
 
         const isCASEmailVerifiedAlready =
           isCASEmailIsGmail || isCASEmailVerificationIsSuccess;
@@ -204,23 +211,28 @@ export default function ({navigation, route}) {
 
         if (!isMobileNumberExists) {
           navigation.replace('Auth', {screen: 'EnterPhoneNumber'});
+        } else if (isUserSkipMPIN) {
+          await sleep(2000);
+          console.log('navigation: ', navigation);
+          navigation.replace('Protected');
         } else if (isUserSetMPIN) {
           console.log('enter pin screen before check');
 
           // Reason to comment: To Prevent the Email Verification Link screen show up on Open App
           if (isCASEmailVerificationIsPending) {
-            navigation.replace('Auth', {
-              screen: 'EmailActivationLinkScreen',
-              params: {
-                email: CASEmailsResponse[0]['cas_emails*email'],
-                type: 'auth_flow',
-                mpin_set: user?.profile?.meta?.mpin_set,
-                verificationStatus: verificationStatus,
-              },
+            navigation.replace('EmailActivationLinkScreen', {
+              email: CASEmailsResponse[0]['cas_emails*email'],
+              type: 'auth_flow',
+              mpin_set: user?.profile?.meta?.mpin_set,
+              verificationStatus: verificationStatus,
             });
           } else {
             console.log('enter pin screen before check');
             if (isUserAuthenticatedInAppAndCASRequestSuccess) {
+              console.log(
+                'isUserAuthenticatedInAppAndCASRequestSuccess: ',
+                isUserAuthenticatedInAppAndCASRequestSuccess,
+              );
               if (isMoreThanOneCASEmailsPresent) {
                 navigation.replace('Protected', {
                   screen: 'ImportPortfolio',
@@ -237,18 +249,22 @@ export default function ({navigation, route}) {
                     isInvestmentBehaviorStepCompleted) &&
                   !isRiskProfilingStepCompleted
                 ) {
-                  navigation.replace('Auth', {
+                  navigation.replace('Onboarding', {
                     screen: 'EnterDobScreen',
                   });
                 } else {
-                  navigation.replace('Auth', {
+                  navigation.replace('Onboarding', {
                     screen: 'PermissionsEmailSentScreen',
                   });
                 }
               }
             } else {
-              navigation.replace('EnterPINHome', {
-                verificationStatus: verificationStatus,
+              console.log('oops, enter pin');
+              navigation.replace('PINSetup', {
+                screen: 'EnterPINHome',
+                params: {
+                  verificationStatus: verificationStatus,
+                },
               });
             }
           }
@@ -256,14 +272,11 @@ export default function ({navigation, route}) {
           console.log('set pin screen before check');
           // Reason to comment: To Prevent the Email Verification Link screen show up on Open App
           if (isCASEmailVerificationIsPending) {
-            navigation.replace('Auth', {
-              screen: 'EmailActivationLinkScreen',
-              params: {
-                email: CASEmailsResponse[0]['cas_emails*email'],
-                type: 'auth_flow',
-                mpin_set: user?.profile?.meta?.mpin_set,
-                verificationStatus: verificationStatus,
-              },
+            navigation.replace('EmailActivationLinkScreen', {
+              email: CASEmailsResponse[0]['cas_emails*email'],
+              type: 'auth_flow',
+              mpin_set: user?.profile?.meta?.mpin_set,
+              verificationStatus: verificationStatus,
             });
           } else {
             if (isUserAuthenticatedInAppAndCASRequestSuccess) {
@@ -283,39 +296,49 @@ export default function ({navigation, route}) {
                     isInvestmentBehaviorStepCompleted) &&
                   !isRiskProfilingStepCompleted
                 ) {
-                  navigation.replace('Auth', {
+                  navigation.replace('Onboarding', {
                     screen: 'EnterDobScreen',
                   });
                 } else {
-                  navigation.replace('Auth', {
+                  navigation.replace('Onboarding', {
                     screen: 'PermissionsEmailSentScreen',
                   });
                 }
               }
             } else {
-              navigation.replace('SetPINHome', {
-                verificationStatus: verificationStatus,
+              navigation.replace('PINSetup', {
+                screen: 'SetPINHome',
+                params: {
+                  verificationStatus: verificationStatus,
+                },
               });
             }
           }
         }
       } else {
+        // await sleep(1000)
+        let hideIntro = JSON.parse(await AsyncStorage.getItem('@hide_intro'));
         console.log(
-          'else condition after logout or delete account hideIntro',
+          'ScreenDeterminer->when no tokenFromStorage exist->hideIntro',
           hideIntro,
         );
-        if (hideIntro === false || hideIntro === null) {
-          navigation.replace('IntroScreen');
-        } else {
-          const loggedInStatus = JSON.parse(
-            await AsyncStorage.getItem('@loggedin_status'),
-          );
-          console.log('loggedInStatus', loggedInStatus, typeof loggedInStatus);
+
+        const loggedInStatus = JSON.parse(
+          await AsyncStorage.getItem('@loggedin_status'),
+        );
+        if (loggedInStatus !== null) {
+          console.log('loggedInStatus inside: ', loggedInStatus);
           if (loggedInStatus === true) {
             navigation.replace('Auth', {screen: 'SigninHome'});
           } else {
             navigation.replace('Auth', {screen: 'SignupHome'});
           }
+        } else {
+          console.log('loggedInStatus outside: ', loggedInStatus);
+          navigation.replace('Auth', {screen: 'SignupHome'});
+        }
+        if (hideIntro === null || hideIntro === false) {
+          navigation.replace('AppPromo', {screen: 'AppPromo'});
         }
       }
 

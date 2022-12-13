@@ -311,7 +311,10 @@ export default function SignupOptionsScreen({navigation}) {
           loading={apiCallStatus === 'loading'}
           onPress={() => {
             handleSignup();
-          }}>
+          }}
+          disable={
+            !showGreenCircleIconForEmail || !showGreenCircleIconForMobile
+          }>
           Sign Up
         </BaseButton>
       </View>

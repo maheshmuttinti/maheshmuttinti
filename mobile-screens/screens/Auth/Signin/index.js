@@ -228,7 +228,8 @@ export default function SignInScreen({navigation}) {
           loading={apiCallStatus === 'loading'}
           onPress={() => {
             handleSignIn();
-          }}>
+          }}
+          disable={!showGreenCircleIcon}>
           Sign In
         </BaseButton>
       </View>

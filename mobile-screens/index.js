@@ -22,6 +22,11 @@ import {setNetworkStatus} from 'store';
 import 'react-native-gesture-handler';
 import {useSelector, shallowEqual} from 'react-redux';
 import * as Sentry from '@sentry/react-native';
+import ScreenDeterminer from './screens/Auth/ScreenDeterminer';
+import EmailActivationLinkScreen from './screens/VerifyEmailLink';
+import PANSetup from './stacks/PANSetup';
+import PINSetup from './stacks/PINSetup';
+import AppPromo from './screens/AppPromo';
 
 Sentry.init({
   dsn: Config.SENTRY_DSN,
@@ -78,9 +83,17 @@ const App = () => {
     shallowEqual,
   );
 
-  const init = async () => {
+  const {accessToken} = useSelector(
+    ({auth}) => ({
+      accessToken: auth.accessToken,
+    }),
+    shallowEqual,
+  );
+
+  const init = React.useCallback(async () => {
     try {
       let tokenFromStorage = await AsyncStorage.getItem('@access_token');
+      console.log('tokenFromStorage: ', tokenFromStorage);
 
       if (tokenFromStorage !== null) {
         dispatch(setTokens(JSON.parse(tokenFromStorage)));
@@ -92,15 +105,20 @@ const App = () => {
     } catch (error) {
       Sentry.captureException(error);
     }
-  };
+  }, [dispatch]);
 
   useEffect(() => {
     init();
     const unsubscribe = NetInfo.addEventListener(state => {
       dispatch(setNetworkStatus(state.isConnected ? 'online' : 'offline'));
     });
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+    };
   }, []);
+
+  console.log('accessToken in stack index: ', Boolean(accessToken) === false);
+  console.log('isUserLoggedInWithMPIN: ', isUserLoggedInWithMPIN);
 
   return (
     <>
@@ -110,22 +128,54 @@ const App = () => {
           ref={RootNavigation.navigationRef}>
           <Stack.Navigator>
             <Stack.Screen
-              name="Auth"
+              name="ScreenDeterminer"
               options={{headerShown: false}}
-              component={Auth}
+              component={ScreenDeterminer}
             />
-            {isUserLoggedInWithMPIN === true && (
+            <Stack.Screen
+              name="AppPromo"
+              options={{headerShown: false}}
+              component={AppPromo}
+            />
+            <Stack.Screen
+              name="EmailActivationLinkScreen"
+              options={{headerShown: false}}
+              component={EmailActivationLinkScreen}
+            />
+            <Stack.Screen
+              name="PANSetup"
+              options={{headerShown: false}}
+              component={PANSetup}
+            />
+            <Stack.Screen
+              name="PINSetup"
+              options={{headerShown: false}}
+              component={PINSetup}
+            />
+            <Stack.Screen
+              name="EmptyStates"
+              options={{headerShown: false}}
+              component={EmptyStates}
+            />
+            {(accessToken === null ||
+              accessToken === undefined ||
+              Boolean(accessToken) === false ||
+              isUserLoggedInWithMPIN === false ||
+              isUserLoggedInWithMPIN === undefined ||
+              isUserLoggedInWithMPIN === null) && (
+              <Stack.Screen
+                name="Auth"
+                options={{headerShown: false}}
+                component={Auth}
+              />
+            )}
+            {(accessToken !== null || isUserLoggedInWithMPIN === true) && (
               <Stack.Screen
                 name="Protected"
                 options={{headerShown: false}}
                 component={Protected}
               />
             )}
-            <Stack.Screen
-              name="EmptyStates"
-              options={{headerShown: false}}
-              component={EmptyStates}
-            />
           </Stack.Navigator>
         </NavigationContainer>
       </ThemeProvider>

@@ -63,11 +63,11 @@ export default function ({navigation, route}) {
               ?.status ||
             !user?.profile?.meta?.onboarding_steps
           ) {
-            navigation.replace('Auth', {
+            navigation.replace('Onboarding', {
               screen: 'PermissionsEmailSentScreen',
             });
           } else {
-            navigation.replace('Auth', {
+            navigation.replace('Onboarding', {
               screen: 'EnterDobScreen',
             });
           }
@@ -134,11 +134,11 @@ export default function ({navigation, route}) {
                   ?.status ||
                 !user?.profile?.meta?.onboarding_steps
               ) {
-                navigation.replace('Auth', {
+                navigation.replace('Onboarding', {
                   screen: 'PermissionsEmailSentScreen',
                 });
               } else {
-                navigation.replace('Auth', {
+                navigation.replace('Onboarding', {
                   screen: 'EnterDobScreen',
                 });
               }

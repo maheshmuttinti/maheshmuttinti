@@ -172,7 +172,7 @@ export default function ({navigation, route}) {
               }}>
               <TextButton
                 onPress={() => {
-                  navigation.navigate('Auth', {screen: 'ResetPINHome'});
+                  navigation.navigate('PINSetup', {screen: 'ResetPINHome'});
                 }}>
                 Reset Pin
               </TextButton>

@@ -61,6 +61,7 @@ export default function () {
       await AsyncStorage.setItem('@loggedin_status', JSON.stringify(true));
       await AsyncStorage.setItem('@hide_intro', JSON.stringify(true));
       dispatch(setIsUserLoggedInWithMPIN(false));
+      // navigation.replace('Auth', {screen: 'SigninHome'});
     } catch (error) {
       console.log('error', error);
     }
@@ -76,6 +77,7 @@ export default function () {
       await AsyncStorage.setItem('@loggedin_status', JSON.stringify(true));
       await AsyncStorage.setItem('@hide_intro', JSON.stringify(true));
       dispatch(setIsUserLoggedInWithMPIN(false));
+      // navigation.replace('Auth', {screen: 'SigninHome'});
     } catch (error) {
       console.log('error', error);
     }

@@ -40,26 +40,12 @@ const useOnboardingHandleRedirection = () => {
     if (tokenFromStorage !== null) {
       const user = latestUser || (await getUser());
 
-      // user profile data conditions
-      // ---------------------------
-
       const isUsernameTypeExists = !!user?.profile?.meta?.username_type;
 
+      // Todo: Show the Email and Phone Number for RTA Fetching CAS flow
       const isMobileNumberExists = user?.attributes
         .map(item => item.type)
         .includes('mobile_number');
-
-      const isUsernameTypeNonGmail =
-        user?.profile?.meta?.username_type === 'non_gmail';
-
-      const isUsernameTypeMobileNumber =
-        user?.profile?.meta?.username_type === 'mobile_number';
-
-      const isUsernameTypeGmail =
-        user?.profile?.meta?.username_type === 'gmail';
-
-      const isUsernameTypeAppleId =
-        user?.profile?.meta?.username_type === 'apple_id';
 
       // cas emails conditions
       // ---------------------
@@ -87,100 +73,23 @@ const useOnboardingHandleRedirection = () => {
       const isCasEmailVerified =
         isNonGmailCASEmailVerified || isCASEmailIsGmail;
 
-      const isCASEmailRequested =
-        casEmails?.find(item => item?.latest_cas_request !== null) &&
-        casEmails?.find(item => item?.latest_cas_request !== null)
-          ?.latest_cas_request['cas_requests*uuid'];
-
-      const isUserRequestedCAS =
-        isCASEmailsArePresent && isCasEmailVerified && isCASEmailRequested;
-
-      // onboarding steps conditions
-      // ---------------------------
-
-      // 1. CAS Apply Step
-
-      const isOnboardingCasEmailRequestCompleted =
-        isUserRequestedCAS &&
-        user?.profile?.meta?.onboarding_steps
-          ?.consolidate_mutual_funds_linked_to_email?.status === 'completed';
-
-      const isOnboardingCASApplyStateCompleted =
-        (isMobileNumberExists &&
-          isUsernameTypeNonGmail &&
-          isOnboardingCasEmailRequestCompleted) ||
-        (isMobileNumberExists &&
-          isUsernameTypeMobileNumber &&
-          isOnboardingCasEmailRequestCompleted) ||
-        (isMobileNumberExists &&
-          isUsernameTypeGmail &&
-          isOnboardingCasEmailRequestCompleted) ||
-        (isMobileNumberExists &&
-          isUsernameTypeAppleId &&
-          isOnboardingCasEmailRequestCompleted);
-
-      // 2. Investment Behavior Step
-
-      const isInvestmentBehaviorStepSkipped =
-        user?.profile?.meta?.onboarding_steps?.investment_behavior?.status ===
-        'skipped';
-
-      const isInvestmentBehaviorStepCompleted =
-        user?.profile?.meta?.onboarding_steps?.investment_behavior?.status ===
-        'completed';
-
-      const isCASRequestHasStatement = casEmails?.find(
-        item => item?.statement_status !== null,
-      );
-
-      // 3. Risk Profiling Step
-
-      const isRiskProfilingStepCompleted =
-        isUsernameTypeExists &&
-        user?.profile?.meta?.onboarding_steps?.risk_profiling?.status ===
-          'completed';
-
-      // 4. All Onboarding Steps completed
+      //  All Onboarding Steps completed
 
       const isOnboardingStepsCompleted =
-        isUsernameTypeExists &&
-        isOnboardingCASApplyStateCompleted &&
-        (isInvestmentBehaviorStepCompleted ||
-          isInvestmentBehaviorStepSkipped) &&
-        isRiskProfilingStepCompleted;
+        isUsernameTypeExists && isCasEmailVerified;
 
-      if (!user?.profile?.meta?.onboarding_steps) {
-        navigation.replace('Auth', {screen: 'PermissionsWelcomeScreen'});
-      } else if (isOnboardingStepsCompleted) {
+      if (isOnboardingStepsCompleted) {
+        console.log(
+          'if->isOnboardingStepsCompleted: ',
+          isOnboardingStepsCompleted,
+        );
         navigation.replace('Protected');
-      } else if (
-        isUsernameTypeExists &&
-        isOnboardingCASApplyStateCompleted &&
-        (isInvestmentBehaviorStepCompleted || isInvestmentBehaviorStepSkipped)
-      ) {
-        navigation.replace('Auth', {screen: 'EnterDobScreen'});
-      } else if (
-        isUsernameTypeExists &&
-        !user?.profile?.meta?.onboarding_steps?.investment_behavior?.status
-      ) {
-        if (isCASRequestHasStatement) {
-          if (isRiskProfilingStepCompleted) {
-            navigation.replace('Protected');
-          } else {
-            navigation.replace('Auth', {screen: 'EnterDobScreen'});
-          }
-        } else {
-          navigation.replace('Auth', {screen: 'PermissionsEmailSentScreen'});
-        }
-      } else if (isUsernameTypeExists && !isOnboardingCASApplyStateCompleted) {
-        navigation.replace('Auth', {screen: 'PermissionsWelcomeScreen'});
-      } else if (
-        !user?.profile?.meta?.onboarding_steps ||
-        Object.keys(user?.profile?.meta?.onboarding_steps)?.length === 0
-      ) {
-        navigation.replace('Auth', {screen: 'PermissionsWelcomeScreen'});
       } else {
-        navigation.replace('Auth', {screen: 'PermissionsWelcomeScreen'});
+        console.log(
+          'else->isOnboardingStepsCompleted: ',
+          isOnboardingStepsCompleted,
+        );
+        navigation.replace('Protected');
       }
     }
   };

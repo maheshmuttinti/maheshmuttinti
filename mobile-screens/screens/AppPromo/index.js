@@ -7,7 +7,7 @@ import {
   OnboardingSVGTwo,
 } from 'assets';
 import {useTheme} from 'theme';
-import AppIntro from './IntroSlider';
+import PromoSlider from './PromoSlider';
 import {View, Text, Dimensions} from 'react-native';
 import {RoundedFilledButton} from 'uin';
 import {Arrow} from 'assets';
@@ -123,7 +123,7 @@ export default function ({navigation}) {
         backgroundColor: theme.colors.primaryBlue,
         justifyContent: 'center',
       }}>
-      <AppIntro
+      <PromoSlider
         extraData={propData}
         navigation={navigation}
         onSkipTapped={() => {

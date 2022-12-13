@@ -77,9 +77,8 @@ export default function ({route, navigation}) {
           'updated the profile in verify signin using otp screen adn redirecting to screen determinor screen',
         );
         setVerifyingOTP(false);
-        navigation.replace('Auth', {
-          screen: 'ScreenDeterminor',
-        });
+        navigation.replace('ScreenDeterminer');
+
       }
     } catch (err) {
       console.log('error', err);

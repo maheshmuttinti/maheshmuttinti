@@ -12,7 +12,6 @@ const useUser = () => {
     (async () => {
       try {
         let tokenFromStorage = await AsyncStorage.getItem('@access_token');
-        let hideIntro = JSON.parse(await AsyncStorage.getItem('@hide_intro'));
 
         if (tokenFromStorage !== null) {
           let userProfile = await getUser();
@@ -21,11 +20,7 @@ const useUser = () => {
             setUser(userProfile);
           }
         } else {
-          if (hideIntro === false || hideIntro === null) {
-            navigation.replace('IntroScreen');
-          } else {
-            navigation.replace('Auth', {screen: 'SigninHome'});
-          }
+          navigation.replace('Auth', {screen: 'SigninHome'});
         }
       } catch (error) {
         console.log('useUser hook api call error');

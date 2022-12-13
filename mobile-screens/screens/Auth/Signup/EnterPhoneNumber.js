@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View, Text} from 'react-native';
 import {
   AuthHeading,
@@ -75,7 +75,7 @@ export default function ({navigation}) {
   };
 
   return (
-    <AuthWrapper>
+    <AuthWrapper showBackArrowIcon={navigation.canGoBack()}>
       <AuthHeading>Enter Your Phone Number</AuthHeading>
 
       <View style={{paddingTop: 16}}>

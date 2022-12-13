@@ -29,7 +29,7 @@ export default function ({navigation, route}) {
   console.log('mpinStatus', isUserLoggedInWithMPIN);
 
   return (
-    <AuthWrapper>
+    <AuthWrapper showBackArrowIcon={navigation.canGoBack()}>
       <AuthHeading>Activation Link Sent</AuthHeading>
 
       <GroupText style={{paddingTop: 24}}>
@@ -79,14 +79,14 @@ export default function ({navigation, route}) {
                   user?.profile?.meta?.mpin_set,
                 );
                 if (user?.profile?.meta?.mpin_set === true) {
-                  navigation.replace('Auth', {
+                  navigation.replace('PINSetup', {
                     screen: 'EnterPINHome',
                     params: {
                       verificationStatus: verificationStatus,
                     },
                   });
                 } else {
-                  navigation.replace('Auth', {
+                  navigation.replace('PINSetup', {
                     screen: 'SetPINHome',
                     params: {
                       verificationStatus: verificationStatus,

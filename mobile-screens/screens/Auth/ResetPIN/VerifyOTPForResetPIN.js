@@ -86,7 +86,7 @@ export default function ({route, navigation}) {
 
       if (response?.message === 'Verification Successful') {
         setVerifyingOTP(false);
-        navigation.replace('Auth', {
+        navigation.replace('PINSetup', {
           screen: 'EnterPINHome',
         });
       }
@@ -104,7 +104,9 @@ export default function ({route, navigation}) {
 
   return (
     <AuthWrapper
-      onBackPress={() => navigation.navigate('Auth', {screen: 'ResetPINHome'})}>
+      onBackPress={() =>
+        navigation.navigate('PINSetup', {screen: 'ResetPINHome'})
+      }>
       <AuthHeading>Verification Code</AuthHeading>
 
       <View style={{paddingTop: 16}}>

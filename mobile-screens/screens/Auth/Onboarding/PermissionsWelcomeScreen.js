@@ -118,7 +118,7 @@ export default function ({navigation}) {
             });
 
             setProcessing(false);
-            navigation.replace('Auth', {
+            navigation.replace('Onboarding', {
               screen: 'PermissionsEmailSentScreen',
             });
           }
@@ -263,9 +263,7 @@ export default function ({navigation}) {
 
       if (isCasEmailAddedNonGmailType && isCasEmailNotVerified) {
         setProcessing(false);
-        navigation.replace('Protected', {
-          screen: 'EmailActivationLinkScreen',
-        });
+        navigation.replace('EmailActivationLinkScreen');
       } else if (
         isUserNameTypeExists &&
         ((isCasEmailAddedNonGmailType && isCasEmailVerified) ||

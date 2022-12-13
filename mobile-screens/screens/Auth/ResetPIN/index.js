@@ -20,7 +20,7 @@ export default function ({navigation}) {
   }, [navigation]);
 
   const redirectTo = useCallback(() => {
-    navigation.navigate('Auth', {
+    navigation.navigate('PINSetup', {
       screen: 'ConfirmResetPIN',
       params: {mpin},
     });
