@@ -126,9 +126,7 @@ export default function ({route, navigation}) {
       await addCASEmail(addCASEmailPayload);
       setLoading(false);
     } catch (error) {
-      showToast(
-        "Something went wrong while adding CAS Email, Can't Request CAS Statement with email that you have entered",
-      );
+      showToast('Something went wrong while adding CAS Email');
       console.log('error', error);
       Sentry.captureException(error);
       return error;

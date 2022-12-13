@@ -11,11 +11,10 @@ import {
   GroupText,
 } from 'uin';
 import {useTheme} from 'theme';
-import ScreenWrapper from '../../../../../hocs/screen_wrapper';
+import ScreenWrapper from '../../../../hocs/screen_wrapper';
 import {BackArrow, ForwardEmail, TickCircle, WarningIcon1} from 'assets';
-import useExitApp from '../../../../../reusables/useExitApp';
+import useExitApp from '../../../../reusables/useExitApp';
 import {validatePAN} from 'utils';
-import {usePANCollectRedirection} from '../../../../../reusables/usePANCollectRedirection';
 
 export default function ({navigation}) {
   const theme = useTheme();
@@ -25,8 +24,6 @@ export default function ({navigation}) {
   const [apiCallStatus, setApiCallStatus] = useState(null);
 
   const showGreenTickCircleIcon = useRef(() => {});
-
-  const handleRedirection = usePANCollectRedirection(pan, navigation);
 
   useExitApp();
 
@@ -61,9 +58,9 @@ export default function ({navigation}) {
       if (pan?.length > 0 && validatePAN(pan) === false) {
         setError('Please enter the valid PAN Card Number');
         setApiCallStatus('failed');
+
         return;
       } else {
-        await handleRedirection();
         setApiCallStatus('success');
       }
     } catch (err) {
@@ -76,18 +73,14 @@ export default function ({navigation}) {
     <ScreenWrapper onBackPress={() => {}}>
       <View style={{paddingHorizontal: 24, flex: 1}}>
         <View style={{...backArrowIconWrapperStyle}}>
-          {navigation.canGoBack() ? (
-            <Pressable
-              hitSlop={{top: 30, left: 30, right: 30, bottom: 30}}
-              onPress={() => {
-                handleGoBack();
-              }}
-              style={{width: 50}}>
-              <BackArrow />
-            </Pressable>
-          ) : (
-            <View style={{height: 24}} />
-          )}
+          <Pressable
+            hitSlop={{top: 30, left: 30, right: 30, bottom: 30}}
+            onPress={() => {
+              handleGoBack();
+            }}
+            style={{width: 50}}>
+            <BackArrow />
+          </Pressable>
         </View>
         <View style={{marginTop: 36}}>
           <AuthHeading>Your pre approved loan is waiting for you</AuthHeading>
@@ -170,9 +163,7 @@ export default function ({navigation}) {
               paddingBottom: 24,
             }}>
             <TextButton
-              onPress={() =>
-                apiCallStatus !== 'loading' && navigation.replace('Protected')
-              }
+              onPress={() => apiCallStatus !== 'loading' && navigation.pop()}
               style={{
                 paddingHorizontal: 30,
               }}>

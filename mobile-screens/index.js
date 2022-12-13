@@ -31,7 +31,6 @@ import AppPromo from './screens/AppPromo';
 Sentry.init({
   dsn: Config.SENTRY_DSN,
 });
-import Development from './stacks/Development';
 
 const Stack = createStackNavigator();
 
@@ -51,7 +50,6 @@ const config = {
     Auth: {
       screens: {
         SocialLoginRedirection: 'social-login-status',
-        GmailAuthorizeStatus: 'gmail-authorize-status',
         CasEmailVerificationStatus: 'cas-email-verification-status',
       },
     },
@@ -117,36 +115,6 @@ const App = () => {
       unsubscribe();
     };
   }, []);
-  // const {isUserLoggedInWithMPIN} = useSelector(
-  //   ({auth}) => ({
-  //     isUserLoggedInWithMPIN: auth.isUserLoggedInWithMPIN,
-  //   }),
-  //   shallowEqual,
-  // );
-
-  // const init = async () => {
-  //   try {
-  //     let tokenFromStorage = await AsyncStorage.getItem('@access_token');
-  //     if (tokenFromStorage !== null) {
-  //       dispatch(setTokens(JSON.parse(tokenFromStorage)));
-  //       let userProfile = await getUser();
-  //       if (userProfile) {
-  //         dispatch(setUser(userProfile));
-  //       }
-  //     }
-  //   } catch (error) {
-  //     return error;
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   init();
-  //   const unsubscribe = NetInfo.addEventListener(state => {
-  //     dispatch(setNetworkStatus(state.isConnected ? 'online' : 'offline'));
-  //   });
-
-  //   return () => unsubscribe();
-  // }, []);
 
   console.log('accessToken in stack index: ', Boolean(accessToken) === false);
   console.log('isUserLoggedInWithMPIN: ', isUserLoggedInWithMPIN);
@@ -163,31 +131,7 @@ const App = () => {
               options={{headerShown: false}}
               component={ScreenDeterminer}
             />
-            <Stack.Screen
-              name="AppPromo"
-              options={{headerShown: false}}
-              component={AppPromo}
-            />
-            <Stack.Screen
-              name="EmailActivationLinkScreen"
-              options={{headerShown: false}}
-              component={EmailActivationLinkScreen}
-            />
-            <Stack.Screen
-              name="PANSetup"
-              options={{headerShown: false}}
-              component={PANSetup}
-            />
-            <Stack.Screen
-              name="PINSetup"
-              options={{headerShown: false}}
-              component={PINSetup}
-            />
-            <Stack.Screen
-              name="EmptyStates"
-              options={{headerShown: false}}
-              component={EmptyStates}
-            />
+
             {(accessToken === null ||
               accessToken === undefined ||
               Boolean(accessToken) === false ||
@@ -207,6 +151,31 @@ const App = () => {
                 component={Protected}
               />
             )}
+            <Stack.Screen
+              name="AppPromo"
+              options={{headerShown: false}}
+              component={AppPromo}
+            />
+            <Stack.Screen
+              name="VerifyEmail"
+              options={{headerShown: false}}
+              component={EmailActivationLinkScreen}
+            />
+            <Stack.Screen
+              name="PINSetup"
+              options={{headerShown: false}}
+              component={PINSetup}
+            />
+            <Stack.Screen
+              name="PANSetup"
+              options={{headerShown: false}}
+              component={PANSetup}
+            />
+            <Stack.Screen
+              name="EmptyStates"
+              options={{headerShown: false}}
+              component={EmptyStates}
+            />
           </Stack.Navigator>
         </NavigationContainer>
       </ThemeProvider>

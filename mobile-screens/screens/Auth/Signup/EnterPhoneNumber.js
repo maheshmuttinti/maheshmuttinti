@@ -16,16 +16,15 @@ import {getUser, logout, updateAttribute} from 'services';
 import useBetaForm from '@reusejs/react-form-hook';
 import Ripple from 'react-native-material-ripple';
 import {useTheme} from 'theme';
-import {useDispatch} from 'react-redux';
-import {clearAuth, setHideIntro, setIsUserLoggedInWithMPIN} from 'store';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useClearAsyncStorageKeys} from '../../../reusables/useClearAsyncStorageKeys';
 
 export default function ({navigation}) {
   const [error, setError] = useState('');
   const [showGreenCircleIcon, setShowGreenCircleIcon] = useState(false);
   const [disableButton, setDisableButton] = useState(false);
   const theme = useTheme();
-  const dispatch = useDispatch();
+
+  const {clearStoreForLogout} = useClearAsyncStorageKeys();
 
   const form = useBetaForm({
     type: '',
@@ -61,12 +60,7 @@ export default function ({navigation}) {
       setDisableButton(true);
       const logoutResponse = await logout();
       console.log('logoutResponse', logoutResponse);
-      dispatch(clearAuth());
-      AsyncStorage.clear();
-      dispatch(setHideIntro(true));
-      await AsyncStorage.setItem('@loggedin_status', JSON.stringify(true));
-      await AsyncStorage.setItem('@hide_intro', JSON.stringify(true));
-      dispatch(setIsUserLoggedInWithMPIN(false));
+      clearStoreForLogout();
       navigation.replace('Auth', {screen: 'SigninHome'});
     } catch (err) {
       console.log('err while logout', err);

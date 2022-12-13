@@ -17,7 +17,7 @@ export default function ({navigation}) {
       {screens.map((screen, index) => (
         <Pressable
           onPress={() => {
-            navigation.navigate('Development', {screen: screen});
+            navigation.navigate('PANSetup', {screen: screen});
           }}
           key={`screen-${index}`}
           style={{

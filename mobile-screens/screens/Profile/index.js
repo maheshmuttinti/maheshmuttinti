@@ -5,7 +5,7 @@ import {useCallback, useRef, useState} from 'react';
 import ScreenWrapper from '../../hocs/screen_wrapper';
 import {deleteAccount, logout} from 'services';
 import {useDispatch} from 'react-redux';
-import {clearAuth, setHideIntro, setIsUserLoggedInWithMPIN} from 'store';
+import {clearAuth, setShowIntro, setIsUserLoggedInWithMPIN} from 'store';
 import {
   Heading,
   TextButton,
@@ -41,27 +41,24 @@ import Ripple from 'react-native-material-ripple';
 import ProfileCard from './ProfileCard';
 import Toast from 'react-native-toast-message';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
+import {useClearAsyncStorageKeys} from '../../reusables/useClearAsyncStorageKeys';
 
 export default function () {
-  const dispatch = useDispatch();
   const theme = useTheme();
   const navigation = useNavigation();
   const [selectedOptionIndex, setSelectedOptionIndex] = useState(null);
   const [disableButton, setDisableButton] = useState(false);
   const [openConfirmDeletePopup, setOpenConfirmDeletePopup] = useState(false);
 
+  const {clearStoreForLogout, clearStoreForDeleteAccount} =
+    useClearAsyncStorageKeys();
+
   const handleLogout = async () => {
     try {
       setDisableButton(true);
       const logoutResponse = await logout();
       console.log('logoutResponse', logoutResponse);
-      dispatch(clearAuth());
-      await AsyncStorage.clear();
-      dispatch(setHideIntro(true));
-      await AsyncStorage.setItem('@loggedin_status', JSON.stringify(true));
-      await AsyncStorage.setItem('@hide_intro', JSON.stringify(true));
-      dispatch(setIsUserLoggedInWithMPIN(false));
-      // navigation.replace('Auth', {screen: 'SigninHome'});
+      clearStoreForLogout();
     } catch (error) {
       console.log('error', error);
     }
@@ -71,13 +68,7 @@ export default function () {
     try {
       const deleteAccountResponse = await deleteAccount();
       console.log('deleteAccountResponse', deleteAccountResponse);
-      dispatch(clearAuth());
-      await AsyncStorage.clear();
-      dispatch(setHideIntro(true));
-      await AsyncStorage.setItem('@loggedin_status', JSON.stringify(true));
-      await AsyncStorage.setItem('@hide_intro', JSON.stringify(true));
-      dispatch(setIsUserLoggedInWithMPIN(false));
-      // navigation.replace('Auth', {screen: 'SigninHome'});
+      clearStoreForDeleteAccount();
     } catch (error) {
       console.log('error', error);
     }

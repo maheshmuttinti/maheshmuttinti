@@ -14,7 +14,7 @@ import {Arrow} from 'assets';
 import * as Sentry from '@sentry/react-native';
 import {useDispatch} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {setHideIntro} from 'store';
+import {setShowIntro} from 'store';
 
 const {width} = Dimensions.get('window');
 
@@ -108,8 +108,8 @@ export default function ({navigation}) {
 
   const handleSubmit = async () => {
     try {
-      dispatch(setHideIntro(true));
-      await AsyncStorage.setItem('@hide_intro', JSON.stringify(true));
+      dispatch(setShowIntro(false));
+      await AsyncStorage.setItem('@show_intro', JSON.stringify(false));
       return navigation.replace('Auth', {screen: 'SignupHome'});
     } catch (error) {
       Sentry.captureException(error);

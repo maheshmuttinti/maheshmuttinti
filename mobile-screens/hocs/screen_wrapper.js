@@ -15,7 +15,7 @@ import {useTheme} from 'theme';
 import {useNavigation} from '@react-navigation/native';
 import {useDispatch, useSelector, shallowEqual} from 'react-redux';
 import NetInfo from '@react-native-community/netinfo';
-import {setNetworkStatus, setHideIntro} from 'store';
+import {setNetworkStatus, setShowIntro} from 'store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Config from 'react-native-config';
 
@@ -49,9 +49,9 @@ export default function ({
   redirectionFnRef.current = () => {
     if (isSessionExpired === true) {
       AsyncStorage.clear();
-      dispatch(setHideIntro(true));
+      dispatch(setShowIntro(false));
       (async () =>
-        await AsyncStorage.setItem('@hide_intro', JSON.stringify(true)))();
+        await AsyncStorage.setItem('@show_intro', JSON.stringify(false)))();
       navigation.replace('Auth', {screen: 'SigninHome'});
     } else {
       return;

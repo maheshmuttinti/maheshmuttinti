@@ -4,7 +4,6 @@ import SignupHome from '../screens/Auth/Signup';
 import VerifyPhoneNumberDuringRegistration from '../screens/Auth/Signup/VerifyPhoneNumberDuringRegistration';
 import SigninHome from '../screens/Auth/Signin';
 import SigninUsingOTP from '../screens/Auth/Signin/VerifySiginUsingOTP';
-import GmailAuthorizeStatus from '../screens/Auth/Onboarding/GmailAuthorizeStatus';
 import EnterPhoneNumber from '../screens/Auth/Signup/EnterPhoneNumber';
 import VerifyPhoneNumberDuringSocialAuthentication from '../screens/Auth/Signup/VerifyPhoneNumberDuringSocialAuthentication';
 import SocialLoginRedirection from '../screens/Auth/SocialAuthentications/SocialLoginRedirection';
@@ -52,12 +51,6 @@ const Auth = () => {
         name="SocialLoginRedirection"
         options={{headerShown: false}}
         component={SocialLoginRedirection}
-      />
-
-      <Stack.Screen
-        name="GmailAuthorizeStatus"
-        options={{headerShown: false}}
-        component={GmailAuthorizeStatus}
       />
 
       <Stack.Screen

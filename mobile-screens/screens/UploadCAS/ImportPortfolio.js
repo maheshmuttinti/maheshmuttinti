@@ -189,8 +189,11 @@ export default function ({navigation}) {
           setIsNewEmailAdded(prevState => !prevState);
           setApiCallStatus('add_cas_email_success');
 
-          navigation.navigate('EmailActivationLinkScreen', {
-            email: addCasEmailResponse?.data?.email,
+          navigation.navigate('Protected', {
+            screen: 'EmailActivationLinkScreen',
+            params: {
+              email: addCasEmailResponse?.data?.email,
+            },
           });
         } else if (
           addCasEmailResponse?.data?.verification_status === 'success'
@@ -380,8 +383,11 @@ const EmailListItem = ({email, index, navigation, refreshCasRequestCb}) => {
       if (addCasEmailResponse?.data?.verification_status === 'pending') {
         console.log('go to EmailActivationLinkScreen');
 
-        navigation.navigate('EmailActivationLinkScreen', {
-          email: addCasEmailResponse?.data?.email,
+        navigation.navigate('Protected', {
+          screen: 'EmailActivationLinkScreen',
+          params: {
+            email: addCasEmailResponse?.data?.email,
+          },
         });
       }
     } catch (err) {

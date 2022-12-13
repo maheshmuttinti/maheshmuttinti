@@ -64,14 +64,13 @@ export default function ({route, navigation}) {
 
   useEffect(() => {
     if (form.value.token.length === 6) {
-      setVerifyingOTP(true);
       handleVerifyPhoneNumberOTP.current();
-      setVerifyingOTP(false);
     }
   }, [form.value.token]);
 
   handleVerifyPhoneNumberOTP.current = async () => {
     try {
+      setVerifyingOTP(true);
       form.setErrors({token: ''});
       const verifyOtpPayload = {
         ...form.value,
