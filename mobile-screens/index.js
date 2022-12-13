@@ -31,6 +31,7 @@ import AppPromo from './screens/AppPromo';
 Sentry.init({
   dsn: Config.SENTRY_DSN,
 });
+import Development from './stacks/Development';
 
 const Stack = createStackNavigator();
 
@@ -116,6 +117,36 @@ const App = () => {
       unsubscribe();
     };
   }, []);
+  // const {isUserLoggedInWithMPIN} = useSelector(
+  //   ({auth}) => ({
+  //     isUserLoggedInWithMPIN: auth.isUserLoggedInWithMPIN,
+  //   }),
+  //   shallowEqual,
+  // );
+
+  // const init = async () => {
+  //   try {
+  //     let tokenFromStorage = await AsyncStorage.getItem('@access_token');
+  //     if (tokenFromStorage !== null) {
+  //       dispatch(setTokens(JSON.parse(tokenFromStorage)));
+  //       let userProfile = await getUser();
+  //       if (userProfile) {
+  //         dispatch(setUser(userProfile));
+  //       }
+  //     }
+  //   } catch (error) {
+  //     return error;
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   init();
+  //   const unsubscribe = NetInfo.addEventListener(state => {
+  //     dispatch(setNetworkStatus(state.isConnected ? 'online' : 'offline'));
+  //   });
+
+  //   return () => unsubscribe();
+  // }, []);
 
   console.log('accessToken in stack index: ', Boolean(accessToken) === false);
   console.log('isUserLoggedInWithMPIN: ', isUserLoggedInWithMPIN);
