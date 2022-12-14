@@ -163,18 +163,18 @@ export default function ({navigation, route}) {
       navigation.replace('Protected');
     }
     if (mpinStatus === 'set_pin_pending') {
+      navigation.replace('PINSetup', {screen: 'SetPINHome'});
       navigation.reset({
         index: 0,
         routes: [{name: 'Auth'}],
       });
-      navigation.replace('PINSetup', {screen: 'SetPINHome'});
     }
     if (mpinStatus === 'set_pin_success') {
+      navigation.replace('PINSetup', {screen: 'EnterPINHome'});
       navigation.reset({
         index: 0,
         routes: [{name: 'Auth'}],
       });
-      navigation.replace('PINSetup', {screen: 'EnterPINHome'});
     }
   };
   const handleRedirectionBasedOnEmail = async user => {

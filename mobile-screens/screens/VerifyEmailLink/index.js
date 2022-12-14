@@ -75,10 +75,6 @@ export default function ({navigation, route}) {
             wrapperStyles={{marginBottom: 16, height: 48}}
             onPress={() => {
               if (type === 'auth_flow' || isUserLoggedInWithMPIN !== true) {
-                navigation.reset({
-                  index: 0,
-                  routes: [{name: 'Auth'}],
-                });
                 console.log(
                   'user?.profile?.meta?.mpin_set === true',
                   user,
@@ -91,6 +87,10 @@ export default function ({navigation, route}) {
                       verificationStatus: verificationStatus,
                     },
                   });
+                  navigation.reset({
+                    index: 0,
+                    routes: [{name: 'Auth'}],
+                  });
                 } else {
                   navigation.replace('PINSetup', {
                     screen: 'SetPINHome',
@@ -98,9 +98,17 @@ export default function ({navigation, route}) {
                       verificationStatus: verificationStatus,
                     },
                   });
+                  navigation.reset({
+                    index: 0,
+                    routes: [{name: 'Auth'}],
+                  });
                 }
               } else {
                 navigation.replace('Protected');
+                navigation.reset({
+                  index: 0,
+                  routes: [{name: 'Auth'}],
+                });
               }
             }}
             bgColor={theme.colors.primaryOrange}
