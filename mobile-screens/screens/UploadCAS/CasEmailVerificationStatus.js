@@ -4,7 +4,7 @@ import {useRef, useCallback, useState} from 'react';
 import {View, Text} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import {useTheme} from 'theme';
-import {AnimatedEllipsis} from 'uin';
+import {AnimatedEllipsis, BaseButton} from 'uin';
 import {updateUserProfile, getUser} from 'services';
 import {showToast} from 'utils';
 import * as Sentry from '@sentry/react-native';
@@ -22,7 +22,7 @@ export default function ({navigation, route}) {
       setLoading(true);
       const user = await getUser();
       let updateProfilePayload = {
-        meta: {...user?.profile?.meta},
+        meta: {...user?.profile?.meta, email: email},
       };
       if (!user?.profile?.meta?.username_type) {
         updateProfilePayload = {
@@ -49,12 +49,16 @@ export default function ({navigation, route}) {
 
     navigation.reset({
       index: 0,
-      routes: [{name: 'VerifyEmail'}],
+      routes: [{name: 'EmailActivationLinkScreen'}],
     });
-    navigation.replace('ScreenDeterminer', {
-      verificationStatus,
-      verifiedEmail,
-    });
+    navigation.replace(
+      'General',
+      {screen: 'ScreenDeterminer'},
+      {
+        verificationStatus,
+        verifiedEmail,
+      },
+    );
   };
 
   handleRedirection.current = async () => {
@@ -88,7 +92,7 @@ export default function ({navigation, route}) {
         backgroundColor: '#fff',
       }}>
       <AnimatedEllipsis dotSize={12} dotColor={theme.colors.primaryBlue} />
-      {loading === true && (
+      {loading === true ? (
         <Text
           style={{
             color: theme.colors.text,
@@ -98,6 +102,25 @@ export default function ({navigation, route}) {
           }}>
           Verifying Email...
         </Text>
+      ) : (
+        <>
+          <Text
+            style={{
+              color: theme.colors.text,
+              fontFamily: theme.fonts.regular,
+              paddingTop: 16,
+              textAlign: 'center',
+            }}>
+            {verificationStatus === 'success'
+              ? 'Email Verified Successfully'
+              : `${verificationStatus}`}
+          </Text>
+          <View style={{paddingTop: 32}}>
+            <BaseButton loading={loading} onPress={() => handleRedirect()}>
+              Continue
+            </BaseButton>
+          </View>
+        </>
       )}
     </View>
   );

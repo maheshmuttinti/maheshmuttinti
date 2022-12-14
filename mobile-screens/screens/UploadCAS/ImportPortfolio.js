@@ -189,7 +189,7 @@ export default function ({navigation}) {
           setIsNewEmailAdded(prevState => !prevState);
           setApiCallStatus('add_cas_email_success');
 
-          navigation.navigate('Protected', {
+          navigation.navigate('General', {
             screen: 'EmailActivationLinkScreen',
             params: {
               email: addCasEmailResponse?.data?.email,
@@ -383,7 +383,7 @@ const EmailListItem = ({email, index, navigation, refreshCasRequestCb}) => {
       if (addCasEmailResponse?.data?.verification_status === 'pending') {
         console.log('go to EmailActivationLinkScreen');
 
-        navigation.navigate('Protected', {
+        navigation.navigate('General', {
           screen: 'EmailActivationLinkScreen',
           params: {
             email: addCasEmailResponse?.data?.email,

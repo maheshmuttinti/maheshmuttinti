@@ -48,7 +48,7 @@ export default function ({navigation, route}) {
           updateProfileResponse,
         );
 
-        navigation.replace('ScreenDeterminer');
+        navigation.replace('General', {screen: 'ScreenDeterminer'});
       }
     } catch (err) {
       console.log('error', err);

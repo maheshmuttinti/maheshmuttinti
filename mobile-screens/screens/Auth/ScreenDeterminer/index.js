@@ -49,11 +49,33 @@ export default function ({navigation, route}) {
   redirectToNoInternetScreen.current = () =>
     navigation.navigate('EmptyStates', {screen: 'NoInternet'});
 
+  // handleExpiredSession.current = async () => {
+  //   navigation.replace('Auth', {screen: 'SigninHome'});
+  //   // if (isSessionExpired === true) {
+  //   //   await clearStoreForLogout();
+  //   //   navigation.replace('Auth', {screen: 'SigninHome'});
+  //   // }
+  // };
+
   handleExpiredSession.current = async () => {
+    console.log(
+      'screenDeterminor=>isSessionExpired outside: ',
+      isSessionExpired,
+    );
     if (isSessionExpired === true) {
+      console.log(
+        'screenDeterminor=>isSessionExpired inside if: ',
+        isSessionExpired,
+      );
       await clearStoreForLogout();
-      navigation.replace('Auth', {screen: 'SigninHome'});
     }
+    // else {
+    //   console.log(
+    //     'screenDeterminor=>isSessionExpired inside else: ',
+    //     isSessionExpired,
+    //   );
+    //   await clearStoreForLogout();
+    // }
   };
 
   const handleNoInternet = () => {
@@ -191,8 +213,19 @@ export default function ({navigation, route}) {
       console.log('status------>: ', status);
       if (status === 'success') {
         redirectionDeciderByMPINStatus(mpinStatus);
+      } else if (status === 'pending') {
+        navigation.replace('General', {
+          screen: 'EmailActivationLinkScreen',
+          params: {
+            email: email,
+            type: 'auth_flow',
+            mpin_set: user?.profile?.meta?.mpin_set,
+            verificationStatus: verificationStatus,
+          },
+        });
       } else {
-        navigation.replace('VerifyEmail', {
+        console.log('other email verification status');
+        navigation.replace('General', {
           screen: 'EmailActivationLinkScreen',
           params: {
             email: email,
@@ -259,8 +292,14 @@ export default function ({navigation, route}) {
 
       hideSplashScreen();
     } catch (error) {
+      console.log(
+        'error in screen-determinor screen: ',
+        error,
+        error.response.status,
+      );
       handleNoInternet();
       handleExpiredSession.current();
+      hideSplashScreen();
       Sentry.captureException(error);
     }
   };

@@ -58,7 +58,7 @@ export default function ({route, navigation}) {
 
         await handleAddCASEmail();
         if (updateProfileResponse) {
-          navigation.replace('ScreenDeterminer');
+          navigation.replace('General', {screen: 'ScreenDeterminer'});
         }
       } else {
         setLoading(false);

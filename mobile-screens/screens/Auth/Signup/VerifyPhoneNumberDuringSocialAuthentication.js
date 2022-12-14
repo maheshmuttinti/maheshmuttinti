@@ -55,7 +55,7 @@ export default function ({route, navigation}) {
         prettifyJSON(updatedProfile),
       );
       if (updatedProfile) {
-        navigation.replace('ScreenDeterminer');
+        navigation.replace('General', {screen: 'ScreenDeterminer'});
       }
     } catch (err) {
       console.log('error', err);
@@ -80,7 +80,7 @@ export default function ({route, navigation}) {
       if (verificationResponse) {
         setVerifyingOTP(false);
         console.log('verificationResponse', prettifyJSON(verificationResponse));
-        navigation.replace('ScreenDeterminer');
+        navigation.replace('General', {screen: 'ScreenDeterminer'});
       }
     } catch (error) {
       setVerifyingOTP(false);

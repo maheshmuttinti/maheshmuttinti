@@ -28,6 +28,8 @@ import PANSetup from './stacks/PANSetup';
 import PINSetup from './stacks/PINSetup';
 import AppPromo from './screens/AppPromo';
 import {useClearAsyncStorageKeys} from './reusables/useClearAsyncStorageKeys';
+import CasEmailVerificationStatus from './screens/UploadCAS/CasEmailVerificationStatus';
+import General from './stacks/General';
 
 Sentry.init({
   dsn: Config.SENTRY_DSN,
@@ -48,10 +50,14 @@ LogBox.ignoreLogs([
 
 const config = {
   screens: {
+    General: {
+      screens: {
+        CasEmailVerificationStatus: 'cas-email-verification-status',
+      },
+    },
     Auth: {
       screens: {
         SocialLoginRedirection: 'social-login-status',
-        CasEmailVerificationStatus: 'cas-email-verification-status',
       },
     },
     Protected: {
@@ -92,7 +98,18 @@ const App = () => {
   const handleExpiredSession = React.useRef(() => {});
 
   handleExpiredSession.current = async () => {
+    console.log('mobile-screens=>isSessionExpired outside: ', isSessionExpired);
     if (isSessionExpired === true) {
+      console.log(
+        'mobile-screens=>isSessionExpired inside if: ',
+        isSessionExpired,
+      );
+      await clearStoreForLogout();
+    } else {
+      console.log(
+        'mobile-screens=>isSessionExpired inside else: ',
+        isSessionExpired,
+      );
       await clearStoreForLogout();
     }
   };
@@ -106,7 +123,6 @@ const App = () => {
 
   const init = React.useCallback(async () => {
     try {
-      handleExpiredSession.current();
       let tokenFromStorage = await AsyncStorage.getItem('@access_token');
       console.log('tokenFromStorage: ', tokenFromStorage);
 
@@ -118,6 +134,15 @@ const App = () => {
         }
       }
     } catch (error) {
+      console.log('error in mobile-screens index: ', error);
+      console.log('Object.keys(error),: ', Object.keys(error));
+      console.log('error?.message: ', error?.message);
+      console.log('error?.status: ', error?.status);
+      console.log('error?.response?.status: ', error?.response?.status);
+
+      handleExpiredSession.current();
+
+      // await clearStoreForLogout();
       Sentry.captureException(error);
     }
   }, [dispatch]);
@@ -143,12 +168,13 @@ const App = () => {
           ref={RootNavigation.navigationRef}>
           <Stack.Navigator>
             <Stack.Screen
-              name="ScreenDeterminer"
+              name="General"
               options={{headerShown: false}}
-              component={ScreenDeterminer}
+              component={General}
             />
 
-            {(accessToken === null ||
+            {(isSessionExpired === true ||
+              accessToken === null ||
               accessToken === undefined ||
               Boolean(accessToken) === false ||
               isUserLoggedInWithMPIN === false ||
@@ -160,7 +186,8 @@ const App = () => {
                 component={Auth}
               />
             )}
-            {(accessToken !== null || isUserLoggedInWithMPIN === true) && (
+            {((isSessionExpired !== true && accessToken !== null) ||
+              isUserLoggedInWithMPIN === true) && (
               <Stack.Screen
                 name="Protected"
                 options={{headerShown: false}}
@@ -172,11 +199,13 @@ const App = () => {
               options={{headerShown: false}}
               component={AppPromo}
             />
-            <Stack.Screen
+
+            {/* <Stack.Screen
               name="VerifyEmail"
               options={{headerShown: false}}
               component={EmailActivationLinkScreen}
-            />
+            /> */}
+
             <Stack.Screen
               name="PINSetup"
               options={{headerShown: false}}
