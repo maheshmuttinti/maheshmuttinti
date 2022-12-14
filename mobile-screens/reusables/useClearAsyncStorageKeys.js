@@ -4,11 +4,12 @@ import {clearAuth, setShowIntro, setIsUserLoggedInWithMPIN} from 'store';
 
 export const useClearAsyncStorageKeys = () => {
   const dispatch = useDispatch();
+
   const clearStoreForLogout = async () => {
     try {
       dispatch(setShowIntro(false));
       await AsyncStorage.setItem('@show_intro', JSON.stringify(false));
-      await AsyncStorage.setItem('@loggedin_status', JSON.stringify(true));
+      await AsyncStorage.setItem('@logged_into_app', JSON.stringify(true));
       dispatch(setIsUserLoggedInWithMPIN(false));
       dispatch(clearAuth());
       await AsyncStorage.removeItem('@access_token');
@@ -24,7 +25,7 @@ export const useClearAsyncStorageKeys = () => {
     try {
       dispatch(setShowIntro(false));
       await AsyncStorage.setItem('@show_intro', JSON.stringify(false));
-      await AsyncStorage.setItem('@loggedin_status', JSON.stringify(false));
+      await AsyncStorage.setItem('@logged_into_app', JSON.stringify(false));
       dispatch(setIsUserLoggedInWithMPIN(false));
       dispatch(clearAuth());
       await AsyncStorage.removeItem('@access_token');

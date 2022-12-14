@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React from 'react';
+import React, {useEffect} from 'react';
 import {
   OnboardingSVGFour,
   OnboardingSVGOne,
@@ -20,10 +20,18 @@ const {width} = Dimensions.get('window');
 
 export default function ({navigation}) {
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    console.log('*******AppPromo Stack Mounted****');
+    return () => {
+      console.log('*******AppPromo Stack UnMounted****');
+    };
+  }, []);
+
   const theme = useTheme();
   const propData = {
     sourceType: 'SVG',
-    navigateTo: 'SignupHome',
+    navigateTo: 'SignupWithEmailAndPhoneNumber',
     defaultTint: 'white',
     selectedTint: 'white',
     buttonStyle: {
@@ -110,7 +118,7 @@ export default function ({navigation}) {
     try {
       dispatch(setShowIntro(false));
       await AsyncStorage.setItem('@show_intro', JSON.stringify(false));
-      return navigation.replace('Auth', {screen: 'SignupHome'});
+      return navigation.replace('Auth', {screen: 'SignupWithSocialProviders'});
     } catch (error) {
       Sentry.captureException(error);
     }

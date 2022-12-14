@@ -2,7 +2,7 @@
 import * as React from 'react';
 import {useRef, useCallback} from 'react';
 import {View} from 'react-native';
-import {getUser, updateUserProfile} from 'services';
+import {getUser} from 'services';
 import {setTokens, setUser} from 'store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useFocusEffect} from '@react-navigation/native';
@@ -17,43 +17,8 @@ export default function ({navigation, route}) {
   const theme = useTheme();
 
   const accessToken = route?.params?.access_token;
-  const platform = route?.params?.platform;
 
   const getUserFnRef = useRef(() => {});
-
-  const handleUpdateUser = async user => {
-    try {
-      let usernameType = 'non_gmail';
-      if (platform === 'apple' || platform.includes('apple')) {
-        usernameType = 'apple_id';
-      } else if (platform === 'google' || platform.includes('google')) {
-        usernameType = 'gmail';
-      }
-      const meta = {
-        meta: {...user?.profile?.meta, username_type: usernameType},
-      };
-      const updateProfilePayload = {
-        ...meta,
-      };
-      console.log(
-        'social login redirection screen update profile payload',
-        meta,
-      );
-      const updateProfileResponse = await updateUserProfile(
-        updateProfilePayload,
-      );
-      if (updateProfileResponse) {
-        console.log(
-          'social login redirection screen update profile response',
-          updateProfileResponse,
-        );
-
-        navigation.replace('General', {screen: 'ScreenDeterminer'});
-      }
-    } catch (err) {
-      console.log('error', err);
-    }
-  };
 
   getUserFnRef.current = async () => {
     try {
@@ -68,10 +33,29 @@ export default function ({navigation, route}) {
           }),
         );
         dispatch(setTokens({access_token: accessToken}));
-        await AsyncStorage.setItem('@loggedin_status', JSON.stringify(true));
+        await AsyncStorage.setItem('@logged_into_app', JSON.stringify(true));
         const user = await getUser();
         dispatch(setUser(user));
-        await handleUpdateUser(user);
+
+        const isMobileNumberExists = user?.attributes
+          ?.map(item => item.type)
+          ?.includes('mobile_number');
+
+        console.log('isMobileNumberExists: ', isMobileNumberExists);
+        if (!isMobileNumberExists) {
+          console.log(
+            '!isMobileNumberExists redirecting to EnterPhoneNumber: ',
+            !isMobileNumberExists,
+          );
+          navigation.replace('Auth', {screen: 'EnterPhoneNumber'});
+          console.log(
+            '!isMobileNumberExists redirected to EnterPhoneNumber: ',
+            !isMobileNumberExists,
+          );
+        } else {
+          console.log('else condition of social login redirection.......');
+          navigation.replace('General', {screen: 'ScreenDeterminer'});
+        }
       }
     } catch (error) {
       console.log('error in getUserFnRef function', error);

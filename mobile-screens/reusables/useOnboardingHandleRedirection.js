@@ -1,12 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation} from '@react-navigation/native';
 import {getUser, updateUserProfile} from 'services';
-import {useResetAuthStack} from './useResetAuthStack';
-
+import {useResetStack} from './useResetStack';
 const useOnboardingHandleRedirection = () => {
   const navigation = useNavigation();
-  const {resetAuthStack} = useResetAuthStack();
-
+  const resetPINSetup = useResetStack('PINSetup');
   const handleUpdateOnboardingStep = async (user, payload) => {
     try {
       const meta = {
@@ -40,17 +38,15 @@ const useOnboardingHandleRedirection = () => {
     if (tokenFromStorage !== null) {
       const user = latestUser || (await getUser());
 
-      const isUsernameTypeExists = !!user?.profile?.meta?.username_type;
-
       const isPANExists = !!user?.profile?.meta?.pan;
 
-      const isPANSetupCompleted = isUsernameTypeExists && isPANExists;
-
-      if (isPANSetupCompleted) {
-        console.log('if->isPANSetupCompleted: ', isPANSetupCompleted);
+      if (isPANExists) {
+        console.log('if->isPANExists: ', isPANExists);
+        resetPINSetup();
         navigation.replace('Protected');
       } else {
-        console.log('else->isPANSetupCompleted: ', isPANSetupCompleted);
+        console.log('else->isPANExists: ', isPANExists);
+        resetPINSetup();
         navigation.replace('PANSetup');
       }
     }

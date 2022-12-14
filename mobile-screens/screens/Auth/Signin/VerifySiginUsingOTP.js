@@ -46,44 +46,6 @@ export default function ({route, navigation}) {
     }
   }, [type, value]);
 
-  updateUserProfileFnRef.current = async user => {
-    try {
-      console.log('verifySigninUsingOtp - user', JSON.stringify(user, null, 2));
-
-      let usernameType = null;
-      if (type === 'email') {
-        usernameType = 'non_gmail';
-      }
-      if (type === 'mobile_number') {
-        usernameType = 'mobile_number';
-      }
-      const meta = {
-        meta: {...user?.profile?.meta, username_type: usernameType},
-      };
-
-      console.log(
-        'updateProfilePayload in verifySigninUsingOtp screen',
-        updateProfilePayload,
-      );
-
-      const updateProfilePayload = {
-        ...meta,
-      };
-      const updateProfileResponse = await updateUserProfile(
-        updateProfilePayload,
-      );
-      if (updateProfileResponse) {
-        console.log(
-          'updated the profile in verify signin using otp screen adn redirecting to screen determinor screen',
-        );
-        setVerifyingOTP(false);
-        navigation.replace('General', {screen: 'ScreenDeterminer'});
-      }
-    } catch (err) {
-      console.log('error', err);
-    }
-  };
-
   persistLogin.current = async () => {
     try {
       const tokenFromStorage = await AsyncStorage.getItem('@access_token');
@@ -93,7 +55,7 @@ export default function ({route, navigation}) {
           let user = await getUser();
           console.log('user', JSON.stringify(user, null, 2));
           dispatch(setUser(user));
-          updateUserProfileFnRef.current(user);
+          navigation.replace('General', {screen: 'ScreenDeterminer'});
         }
       }
     } catch (error) {
@@ -137,7 +99,7 @@ export default function ({route, navigation}) {
             accessToken: response?.access_token,
           }),
         );
-        await AsyncStorage.setItem('@loggedin_status', JSON.stringify(true));
+        await AsyncStorage.setItem('@logged_into_app', JSON.stringify(true));
         setCheckLoginStatus('logged_in');
       }
     } catch (error) {

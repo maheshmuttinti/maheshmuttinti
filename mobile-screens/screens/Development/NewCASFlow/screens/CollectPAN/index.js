@@ -12,7 +12,7 @@ import {
 } from 'uin';
 import {useTheme} from 'theme';
 import ScreenWrapper from '../../../../../hocs/screen_wrapper';
-import {BackArrow, ForwardEmail, TickCircle, WarningIcon1} from 'assets';
+import {ForwardEmail, TickCircle, WarningIcon1} from 'assets';
 import useExitApp from '../../../../../reusables/useExitApp';
 import {validatePAN} from 'utils';
 import {usePANCollectRedirection} from '../../../../../reusables/usePANCollectRedirection';
@@ -30,14 +30,6 @@ export default function ({navigation}) {
 
   useExitApp();
 
-  const backArrowIconWrapperStyle = {
-    paddingTop: 48,
-  };
-
-  const handleGoBack = () => {
-    navigation.pop();
-  };
-
   showGreenTickCircleIcon.current = panNumber =>
     validatePAN(panNumber)
       ? setShowGreenCircleIcon(true)
@@ -52,8 +44,6 @@ export default function ({navigation}) {
   const handleSubmit = async () => {
     try {
       setApiCallStatus('loading');
-      setApiCallStatus('success');
-
       if (pan?.length === 0) {
         setError('Please enter the PAN Card Number');
         setApiCallStatus('failed');
@@ -75,21 +65,7 @@ export default function ({navigation}) {
   return (
     <ScreenWrapper onBackPress={() => {}}>
       <View style={{paddingHorizontal: 24, flex: 1}}>
-        <View style={{...backArrowIconWrapperStyle}}>
-          {navigation.canGoBack() ? (
-            <Pressable
-              hitSlop={{top: 30, left: 30, right: 30, bottom: 30}}
-              onPress={() => {
-                handleGoBack();
-              }}
-              style={{width: 50}}>
-              <BackArrow />
-            </Pressable>
-          ) : (
-            <View style={{height: 24}} />
-          )}
-        </View>
-        <View style={{marginTop: 36}}>
+        <View style={{marginTop: 41}}>
           <AuthHeading>Your pre approved loan is waiting for you</AuthHeading>
 
           <View style={{paddingTop: 24, alignItems: 'center'}}>

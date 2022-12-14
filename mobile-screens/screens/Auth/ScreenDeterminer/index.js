@@ -3,7 +3,7 @@ import * as React from 'react';
 import {useRef, useCallback, useEffect} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useFocusEffect} from '@react-navigation/native';
-import {getUser, getCASEmails} from 'services';
+import {getUser} from 'services';
 import {useSelector, shallowEqual} from 'react-redux';
 import {View} from 'react-native';
 import {useTheme} from 'theme';
@@ -11,15 +11,48 @@ import {AnimatedEllipsis} from 'uin';
 import {useClearAsyncStorageKeys} from '../../../reusables/useClearAsyncStorageKeys';
 import * as Sentry from '@sentry/react-native';
 import {useHideSplashScreen} from '../../../reusables/useHideSplashScreen';
+import {prettifyJSON} from 'utils';
+import {useDispatch} from 'react-redux';
+import {setTokens, setUser} from 'store';
+
+const getMpinStatus = (user, isUserLoggedInWithMPIN) => {
+  const mpinStatus = user?.profile?.meta?.mpin_set;
+  console.log('getMpinStatus->mpinStatus: ', mpinStatus);
+
+  switch (mpinStatus) {
+    case 'skip':
+      return 'skipped';
+    case true:
+      if (isUserLoggedInWithMPIN !== null) {
+        if (isUserLoggedInWithMPIN === true) {
+          return 'redirect_to_dashboard';
+        } else {
+          return 'set_pin_success';
+        }
+      } else {
+        return 'set_pin_success';
+      }
+    default:
+      if (isUserLoggedInWithMPIN !== null) {
+        if (isUserLoggedInWithMPIN === true) {
+          return 'redirect_to_dashboard';
+        } else {
+          return 'set_pin_pending';
+        }
+      } else {
+        return 'set_pin_pending';
+      }
+  }
+};
 
 export default function ({navigation, route}) {
   const theme = useTheme();
-
+  const dispatch = useDispatch();
+  const accessToken = route?.params?.access_token;
+  console.log('accessToken in screen Determiner: ', accessToken);
   const handleExpiredSession = useRef(() => {});
   const handleRedirections = useRef(() => {});
   const redirectToNoInternetScreen = useRef(() => {});
-  const verificationStatus = route?.params?.verificationStatus;
-  console.log('verificationStatus in screenDeterminer: ', verificationStatus);
 
   const {clearStoreForLogout} = useClearAsyncStorageKeys();
   const {hideSplashScreen} = useHideSplashScreen();
@@ -50,33 +83,19 @@ export default function ({navigation, route}) {
   redirectToNoInternetScreen.current = () =>
     navigation.navigate('EmptyStates', {screen: 'NoInternet'});
 
-  // handleExpiredSession.current = async () => {
-  //   navigation.replace('Auth', {screen: 'SigninHome'});
-  //   // if (isSessionExpired === true) {
-  //   //   await clearStoreForLogout();
-  //   //   navigation.replace('Auth', {screen: 'SigninHome'});
-  //   // }
-  // };
-
   handleExpiredSession.current = async () => {
     console.log(
-      'screenDeterminor=>isSessionExpired outside: ',
+      'screenDeterminer=>isSessionExpired outside: ',
       isSessionExpired,
     );
     if (isSessionExpired === true) {
       console.log(
-        'screenDeterminor=>isSessionExpired inside if: ',
+        'screenDeterminer=>isSessionExpired inside if: ',
         isSessionExpired,
       );
       await clearStoreForLogout();
+      navigation.replace('Auth', {screen: 'SignupWithSocialProviders'});
     }
-    // else {
-    //   console.log(
-    //     'screenDeterminor=>isSessionExpired inside else: ',
-    //     isSessionExpired,
-    //   );
-    //   await clearStoreForLogout();
-    // }
   };
 
   const handleNoInternet = () => {
@@ -91,222 +110,185 @@ export default function ({navigation, route}) {
     }
   }, [networkStatus]);
 
-  const getNonSocialEmailsVerificationStatus = async () => {
-    try {
-      const CASEmailsResponse = await getCASEmails();
+  // const redirectionDeciderByMPINStatus = (user, mpinStatus) => {
+  //   const isMobileNumberExists = user?.attributes
+  //     ?.map(item => item.type)
+  //     ?.includes('mobile_number');
 
-      const isCASEmailsArePresent =
-        CASEmailsResponse && CASEmailsResponse?.length > 0;
+  //   console.log('isMobileNumberExists: ', isMobileNumberExists);
+  //   if (!isMobileNumberExists) {
+  //     navigation.replace('Auth', {screen: 'EnterPhoneNumber'});
+  //   } else if (
+  //     mpinStatus === 'skipped' ||
+  //     mpinStatus === 'redirect_to_dashboard'
+  //   ) {
+  //     navigation.replace('Protected');
+  //   } else if (mpinStatus === 'set_pin_pending') {
+  //     navigation.replace('PINSetup', {screen: 'SetPINHome'});
+  //   } else if (mpinStatus === 'set_pin_success') {
+  //     navigation.replace('PINSetup', {screen: 'EnterPINHome'});
+  //   }
+  // };
 
-      const isCASEmailIsNonGmail =
-        isCASEmailsArePresent &&
-        CASEmailsResponse?.find(
-          item => item['cas_emails*email_type'] === 'non_gmail',
-        );
+  // const handleRedirectAfterUserLoggedIn = async user => {
+  //   const mpinStatus = getMpinStatus(user);
+  //   console.log('handleRedirectAfterUserLoggedIn->mpinStatus: ', mpinStatus);
 
-      const isCASEmailVerificationSuccess =
-        CASEmailsResponse?.find(
-          item => item['cas_emails*verification_status'],
-        ) &&
-        CASEmailsResponse?.find(
-          item => item['cas_emails*verification_status'] === 'success',
-        );
+  //   console.log('user in screen determiner ----------', prettifyJSON(user));
 
-      const isNonGmailCASEmailVerified =
-        isCASEmailIsNonGmail && isCASEmailVerificationSuccess;
+  //   redirectionDeciderByMPINStatus(user, mpinStatus);
+  // };
 
-      const isCASEmailVerificationPending =
-        CASEmailsResponse[0]?.['cas_emails*verification_status'] &&
-        CASEmailsResponse[0]?.['cas_emails*verification_status'] === 'pending';
+  // Note: The names which starts with "@" are referred to AsyncStorage variables
+  // Purpose: 1. To show the Signup after App Promo "@show_intro" is set to false
+  // Purpose: 2. If there is no "@access_token" stored in AsyncStorage
 
-      console.log(
-        'isCASEmailVerificationPending',
-        isCASEmailVerificationPending,
-      );
-
-      console.log('verificationStatus: ', verificationStatus);
-      const isCASEmailVerificationIsSuccess =
-        verificationStatus === 'success' || isNonGmailCASEmailVerified;
-      console.log(
-        'isCASEmailVerificationIsSuccess: ',
-        isCASEmailVerificationIsSuccess,
-      );
-      console.log('casEmail', CASEmailsResponse[0]['cas_emails*email']);
-
-      return isCASEmailVerificationIsSuccess
-        ? {status: 'success', email: CASEmailsResponse[0]['cas_emails*email']}
-        : {status: 'pending', email: CASEmailsResponse[0]['cas_emails*email']};
-    } catch (error) {
-      Sentry.captureException(error);
-      return false;
-    }
-  };
-
-  const getMpinStatus = user => {
-    const mpinStatus = user?.profile?.meta?.mpin_set;
-    console.log('getMpinStatus->mpinStatus: ', mpinStatus);
-
-    switch (mpinStatus) {
-      case 'skip':
-        return 'skipped';
-      case true:
-        return 'set_pin_success';
-      default:
-        return 'set_pin_pending';
-    }
-  };
-
-  const getEmailType = user => {
-    const emailType = user?.profile?.meta?.username_type;
-    console.log('getEmailType->emailType: ', emailType);
-
-    switch (emailType) {
-      case 'gmail':
-        return 'gmail';
-      case 'apple_id':
-        return 'apple_id';
-      case 'non_gmail':
-        return 'non_gmail';
-      case 'mobile_number':
-        return 'mobile_number';
-      default:
-        return 'non_gmail';
-    }
-  };
-
-  const redirectionDeciderByMPINStatus = mpinStatus => {
-    if (mpinStatus === 'skipped') {
-      navigation.replace('Protected');
-    }
-    if (mpinStatus === 'set_pin_pending') {
-      navigation.replace('PINSetup', {screen: 'SetPINHome'});
-    }
-    if (mpinStatus === 'set_pin_success') {
-      navigation.replace('PINSetup', {screen: 'EnterPINHome'});
-    }
-  };
-  const handleRedirectionBasedOnEmail = async user => {
-    const mpinStatus = getMpinStatus(user);
-    console.log('handleRedirectionBasedOnEmail->mpinStatus: ', mpinStatus);
-    const emailType = getEmailType(user);
-    console.log('handleRedirectionBasedOnEmail->emailType: ', emailType);
-
-    if (emailType === 'gmail' || emailType === 'apple_id') {
-      console.log('emailType social emails: ', emailType);
-      redirectionDeciderByMPINStatus(mpinStatus);
-    }
-    if (emailType === 'non_gmail' || emailType === 'mobile_number') {
-      console.log('emailType non social emails: ', emailType);
-      // Todo: get the email from cas email or from meta
-      // Todo: verify or not verified
-      const response = await getNonSocialEmailsVerificationStatus();
-      console.log('response--->: ', response);
-
-      const {status, email} = response;
-      console.log('email----->: ', email);
-      console.log('status------>: ', status);
-      if (status === 'success') {
-        navigation.reset({
-          index: 0,
-          routes: [{name: 'Auth'}],
-        });
-        redirectionDeciderByMPINStatus(mpinStatus);
-      } else if (status === 'pending') {
-        navigation.reset({
-          index: 0,
-          routes: [{name: 'Auth'}],
-        });
-        navigation.replace('General', {
-          screen: 'EmailActivationLinkScreen',
-          params: {
-            email: email,
-            type: 'auth_flow',
-            mpin_set: user?.profile?.meta?.mpin_set,
-            verificationStatus: verificationStatus,
-          },
-        });
-      } else {
-        navigation.reset({
-          index: 0,
-          routes: [{name: 'Auth'}],
-        });
-        console.log('other email verification status');
-        navigation.replace('General', {
-          screen: 'EmailActivationLinkScreen',
-          params: {
-            email: email,
-            type: 'auth_flow',
-            mpin_set: user?.profile?.meta?.mpin_set,
-            verificationStatus: verificationStatus,
-          },
-        });
-      }
-    }
-  };
-
-  const handleLogoutRedirection = async () => {
+  const handleNoAccessTokenInAsyncStorage = async () => {
+    console.log('handleNoAccessTokenInAsyncStorage is called?: ');
     const loggedInStatus = JSON.parse(
-      await AsyncStorage.getItem('@loggedin_status'),
+      await AsyncStorage.getItem('@logged_into_app'),
     );
     if (loggedInStatus !== null) {
       console.log('loggedInStatus inside: ', loggedInStatus);
       if (loggedInStatus === true) {
         navigation.replace('Auth', {screen: 'SigninHome'});
       } else {
-        navigation.replace('Auth', {screen: 'SignupHome'});
+        navigation.replace('Auth', {screen: 'SignupWithSocialProviders'});
       }
     } else {
       console.log('loggedInStatus outside: ', loggedInStatus);
-      navigation.replace('Auth', {screen: 'SignupHome'});
+      navigation.replace('Auth', {screen: 'SignupWithSocialProviders'});
+    }
+  };
+
+  const mpinRedirection = user => {
+    const mpinStatus = getMpinStatus(user, isUserLoggedInWithMPIN);
+    console.log('getUser callledddddd------: ', getUser);
+    dispatch(setUser(user));
+
+    const isMobileNumberExists = user?.attributes
+      ?.map(item => item.type)
+      ?.includes('mobile_number');
+
+    console.log('isMobileNumberExists: ', isMobileNumberExists);
+    if (!isMobileNumberExists) {
+      console.log(
+        '!isMobileNumberExists redirecting to EnterPhoneNumber: ',
+        !isMobileNumberExists,
+      );
+      navigation.replace('Auth', {screen: 'EnterPhoneNumber'});
+      console.log(
+        '!isMobileNumberExists redirected to EnterPhoneNumber: ',
+        !isMobileNumberExists,
+      );
+    } else if (
+      mpinStatus === 'skipped' ||
+      mpinStatus === 'redirect_to_dashboard'
+    ) {
+      navigation.replace('Protected');
+    } else if (mpinStatus === 'set_pin_pending') {
+      navigation.replace('PINSetup', {screen: 'SetPINHome'});
+    } else if (mpinStatus === 'set_pin_success') {
+      navigation.replace('PINSetup', {screen: 'EnterPINHome'});
     }
   };
 
   handleRedirections.current = async () => {
     try {
-      let tokenFromStorage = await AsyncStorage.getItem('@access_token');
+      console.log('-------hiding splash screen...-------');
+      const tokenFromStorage = await AsyncStorage.getItem('@access_token');
       console.log('ScreenDeterminer->tokenFromStorage: ', tokenFromStorage);
 
-      let showIntro = JSON.parse(await AsyncStorage.getItem('@show_intro'));
+      const showIntro = JSON.parse(await AsyncStorage.getItem('@show_intro'));
 
       if (showIntro === null) {
-        navigation.reset({
-          index: 0,
-          routes: [{name: 'AppPromo'}],
-        });
-      } else if (tokenFromStorage !== null) {
-        let user = await getUser();
-        console.log('user: ', user);
+        navigation.replace('AppPromo', {screen: 'AppPromo'});
+      } else if (accessToken) {
+        console.log('social login accessToken:------> ', accessToken);
+        await AsyncStorage.setItem(
+          '@access_token',
+          JSON.stringify({
+            accessToken: accessToken,
+          }),
+        );
+        dispatch(setTokens({access_token: accessToken}));
+        await AsyncStorage.setItem('@logged_into_app', JSON.stringify(true));
+        const user = await getUser();
+        console.log('getUser callledddddd------: ', user);
+        dispatch(setUser(user));
 
         const isMobileNumberExists = user?.attributes
           ?.map(item => item.type)
           ?.includes('mobile_number');
 
-        await handleRedirectionBasedOnEmail(user);
-
+        console.log('isMobileNumberExists: ', isMobileNumberExists);
         if (!isMobileNumberExists) {
+          console.log(
+            '!isMobileNumberExists redirecting to EnterPhoneNumber: ',
+            !isMobileNumberExists,
+          );
           navigation.replace('Auth', {screen: 'EnterPhoneNumber'});
+          console.log(
+            '!isMobileNumberExists redirected to EnterPhoneNumber: ',
+            !isMobileNumberExists,
+          );
+        } else {
+          mpinRedirection(user);
+        }
+      } else if (tokenFromStorage !== null) {
+        const user = await getUser();
+        console.log(
+          '****************user in screen determiner screen*******: ',
+          prettifyJSON(user),
+        );
+
+        const mpinStatus = getMpinStatus(user, isUserLoggedInWithMPIN);
+        console.log('getUser callledddddd------: ', getUser);
+        dispatch(setUser(user));
+
+        const isMobileNumberExists = user?.attributes
+          ?.map(item => item.type)
+          ?.includes('mobile_number');
+
+        console.log('isMobileNumberExists: ', isMobileNumberExists);
+        if (!isMobileNumberExists) {
+          console.log(
+            '!isMobileNumberExists redirecting to EnterPhoneNumber: ',
+            !isMobileNumberExists,
+          );
+          navigation.replace('Auth', {screen: 'EnterPhoneNumber'});
+          console.log(
+            '!isMobileNumberExists redirected to EnterPhoneNumber: ',
+            !isMobileNumberExists,
+          );
+        } else if (
+          mpinStatus === 'skipped' ||
+          mpinStatus === 'redirect_to_dashboard'
+        ) {
+          navigation.replace('Protected');
+        } else if (mpinStatus === 'set_pin_pending') {
+          navigation.replace('PINSetup', {screen: 'SetPINHome'});
+        } else if (mpinStatus === 'set_pin_success') {
+          navigation.replace('PINSetup', {screen: 'EnterPINHome'});
         }
       } else {
-        await handleLogoutRedirection();
+        await handleNoAccessTokenInAsyncStorage();
       }
 
       hideSplashScreen();
+      console.log('-------splash screen hide successfully-------');
     } catch (error) {
-      console.log(
-        'error in screen-determinor screen: ',
-        error,
-        error.response.status,
-      );
       handleNoInternet();
       handleExpiredSession.current();
       hideSplashScreen();
+      console.log('-------splash screen hide successfully-------');
       Sentry.captureException(error);
     }
   };
 
   useFocusEffect(
     useCallback(() => {
-      console.log('screen determinor called---------');
+      console.log('-------screen determiner called---------');
       handleRedirections.current();
       handleExpiredSession.current();
     }, []),

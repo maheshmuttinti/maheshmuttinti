@@ -30,7 +30,7 @@ export default function ({route, navigation}) {
 
   console.log('casEmail', casEmail);
 
-  const updateUsernameTypeOfUser = async () => {
+  const handleRedirect = async () => {
     try {
       const tokenFromStorage = await AsyncStorage.getItem('@access_token');
       dispatch(setTokens(JSON.parse(tokenFromStorage)));
@@ -38,28 +38,40 @@ export default function ({route, navigation}) {
       if (tokenFromStorage !== null) {
         const user = await getUser();
 
-        let usernameType = null;
-        if (type === 'email') {
-          usernameType = 'non_gmail';
-        }
-        if (type === 'mobile_number') {
-          usernameType = 'mobile_number';
-        }
-        const meta = {
-          meta: {...user?.profile?.meta, username_type: usernameType},
+        const addCASEmailResponse = await handleAddCASEmail();
+        console.log('addCASEmailResponse: ', prettifyJSON(addCASEmailResponse));
+        const metaForCasEmail = {
+          meta: {
+            ...user?.profile?.meta,
+            cas_email_uuid: addCASEmailResponse?.data?.uuid,
+            cas_email: addCASEmailResponse?.data?.email,
+            cas_email_verification_status:
+              addCASEmailResponse?.data?.verification_status,
+          },
         };
-
-        const updateProfilePayload = {
-          ...meta,
+        const updatedProfileMetaPayloadWithCasEmail = {
+          ...metaForCasEmail,
         };
-        const updateProfileResponse = await updateUserProfile(
-          updateProfilePayload,
+        console.log(
+          'updatedProfileMetaPayloadWithCasEmail: ',
+          prettifyJSON(updatedProfileMetaPayloadWithCasEmail),
+        );
+        const updateProfileResponseForCasEmail = await updateUserProfile(
+          updatedProfileMetaPayloadWithCasEmail,
         );
 
-        await handleAddCASEmail();
-        if (updateProfileResponse) {
-          navigation.replace('General', {screen: 'ScreenDeterminer'});
-        }
+        console.log(
+          '--------------------updateProfileResponseForCasEmail----------: ',
+          prettifyJSON(updateProfileResponseForCasEmail),
+        );
+        navigation.replace('General', {
+          screen: 'EmailActivationLinkScreen',
+          params: {
+            email: addCASEmailResponse?.email,
+            type: 'auth_flow',
+            verificationStatus: addCASEmailResponse?.verification_status,
+          },
+        });
       } else {
         setLoading(false);
         showToast('Unable to Logged into the App, Please try again!');
@@ -123,8 +135,8 @@ export default function ({route, navigation}) {
 
       console.log('addCASEmailPayload', addCASEmailPayload);
 
-      await addCASEmail(addCASEmailPayload);
-      setLoading(false);
+      const addCASEmailResponse = await addCASEmail(addCASEmailPayload);
+      return addCASEmailResponse;
     } catch (error) {
       showToast('Something went wrong while adding CAS Email');
       console.log('error', error);
@@ -143,8 +155,8 @@ export default function ({route, navigation}) {
             accessToken: accessToken,
           }),
         );
-        await AsyncStorage.setItem('@loggedin_status', JSON.stringify(true));
-        await updateUsernameTypeOfUser();
+        await AsyncStorage.setItem('@logged_into_app', JSON.stringify(true));
+        await handleRedirect();
         setLoading(false);
       }
     } catch (error) {

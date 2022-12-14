@@ -219,7 +219,7 @@ export default class AppIntro extends React.Component {
       this.props.onSkipTapped(this.state.index);
     }
     clearInterval(animaInterval);
-    this.props.navigation.navigate('Auth', {screen: 'SignupHome'});
+    this.props.navigation.navigate('Auth', {screen: 'SignupWithEmailAndPhoneNumber'});
   }
 
   scrollNext() {

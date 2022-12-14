@@ -1,19 +1,31 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
-import SignupHome from '../screens/Auth/Signup';
-import VerifyPhoneNumberDuringRegistration from '../screens/Auth/Signup/VerifyPhoneNumberDuringRegistration';
+import SignupWithEmailAndPhoneNumber from '../screens/Auth/SignupWithEmailAndPhoneNumber';
+import EnterPhoneNumber from '../screens/Auth/SignupWithEmailAndPhoneNumber/EnterPhoneNumber';
+import VerifyPhoneNumberDuringRegistration from '../screens/Auth/SignupWithEmailAndPhoneNumber/VerifyPhoneNumberDuringRegistration';
 import SigninHome from '../screens/Auth/Signin';
 import SigninUsingOTP from '../screens/Auth/Signin/VerifySiginUsingOTP';
-import EnterPhoneNumber from '../screens/Auth/Signup/EnterPhoneNumber';
-import VerifyPhoneNumberDuringSocialAuthentication from '../screens/Auth/Signup/VerifyPhoneNumberDuringSocialAuthentication';
+import VerifyPhoneNumberDuringSocialAuthentication from '../screens/Auth/SignupWithEmailAndPhoneNumber/VerifyPhoneNumberDuringSocialAuthentication';
 import SocialLoginRedirection from '../screens/Auth/SocialAuthentications/SocialLoginRedirection';
-import CasEmailVerificationStatus from '../screens/UploadCAS/CasEmailVerificationStatus';
+import SignupWithSocialProviders from '../screens/Auth/SignupWithSocialProviders';
 
 const Auth = () => {
   const Stack = createStackNavigator();
 
+  useEffect(() => {
+    console.log('*******Auth Stack Mounted****');
+    return () => {
+      console.log('*******Auth Stack UnMounted****');
+    };
+  }, []);
+
   return (
-    <Stack.Navigator initialRouteName={SignupHome}>
+    <Stack.Navigator initialRouteName={SignupWithSocialProviders}>
+      <Stack.Screen
+        name="SignupWithSocialProviders"
+        options={{headerShown: false}}
+        component={SignupWithSocialProviders}
+      />
       <Stack.Screen
         name="VerifyPhoneNumberDuringRegistration"
         options={{headerShown: false}}
@@ -37,9 +49,9 @@ const Auth = () => {
         component={SigninHome}
       />
       <Stack.Screen
-        name="SignupHome"
+        name="SignupWithEmailAndPhoneNumber"
         options={{headerShown: false}}
-        component={SignupHome}
+        component={SignupWithEmailAndPhoneNumber}
       />
 
       <Stack.Screen
@@ -51,12 +63,6 @@ const Auth = () => {
         name="SocialLoginRedirection"
         options={{headerShown: false}}
         component={SocialLoginRedirection}
-      />
-
-      <Stack.Screen
-        name="CasEmailVerificationStatus"
-        options={{headerShown: false}}
-        component={CasEmailVerificationStatus}
       />
     </Stack.Navigator>
   );

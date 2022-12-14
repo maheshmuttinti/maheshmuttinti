@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import * as React from 'react';
 import {useEffect, useState} from 'react';
-import {LogBox, Text, View} from 'react-native';
+import {LogBox, Platform, View} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {themes, ThemeProvider, useTheme} from 'theme';
@@ -12,8 +12,7 @@ import {setTokens, setUser} from 'store';
 import {getUser} from 'services';
 import {useDispatch} from 'react-redux';
 import Toast from 'react-native-toast-message';
-import {AnimatedEllipsis, Card} from 'uin';
-import {InfoIcon, WarningIcon1} from 'assets';
+import {AnimatedEllipsis} from 'uin';
 import Auth from './stacks/Auth';
 import Protected from './stacks/Protected';
 import EmptyStates from './stacks/EmptyStates';
@@ -22,18 +21,28 @@ import {setNetworkStatus} from 'store';
 import 'react-native-gesture-handler';
 import {useSelector, shallowEqual} from 'react-redux';
 import * as Sentry from '@sentry/react-native';
-import ScreenDeterminer from './screens/Auth/ScreenDeterminer';
-import EmailActivationLinkScreen from './screens/VerifyEmailLink';
 import PANSetup from './stacks/PANSetup';
 import PINSetup from './stacks/PINSetup';
 import AppPromo from './screens/AppPromo';
 import {useClearAsyncStorageKeys} from './reusables/useClearAsyncStorageKeys';
-import CasEmailVerificationStatus from './screens/UploadCAS/CasEmailVerificationStatus';
 import General from './stacks/General';
+import {
+  SchemeWarningComponent,
+  SelectSchemeWarningComponent,
+} from './screens/Toasts';
+import {linking} from './deepLinkConfigs';
 
 Sentry.init({
   dsn: Config.SENTRY_DSN,
 });
+
+// Todo: https://mars.betalectic.com/apps/product-radical/radical/-/issues/319
+// Todo: https://mars.betalectic.com/apps/product-radical/radical/-/issues/320
+// Todo: https://mars.betalectic.com/apps/product-radical/radical/-/issues/321
+// Todo: https://mars.betalectic.com/apps/product-radical/radical/-/issues/322
+// Todo: https://mars.betalectic.com/apps/product-radical/radical/-/issues/323
+// Todo: https://mars.betalectic.com/apps/product-radical/radical/-/issues/324
+// Todo: https://mars.betalectic.com/apps/product-radical/radical/-/issues/327
 
 const Stack = createStackNavigator();
 
@@ -48,42 +57,76 @@ LogBox.ignoreLogs([
   'Task orphaned for request',
 ]);
 
-const config = {
-  screens: {
-    General: {
-      screens: {
-        CasEmailVerificationStatus: 'cas-email-verification-status',
-      },
-    },
-    Auth: {
-      screens: {
-        SocialLoginRedirection: 'social-login-status',
-      },
-    },
-    Protected: {
-      screens: {
-        LoanApplication: 'signzy/video',
-        CAMSSuccess: 'cams/lien-marking',
-      },
-    },
-  },
-};
+const Device = `${Platform.OS.toUpperCase()} Device: `;
 
-const linking = {
-  prefixes: ['finezzy://'],
-  config,
+const toastConfig = {
+  schemeWarning: () => <SchemeWarningComponent />,
+  selectSchemeWarning: () => <SelectSchemeWarningComponent />,
 };
 
 const App = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(null);
-  const [isValidUser, setIsValidUser] = useState(null);
-  const toastConfig = {
-    schemeWarning: () => <SchemeWarningComponent />,
-    selectSchemeWarning: () => <SelectSchemeWarningComponent />,
-  };
   const {clearStoreForLogout} = useClearAsyncStorageKeys();
+  const handleExpiredSession = React.useRef(() => {});
+
+  const init = React.useCallback(async () => {
+    try {
+      setLoading(true);
+      // Reason to comment below line of code: This will help to test the show App Promo screen condition
+      // AsyncStorage.clear();
+      let tokenFromStorage = await AsyncStorage.getItem('@access_token');
+
+      if (tokenFromStorage !== null) {
+        dispatch(setTokens(JSON.parse(tokenFromStorage)));
+        let userProfile = await getUser();
+        if (userProfile) {
+          dispatch(setUser(userProfile));
+          setLoading(false);
+        } else {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
+    } catch (error) {
+      setLoading(false);
+      handleExpiredSession.current();
+      Sentry.captureException(error);
+    }
+  }, [dispatch]);
+
+  useEffect(() => {
+    var start = new Date().getTime();
+    init();
+    const unsubscribe = NetInfo.addEventListener(state => {
+      dispatch(setNetworkStatus(state.isConnected ? 'online' : 'offline'));
+    });
+    var end = new Date().getTime();
+    console.log(
+      `${Device} Mobile screen Index useEffect load time:**************** ${
+        (end - start) / 1000
+      }`,
+    );
+    Sentry.captureMessage(
+      `${Device} Mobile screen Index useEffect load time: ${
+        (end - start) / 1000
+      }sec`,
+    );
+    return () => {
+      unsubscribe();
+    };
+  }, [init, dispatch]);
+
+  console.log('****Loading***', loading);
+
+  const {accessToken} = useSelector(
+    ({auth}) => ({
+      accessToken: auth.accessToken,
+    }),
+    shallowEqual,
+  );
 
   const {isUserLoggedInWithMPIN} = useSelector(
     ({auth}) => ({
@@ -97,7 +140,6 @@ const App = () => {
     }),
     shallowEqual,
   );
-  const handleExpiredSession = React.useRef(() => {});
 
   handleExpiredSession.current = async () => {
     console.log('mobile-screens=>isSessionExpired outside: ', isSessionExpired);
@@ -116,62 +158,12 @@ const App = () => {
     }
   };
 
-  const {accessToken} = useSelector(
-    ({auth}) => ({
-      accessToken: auth.accessToken,
-    }),
-    shallowEqual,
+  console.log('mobile-screens: accessToken-------->: ', accessToken);
+  console.log('mobile-screens: isSessionExpired:------> ', isSessionExpired);
+  console.log(
+    'mobile-screens: isUserLoggedInWithMPIN: ---->',
+    isUserLoggedInWithMPIN,
   );
-
-  const init = React.useCallback(async () => {
-    try {
-      setLoading(true);
-      let tokenFromStorage = await AsyncStorage.getItem('@access_token');
-      console.log('tokenFromStorage: ', tokenFromStorage);
-
-      if (tokenFromStorage !== null) {
-        dispatch(setTokens(JSON.parse(tokenFromStorage)));
-        let userProfile = await getUser();
-        console.log('userProfile: ', Boolean(userProfile));
-        if (userProfile) {
-          setIsValidUser(Boolean(userProfile));
-          dispatch(setUser(userProfile));
-          setLoading(false);
-        } else {
-          setIsValidUser(false);
-          setLoading(false);
-        }
-      } else {
-        setIsValidUser(false);
-        setLoading(false);
-      }
-    } catch (error) {
-      setLoading(false);
-      setIsValidUser(false);
-      console.log('error in mobile-screens index: ', error);
-      console.log('Object.keys(error),: ', Object.keys(error));
-      console.log('error?.message: ', error?.message);
-      console.log('error?.status: ', error?.status);
-      console.log('error?.response?.status: ', error?.response?.status);
-
-      handleExpiredSession.current();
-
-      // await clearStoreForLogout();
-      Sentry.captureException(error);
-    }
-  }, [dispatch]);
-
-  useEffect(() => {
-    init();
-    const unsubscribe = NetInfo.addEventListener(state => {
-      dispatch(setNetworkStatus(state.isConnected ? 'online' : 'offline'));
-    });
-    return () => {
-      unsubscribe();
-    };
-  }, []);
-  console.log('****Loading***', loading);
-  console.log('****isValidUser***', isValidUser);
 
   const willAuthStackLoad =
     accessToken === null ||
@@ -181,16 +173,12 @@ const App = () => {
     isUserLoggedInWithMPIN === undefined ||
     isUserLoggedInWithMPIN === null;
   console.log('willAuthStackLoad**************: ', willAuthStackLoad);
-
   const willProtectedStackLoad =
     accessToken !== null || isUserLoggedInWithMPIN === true;
   console.log('willProtectedStackLoad***********: ', willProtectedStackLoad);
 
-  console.log('accessToken in stack index: ', Boolean(accessToken) === false);
-  console.log('isUserLoggedInWithMPIN: ', isUserLoggedInWithMPIN);
-
   if (loading) {
-    return <ProtectedStackCheck />;
+    return <Loader />;
   }
   return (
     <>
@@ -201,10 +189,18 @@ const App = () => {
           <Stack.Navigator>
             <Stack.Screen
               name="General"
-              options={{headerShown: false}}
+              options={{
+                headerShown: false,
+              }}
               component={General}
             />
-
+            <Stack.Screen
+              name="AppPromo"
+              options={{
+                headerShown: false,
+              }}
+              component={AppPromo}
+            />
             {(accessToken === null ||
               accessToken === undefined ||
               Boolean(accessToken) === false ||
@@ -213,116 +209,53 @@ const App = () => {
               isUserLoggedInWithMPIN === null) && (
               <Stack.Screen
                 name="Auth"
-                options={{headerShown: false}}
+                options={{
+                  headerShown: false,
+                }}
                 component={Auth}
               />
             )}
             {(accessToken !== null || isUserLoggedInWithMPIN === true) && (
               <Stack.Screen
                 name="Protected"
-                options={{headerShown: false}}
+                options={{
+                  headerShown: false,
+                }}
                 component={Protected}
               />
             )}
             <Stack.Screen
-              name="AppPromo"
-              options={{headerShown: false}}
-              component={AppPromo}
-            />
-
-            <Stack.Screen
               name="PINSetup"
-              options={{headerShown: false}}
+              options={{
+                headerShown: false,
+              }}
               component={PINSetup}
             />
             <Stack.Screen
               name="PANSetup"
-              options={{headerShown: false}}
+              options={{
+                headerShown: false,
+              }}
               component={PANSetup}
             />
             <Stack.Screen
               name="EmptyStates"
-              options={{headerShown: false}}
+              options={{
+                headerShown: false,
+              }}
               component={EmptyStates}
             />
           </Stack.Navigator>
+          <Toast config={toastConfig} />
         </NavigationContainer>
       </ThemeProvider>
-      <Toast config={toastConfig} />
     </>
   );
 };
 
-function SchemeWarningComponent() {
+const Loader = () => {
   const theme = useTheme();
-  return (
-    <Card
-      style={{
-        backgroundColor: theme.colors.backgroundYellow,
-        paddingLeft: 17.25,
-        marginHorizontal: 17,
-        marginTop: 30,
-        marginBottom: 100,
-        borderRadius: 8,
-        paddingVertical: 16,
-        flexDirection: 'row',
-        alignItems: 'center',
-      }}>
-      <View>
-        <InfoIcon fill={theme.colors.error} />
-      </View>
-      <Text
-        style={{
-          ...theme.fontSizes.small,
-          fontWeight: theme.fontWeights.moreBold,
-          color: theme.colors.text,
-          fontFamily: theme.fonts.regular,
-          paddingLeft: 17.25,
-          marginRight: 52,
-        }}>
-        You have selected enough schemes to reach the desired loan amount
-      </Text>
-    </Card>
-  );
-}
-
-function SelectSchemeWarningComponent() {
-  const theme = useTheme();
-
-  return (
-    <Card
-      style={{
-        backgroundColor: theme.colors.backgroundYellow,
-        paddingLeft: 17.25,
-        marginHorizontal: 17,
-        marginTop: 30,
-        marginBottom: 100,
-        borderRadius: 8,
-        paddingVertical: 16,
-        flexDirection: 'row',
-        alignItems: 'center',
-      }}>
-      <View>
-        <WarningIcon1 />
-      </View>
-      <Text
-        style={{
-          ...theme.fontSizes.small,
-          fontWeight: theme.fontWeights.moreBold,
-          color: theme.colors.text,
-          fontFamily: theme.fonts.regular,
-          paddingLeft: 17.25,
-          marginRight: 52,
-        }}>
-        You cannot add more than 3 NBFC to compare
-      </Text>
-    </Card>
-  );
-}
-
-const ProtectedStackCheck = () => {
-  const theme = useTheme();
-  console.log('**********ProtectedStackCheck mounted***************');
+  console.log('**********Loader mounted***************');
   return (
     <View
       style={{

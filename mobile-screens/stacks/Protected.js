@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import Dashboard from '../DrawerNavigator';
 import {useTheme} from 'theme';
@@ -24,6 +24,13 @@ import EmailActivationLinkScreen from '../screens/VerifyEmailLink';
 const Protected = () => {
   const Stack = createStackNavigator();
   const theme = useTheme();
+
+  useEffect(() => {
+    console.log('*******Protected Stack Mounted****');
+    return () => {
+      console.log('*******Protected Stack UnMounted****');
+    };
+  }, []);
 
   return (
     <Stack.Navigator

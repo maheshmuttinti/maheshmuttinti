@@ -90,7 +90,7 @@ const AuthScreenWrapper = ({children, showBackArrowIcon = true, ...props}) => {
               ...{
                 flex: 1,
                 width: '100%',
-                paddingTop: 53.18,
+                paddingTop: 32,
                 ...props.scrollViewStyles,
               },
             }}
@@ -98,8 +98,8 @@ const AuthScreenWrapper = ({children, showBackArrowIcon = true, ...props}) => {
             keyboardShouldPersistTaps={'handled'}>
             <View
               style={{
-                marginBottom: 32,
-                paddingBottom: 42,
+                // marginBottom: 32,
+                // paddingBottom: 42,
                 ...props.childrenWrapperStyles,
               }}>
               <View style={{...backArrowIconWrapperStyle}}>
@@ -115,8 +115,9 @@ const AuthScreenWrapper = ({children, showBackArrowIcon = true, ...props}) => {
                     <BackArrow />
                   </Pressable>
                 ) : (
+                  <></>
                   // height = <BackArrow /> icon height
-                  <View style={{height: 24}} />
+                  // <View style={{height: 24}} />
                 )}
               </View>
               {children}

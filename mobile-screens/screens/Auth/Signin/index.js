@@ -281,7 +281,9 @@ export default function SignInScreen({navigation}) {
           paddingTop: 169,
         }}>
         <TextButton
-          onPress={() => navigation.navigate('Auth', {screen: 'SignupHome'})}>
+          onPress={() =>
+            navigation.navigate('Auth', {screen: 'SignupWithSocialProviders'})
+          }>
           Create Account
         </TextButton>
       </View>

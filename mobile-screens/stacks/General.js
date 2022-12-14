@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import ScreenDeterminer from '../screens/Auth/ScreenDeterminer';
 import EmailActivationLinkScreen from '../screens/VerifyEmailLink';
@@ -6,6 +6,13 @@ import CasEmailVerificationStatus from '../screens/UploadCAS/CasEmailVerificatio
 
 const General = () => {
   const Stack = createStackNavigator();
+
+  useEffect(() => {
+    console.log('*******General Stack Mounted****');
+    return () => {
+      console.log('*******General Stack UnMounted****');
+    };
+  }, []);
 
   return (
     <Stack.Navigator initialRouteName={ScreenDeterminer}>

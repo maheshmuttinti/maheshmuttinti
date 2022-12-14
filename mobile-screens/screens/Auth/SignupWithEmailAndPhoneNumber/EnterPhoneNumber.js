@@ -12,7 +12,7 @@ import AuthWrapper from '../../../hocs/AuthWrapper';
 import {TickCircle, WarningIcon1} from 'assets';
 import useExitApp from '../../../reusables/useExitApp';
 import {NUMBER_MATCH_REGEX, prettifyJSON, showToast} from 'utils';
-import {getUser, logout, updateAttribute} from 'services';
+import {logout, updateAttribute} from 'services';
 import useBetaForm from '@reusejs/react-form-hook';
 import Ripple from 'react-native-material-ripple';
 import {useTheme} from 'theme';
@@ -68,8 +68,10 @@ export default function ({navigation}) {
     }
   };
 
+  useExitApp();
+
   return (
-    <AuthWrapper showBackArrowIcon={navigation.canGoBack()}>
+    <AuthWrapper showBackArrowIcon={false}>
       <AuthHeading>Enter Your Phone Number</AuthHeading>
 
       <View style={{paddingTop: 16}}>
@@ -168,41 +170,35 @@ export const VerifyMobileNumberButton = ({
     try {
       setApiCallStatus('loading');
       onActionIsCalling(true);
-      const user = await getUser();
-      let usernameType = user?.attributes[0]?.type;
 
-      console.log('usernameType', usernameType);
-
-      if (usernameType === 'email') {
-        if (phoneNumber.length === 0) {
-          console.log('empty phoneNumber');
-          onEmptyPhoneNumberLength(true);
+      if (phoneNumber.length === 0) {
+        console.log('empty phoneNumber');
+        onEmptyPhoneNumberLength(true);
+        onActionIsCalling(false);
+        setApiCallStatus('failure');
+      } else {
+        if (showGreenCircleIcon) {
+          onActionIsCalling(false);
+          setApiCallStatus('success');
+          const updateAttributePayload = {
+            ...payload,
+            value: `+91${payload.value}`,
+          };
+          console.log('payload isssss', updateAttributePayload);
+          const updateAttributeResponse = await updateAttribute(
+            updateAttributePayload,
+          );
+          console.log(
+            'updateAttributeResponse',
+            prettifyJSON(updateAttributeResponse),
+          );
+          navigation.navigate('VerifyPhoneNumberDuringSocialAuthentication', {
+            ...updateAttributePayload,
+          });
+        } else {
           onActionIsCalling(false);
           setApiCallStatus('failure');
-        } else {
-          if (showGreenCircleIcon) {
-            onActionIsCalling(false);
-            setApiCallStatus('success');
-            const updateAttributePayload = {
-              ...payload,
-              value: `+91${payload.value}`,
-            };
-            console.log('payload isssss', updateAttributePayload);
-            const updateAttributeResponse = await updateAttribute(
-              updateAttributePayload,
-            );
-            console.log(
-              'updateAttributeResponse',
-              prettifyJSON(updateAttributeResponse),
-            );
-            navigation.navigate('VerifyPhoneNumberDuringSocialAuthentication', {
-              ...updateAttributePayload,
-            });
-          } else {
-            onActionIsCalling(false);
-            setApiCallStatus('failure');
-            setError('Please enter the valid phone number');
-          }
+          setError('Please enter the valid phone number');
         }
       }
     } catch (err) {
@@ -220,6 +216,7 @@ export const VerifyMobileNumberButton = ({
     <View style={{paddingTop: 32}}>
       <BaseButton
         loading={apiCallStatus === 'loading'}
+        disable={!showGreenCircleIcon}
         onPress={() => handleSubmit()}>
         Continue
       </BaseButton>
