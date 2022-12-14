@@ -7,10 +7,10 @@ import {getUser, getCASEmails} from 'services';
 import {useSelector, shallowEqual} from 'react-redux';
 import {View} from 'react-native';
 import {useTheme} from 'theme';
-import SplashScreen from 'react-native-splash-screen';
 import {AnimatedEllipsis} from 'uin';
 import {useClearAsyncStorageKeys} from '../../../reusables/useClearAsyncStorageKeys';
 import * as Sentry from '@sentry/react-native';
+import {useHideSplashScreen} from '../../../reusables/useHideSplashScreen';
 
 export default function ({navigation, route}) {
   const theme = useTheme();
@@ -22,6 +22,7 @@ export default function ({navigation, route}) {
   console.log('verificationStatus in screenDeterminer: ', verificationStatus);
 
   const {clearStoreForLogout} = useClearAsyncStorageKeys();
+  const {hideSplashScreen} = useHideSplashScreen();
 
   const {networkStatus} = useSelector(
     ({network}) => ({
@@ -83,13 +84,6 @@ export default function ({navigation, route}) {
       redirectToNoInternetScreen.current();
     }
   };
-
-  useFocusEffect(
-    useCallback(() => {
-      handleRedirections.current();
-      handleExpiredSession.current();
-    }, []),
-  );
 
   useEffect(() => {
     if (networkStatus === 'offline') {
@@ -212,8 +206,16 @@ export default function ({navigation, route}) {
       console.log('email----->: ', email);
       console.log('status------>: ', status);
       if (status === 'success') {
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'Auth'}],
+        });
         redirectionDeciderByMPINStatus(mpinStatus);
       } else if (status === 'pending') {
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'Auth'}],
+        });
         navigation.replace('General', {
           screen: 'EmailActivationLinkScreen',
           params: {
@@ -224,6 +226,10 @@ export default function ({navigation, route}) {
           },
         });
       } else {
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'Auth'}],
+        });
         console.log('other email verification status');
         navigation.replace('General', {
           screen: 'EmailActivationLinkScreen',
@@ -253,12 +259,6 @@ export default function ({navigation, route}) {
       console.log('loggedInStatus outside: ', loggedInStatus);
       navigation.replace('Auth', {screen: 'SignupHome'});
     }
-  };
-
-  const hideSplashScreen = () => {
-    setTimeout(() => {
-      SplashScreen.hide();
-    }, 1000);
   };
 
   handleRedirections.current = async () => {
@@ -303,6 +303,14 @@ export default function ({navigation, route}) {
       Sentry.captureException(error);
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      console.log('screen determinor called---------');
+      handleRedirections.current();
+      handleExpiredSession.current();
+    }, []),
+  );
 
   return (
     <View

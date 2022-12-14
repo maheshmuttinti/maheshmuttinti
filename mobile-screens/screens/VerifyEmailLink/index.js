@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View, Text} from 'react-native';
 import {useTheme} from 'theme';
 import {BaseButton, AuthHeading, GroupText, GrayBodyText} from 'uin';
@@ -28,7 +28,76 @@ export default function ({navigation, route}) {
     shallowEqual,
   );
 
+  const finalEmailToShow = useMemo(() => {
+    return email
+      ? email
+      : emails && emails?.length > 0
+      ? `${emails[0]['cas_emails*email']}`
+      : null;
+  }, [email, emails]);
+
+  console.log('finalEmailToShow-------: ', finalEmailToShow);
   console.log('mpinStatus', isUserLoggedInWithMPIN);
+
+  const handleSubmit = () => {
+    if (type === 'auth_flow' || isUserLoggedInWithMPIN !== true) {
+      const mpinStatus = user?.profile?.meta?.mpin_set;
+      console.log('mpinStatus', user, mpinStatus);
+      if (mpinStatus === true) {
+        navigation.replace('PINSetup', {
+          screen: 'EnterPINHome',
+          params: {
+            verificationStatus: verificationStatus,
+          },
+        });
+      } else if (mpinStatus === 'skip') {
+        navigation.replace('Protected');
+      } else {
+        navigation.replace('PINSetup', {
+          screen: 'SetPINHome',
+          params: {
+            verificationStatus: verificationStatus,
+          },
+        });
+      }
+    } else {
+      navigation.replace('Protected');
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'Auth'}],
+      });
+    }
+  };
+
+  if (finalEmailToShow === null) {
+    return (
+      <AuthWrapper showBackArrowIcon={navigation.canGoBack()}>
+        <View style={{width: '100%', flex: 1, alignItems: 'center'}}>
+          <View style={{paddingTop: 20}}>
+            <EmailActivation />
+          </View>
+          <AuthHeading style={{textAlign: 'center', paddingTop: 24}}>
+            Something went wrong, Email Not Found. Please add Email.
+          </AuthHeading>
+          <View style={{width: '100%'}}>
+            <BaseButton
+              wrapperStyles={{
+                marginTop: 24,
+                marginBottom: 16,
+                height: 48,
+              }}
+              onPress={() => {
+                handleSubmit();
+              }}
+              bgColor={theme.colors.primaryOrange}
+              textColor={theme.colors.primary}>
+              Let’s Move Ahead
+            </BaseButton>
+          </View>
+        </View>
+      </AuthWrapper>
+    );
+  }
 
   return (
     <AuthWrapper showBackArrowIcon={navigation.canGoBack()}>
@@ -47,9 +116,7 @@ export default function ({navigation, route}) {
             color: theme.colors.text,
             fontFamily: theme.fonts.medium,
           }}>
-          {email
-            ? email
-            : emails && emails.length > 0 && `${emails[0]['cas_emails*email']}`}
+          {finalEmailToShow}
         </Text>
         <GrayBodyText>
           . Please click on the link sent to verify your account within 24
@@ -74,33 +141,7 @@ export default function ({navigation, route}) {
           <BaseButton
             wrapperStyles={{marginBottom: 16, height: 48}}
             onPress={() => {
-              if (type === 'auth_flow' || isUserLoggedInWithMPIN !== true) {
-                const mpinStatus = user?.profile?.meta?.mpin_set;
-                console.log('mpinStatus', user, mpinStatus);
-                if (mpinStatus === true) {
-                  navigation.replace('PINSetup', {
-                    screen: 'EnterPINHome',
-                    params: {
-                      verificationStatus: verificationStatus,
-                    },
-                  });
-                } else if (mpinStatus === 'skip') {
-                  navigation.replace('Protected');
-                } else {
-                  navigation.replace('PINSetup', {
-                    screen: 'SetPINHome',
-                    params: {
-                      verificationStatus: verificationStatus,
-                    },
-                  });
-                }
-              } else {
-                navigation.replace('Protected');
-                navigation.reset({
-                  index: 0,
-                  routes: [{name: 'Auth'}],
-                });
-              }
+              handleSubmit();
             }}
             bgColor={theme.colors.primaryOrange}
             textColor={theme.colors.primary}>

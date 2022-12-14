@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import * as React from 'react';
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 import {LogBox, Text, View} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
@@ -12,7 +12,7 @@ import {setTokens, setUser} from 'store';
 import {getUser} from 'services';
 import {useDispatch} from 'react-redux';
 import Toast from 'react-native-toast-message';
-import {Card} from 'uin';
+import {AnimatedEllipsis, Card} from 'uin';
 import {InfoIcon, WarningIcon1} from 'assets';
 import Auth from './stacks/Auth';
 import Protected from './stacks/Protected';
@@ -77,6 +77,8 @@ const linking = {
 const App = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
+  const [loading, setLoading] = useState(null);
+  const [isValidUser, setIsValidUser] = useState(null);
   const toastConfig = {
     schemeWarning: () => <SchemeWarningComponent />,
     selectSchemeWarning: () => <SelectSchemeWarningComponent />,
@@ -123,17 +125,29 @@ const App = () => {
 
   const init = React.useCallback(async () => {
     try {
+      setLoading(true);
       let tokenFromStorage = await AsyncStorage.getItem('@access_token');
       console.log('tokenFromStorage: ', tokenFromStorage);
 
       if (tokenFromStorage !== null) {
         dispatch(setTokens(JSON.parse(tokenFromStorage)));
         let userProfile = await getUser();
+        console.log('userProfile: ', Boolean(userProfile));
         if (userProfile) {
+          setIsValidUser(Boolean(userProfile));
           dispatch(setUser(userProfile));
+          setLoading(false);
+        } else {
+          setIsValidUser(false);
+          setLoading(false);
         }
+      } else {
+        setIsValidUser(false);
+        setLoading(false);
       }
     } catch (error) {
+      setLoading(false);
+      setIsValidUser(false);
       console.log('error in mobile-screens index: ', error);
       console.log('Object.keys(error),: ', Object.keys(error));
       console.log('error?.message: ', error?.message);
@@ -156,10 +170,28 @@ const App = () => {
       unsubscribe();
     };
   }, []);
+  console.log('****Loading***', loading);
+  console.log('****isValidUser***', isValidUser);
+
+  const willAuthStackLoad =
+    accessToken === null ||
+    accessToken === undefined ||
+    Boolean(accessToken) === false ||
+    isUserLoggedInWithMPIN === false ||
+    isUserLoggedInWithMPIN === undefined ||
+    isUserLoggedInWithMPIN === null;
+  console.log('willAuthStackLoad**************: ', willAuthStackLoad);
+
+  const willProtectedStackLoad =
+    accessToken !== null || isUserLoggedInWithMPIN === true;
+  console.log('willProtectedStackLoad***********: ', willProtectedStackLoad);
 
   console.log('accessToken in stack index: ', Boolean(accessToken) === false);
   console.log('isUserLoggedInWithMPIN: ', isUserLoggedInWithMPIN);
 
+  if (loading) {
+    return <ProtectedStackCheck />;
+  }
   return (
     <>
       <ThemeProvider theme={themes[theme]}>
@@ -173,8 +205,7 @@ const App = () => {
               component={General}
             />
 
-            {(isSessionExpired === true ||
-              accessToken === null ||
+            {(accessToken === null ||
               accessToken === undefined ||
               Boolean(accessToken) === false ||
               isUserLoggedInWithMPIN === false ||
@@ -186,8 +217,7 @@ const App = () => {
                 component={Auth}
               />
             )}
-            {((isSessionExpired !== true && accessToken !== null) ||
-              isUserLoggedInWithMPIN === true) && (
+            {(accessToken !== null || isUserLoggedInWithMPIN === true) && (
               <Stack.Screen
                 name="Protected"
                 options={{headerShown: false}}
@@ -199,12 +229,6 @@ const App = () => {
               options={{headerShown: false}}
               component={AppPromo}
             />
-
-            {/* <Stack.Screen
-              name="VerifyEmail"
-              options={{headerShown: false}}
-              component={EmailActivationLinkScreen}
-            /> */}
 
             <Stack.Screen
               name="PINSetup"
@@ -295,5 +319,22 @@ function SelectSchemeWarningComponent() {
     </Card>
   );
 }
+
+const ProtectedStackCheck = () => {
+  const theme = useTheme();
+  console.log('**********ProtectedStackCheck mounted***************');
+  return (
+    <View
+      style={{
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#fff',
+      }}>
+      <AnimatedEllipsis dotSize={12} dotColor={theme.colors.primaryBlue} />
+    </View>
+  );
+};
 
 export default Sentry.wrap(App);

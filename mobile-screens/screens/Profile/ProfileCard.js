@@ -18,6 +18,7 @@ export default function ProfileCard({}) {
   const handleGetUserName = async () => {
     try {
       const userResponse = await getUser();
+      console.log('userResponse: ', userResponse);
 
       setUser(userResponse);
       let existingUserName = userResponse?.profile?.meta?.username;

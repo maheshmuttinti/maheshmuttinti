@@ -25,6 +25,7 @@ export default function ({
   backgroundColor = null,
   ...props
 }) {
+  console.log('props.navigation', props?.navigation);
   const theme = useTheme();
   const navigation = useNavigation();
   const dispatch = useDispatch();
