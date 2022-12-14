@@ -27,6 +27,7 @@ import EmailActivationLinkScreen from './screens/VerifyEmailLink';
 import PANSetup from './stacks/PANSetup';
 import PINSetup from './stacks/PINSetup';
 import AppPromo from './screens/AppPromo';
+import {useClearAsyncStorageKeys} from './reusables/useClearAsyncStorageKeys';
 
 Sentry.init({
   dsn: Config.SENTRY_DSN,
@@ -74,6 +75,7 @@ const App = () => {
     schemeWarning: () => <SchemeWarningComponent />,
     selectSchemeWarning: () => <SelectSchemeWarningComponent />,
   };
+  const {clearStoreForLogout} = useClearAsyncStorageKeys();
 
   const {isUserLoggedInWithMPIN} = useSelector(
     ({auth}) => ({
@@ -81,6 +83,19 @@ const App = () => {
     }),
     shallowEqual,
   );
+  const {isSessionExpired} = useSelector(
+    ({auth}) => ({
+      isSessionExpired: auth.isSessionExpired,
+    }),
+    shallowEqual,
+  );
+  const handleExpiredSession = React.useRef(() => {});
+
+  handleExpiredSession.current = async () => {
+    if (isSessionExpired === true) {
+      await clearStoreForLogout();
+    }
+  };
 
   const {accessToken} = useSelector(
     ({auth}) => ({
@@ -91,6 +106,7 @@ const App = () => {
 
   const init = React.useCallback(async () => {
     try {
+      handleExpiredSession.current();
       let tokenFromStorage = await AsyncStorage.getItem('@access_token');
       console.log('tokenFromStorage: ', tokenFromStorage);
 

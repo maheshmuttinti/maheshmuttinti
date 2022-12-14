@@ -1,9 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation} from '@react-navigation/native';
 import {getUser, updateUserProfile} from 'services';
+import {useResetAuthStack} from './useResetAuthStack';
 
 const useOnboardingHandleRedirection = () => {
   const navigation = useNavigation();
+  const {resetAuthStack} = useResetAuthStack();
 
   const handleUpdateOnboardingStep = async (user, payload) => {
     try {

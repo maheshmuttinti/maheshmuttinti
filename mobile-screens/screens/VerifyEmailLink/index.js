@@ -75,32 +75,23 @@ export default function ({navigation, route}) {
             wrapperStyles={{marginBottom: 16, height: 48}}
             onPress={() => {
               if (type === 'auth_flow' || isUserLoggedInWithMPIN !== true) {
-                console.log(
-                  'user?.profile?.meta?.mpin_set === true',
-                  user,
-                  user?.profile?.meta?.mpin_set,
-                );
-                if (user?.profile?.meta?.mpin_set === true) {
+                const mpinStatus = user?.profile?.meta?.mpin_set;
+                console.log('mpinStatus', user, mpinStatus);
+                if (mpinStatus === true) {
                   navigation.replace('PINSetup', {
                     screen: 'EnterPINHome',
                     params: {
                       verificationStatus: verificationStatus,
                     },
                   });
-                  navigation.reset({
-                    index: 0,
-                    routes: [{name: 'Auth'}],
-                  });
+                } else if (mpinStatus === 'skip') {
+                  navigation.replace('Protected');
                 } else {
                   navigation.replace('PINSetup', {
                     screen: 'SetPINHome',
                     params: {
                       verificationStatus: verificationStatus,
                     },
-                  });
-                  navigation.reset({
-                    index: 0,
-                    routes: [{name: 'Auth'}],
                   });
                 }
               } else {

@@ -89,10 +89,6 @@ export default function ({route, navigation}) {
         navigation.replace('PINSetup', {
           screen: 'EnterPINHome',
         });
-        navigation.reset({
-          index: 0,
-          routes: [{name: 'Auth'}],
-        });
       }
     } catch (error) {
       setVerifyingOTP(false);
