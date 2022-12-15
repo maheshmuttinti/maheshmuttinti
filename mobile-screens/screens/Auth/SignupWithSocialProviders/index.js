@@ -99,7 +99,7 @@ export default function SignupOptionsScreen({navigation}) {
             alignItems: 'flex-start',
           }}>
           <SubText style={{color: theme.colors.bodyGray}}>
-            By clicking the{' '}
+            By clicking Continue you{' '}
           </SubText>
 
           <SubText style={{color: theme.colors.primaryOrange800}}>
@@ -107,7 +107,7 @@ export default function SignupOptionsScreen({navigation}) {
           </SubText>
 
           <SubText style={{color: theme.colors.bodyGray}}>
-            button, you agree to the{' '}
+            automatically and agree to the{' '}
           </SubText>
         </View>
         <TouchableOpacity
@@ -137,7 +137,7 @@ export default function SignupOptionsScreen({navigation}) {
         }}>
         <Separator />
         <Text style={{marginHorizontal: 8, color: theme.colors.bodyGray}}>
-          or
+          or continue
         </Text>
         <Separator />
       </View>
