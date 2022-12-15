@@ -21,7 +21,7 @@ import Config from 'react-native-config';
  * @author
  * @function AuthScreenWrapper
  **/
-const AuthScreenWrapper = ({children, ...props}) => {
+const AuthScreenWrapperWithoutBackButton = ({children, ...props}) => {
   const navigation = useNavigation();
   const theme = useTheme();
   const dispatch = useDispatch();
@@ -107,4 +107,4 @@ const AuthScreenWrapper = ({children, ...props}) => {
   );
 };
 
-export default AuthScreenWrapper;
+export default AuthScreenWrapperWithoutBackButton;
