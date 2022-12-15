@@ -133,8 +133,8 @@ export default function ({navigation, route}) {
             fontFamily: theme.fonts.regular,
             paddingTop: 22,
           }}>
-          Please note that, until you verify your email id, you won’t be able to
-          make investments.
+          Please note, until you won't verify your email id, you will need be
+          able to enjoy various benefits
         </GrayBodyText>
 
         <View style={{paddingTop: 22, width: '100%'}}>
