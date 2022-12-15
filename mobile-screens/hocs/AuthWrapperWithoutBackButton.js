@@ -58,10 +58,6 @@ const AuthScreenWrapperWithoutBackButton = ({children, ...props}) => {
   const contentContainerStyle = {
     flexGrow: 1,
   };
-  const backArrowIconWrapperStyle = {
-    paddingBottom: 41.18,
-    ...props.backArrowIconWrapperStyle,
-  };
 
   return (
     <SafeAreaView
