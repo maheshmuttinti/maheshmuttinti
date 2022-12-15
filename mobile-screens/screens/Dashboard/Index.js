@@ -2,7 +2,7 @@
 import * as React from 'react';
 import {useState, useEffect, useRef, useCallback} from 'react';
 import {View} from 'react-native';
-import ScreenWrapper from '../../hocs/screenWrapper';
+import ScreenWrapper from '../../hocs/screenWrapperWithoutBackButton';
 import HomeTabs from '../../TabNavigator';
 import {useTheme} from 'theme';
 import {getDashboardPreApprovedLoanAmount, getUserStage} from 'services';

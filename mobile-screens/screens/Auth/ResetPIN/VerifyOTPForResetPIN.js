@@ -2,7 +2,7 @@
 import React, {useState, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {GrayBodyText, AuthHeading, CustomOTPInputWithAutoFill} from 'uin';
-import AuthWrapper from '../../../hocs/AuthWrapper';
+import AuthWrapper from '../../../hocs/AuthWrapperWithOrWithoutBackButton';
 import useBetaForm from '@reusejs/react-form-hook';
 import {resetPassword, requestResetPassword} from 'services';
 import BackgroundTimer from '../../../reusables/BackgroundTimer';

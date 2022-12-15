@@ -2,7 +2,7 @@
 import React, {useEffect, useState, useRef} from 'react';
 import {View, BackHandler, Platform} from 'react-native';
 import {TextButton, CustomKeyboard} from 'uin';
-import AuthWrapper from '../../../hocs/AuthWrapper';
+import AuthWrapper from '../../../hocs/AuthWrapperWithOrWithoutBackButton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {login, getUser} from 'services';
 import {useDispatch} from 'react-redux';

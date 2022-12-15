@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import * as React from 'react';
 import {useState, useCallback, useMemo} from 'react';
-import ScreenWrapper from '../../../hocs/screenWrapper';
+import ScreenWrapper from '../../../hocs/screenWrapperWithoutBackButton';
 import {ScrollView, View} from 'react-native';
 import {getBankDetailsByIFSC, getLoanApplicationById} from 'services';
 import {useFocusEffect} from '@react-navigation/native';

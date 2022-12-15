@@ -14,7 +14,7 @@ import {
   AppleButton,
 } from 'uin';
 import {useTheme} from 'theme';
-import AuthWrapper from '../../../hocs/AuthWrapper';
+import AuthWrapper from '../../../hocs/AuthWrapperWithOrWithoutBackButton';
 import {Separator, WarningIcon1, TickCircle} from 'assets';
 import {appleLogin, googleLogin, register} from 'services';
 import {openBrowser} from 'utils';

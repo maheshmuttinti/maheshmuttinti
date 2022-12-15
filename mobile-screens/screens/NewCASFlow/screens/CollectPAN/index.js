@@ -11,7 +11,7 @@ import {
   GroupText,
 } from 'uin';
 import {useTheme} from 'theme';
-import ScreenWrapper from '../../../../hocs/screenWrapper';
+import ScreenWrapper from '../../../../hocs/screenWrapperWithoutBackButton';
 import {BackArrow, ForwardEmail, TickCircle, WarningIcon1} from 'assets';
 import useExitApp from '../../../../reusables/useExitApp';
 import {validatePAN} from 'utils';

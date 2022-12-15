@@ -10,7 +10,7 @@ import {
   AppleButton,
   GoogleButton,
 } from 'uin';
-import AuthWrapper from '../../../hocs/AuthWrapper';
+import AuthWrapper from '../../../hocs/AuthWrapperWithOrWithoutBackButton';
 import {Separator, WarningIcon1, TickCircle} from 'assets';
 import {NUMBER_MATCH_REGEX, openBrowser} from 'utils';
 import {

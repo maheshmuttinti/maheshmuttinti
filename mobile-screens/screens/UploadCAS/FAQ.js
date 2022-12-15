@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import React from 'react';
 import {Text, Pressable, View} from 'react-native';
-import ScreenWrapper from '../../hocs/screenWrapper';
+import ScreenWrapper from '../../hocs/screenWrapperWithoutBackButton';
 import {useTheme} from 'theme';
 import {BackArrow} from 'assets';
 

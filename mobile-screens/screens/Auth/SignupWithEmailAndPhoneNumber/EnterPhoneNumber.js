@@ -8,7 +8,7 @@ import {
   BaseButton,
   TextButton,
 } from 'uin';
-import AuthWrapper from '../../../hocs/AuthWrapper';
+import AuthWrapper from '../../../hocs/AuthWrapperWithOrWithoutBackButton';
 import {TickCircle, WarningIcon1} from 'assets';
 import useExitApp from '../../../reusables/useExitApp';
 import {NUMBER_MATCH_REGEX, prettifyJSON, showToast} from 'utils';

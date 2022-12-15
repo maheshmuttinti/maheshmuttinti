@@ -2,7 +2,7 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import {Platform, View} from 'react-native';
 import {CustomKeyboard} from 'uin';
-import AuthWrapper from '../../../hocs/AuthWrapper';
+import AuthWrapper from '../../../hocs/AuthWrapperWithOrWithoutBackButton';
 import {requestResetPassword} from 'services';
 import {prettifyJSON} from 'utils';
 import {useTheme} from 'theme';

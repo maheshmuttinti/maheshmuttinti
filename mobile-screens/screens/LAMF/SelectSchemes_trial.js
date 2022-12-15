@@ -10,7 +10,7 @@ import {
   Pressable,
 } from 'react-native';
 import {useTheme} from 'theme';
-import ScreenWrapper from '../../hocs/screenWrapper';
+import ScreenWrapper from '../../hocs/screenWrapperWithoutBackButton';
 import {
   DownArrow,
   DangerIcon,

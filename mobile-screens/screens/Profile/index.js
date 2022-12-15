@@ -2,7 +2,7 @@
 import {View, TouchableOpacity, BackHandler, Text} from 'react-native';
 import * as React from 'react';
 import {useCallback, useRef, useState} from 'react';
-import ScreenWrapper from '../../hocs/screenWrapper';
+import ScreenWrapper from '../../hocs/screenWrapperWithoutBackButton';
 import {deleteAccount, logout} from 'services';
 import {useDispatch} from 'react-redux';
 import {clearAuth, setShowIntro, setIsUserLoggedInWithMPIN} from 'store';

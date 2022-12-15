@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import ScreenWrapper from '../../hocs/screenWrapper';
+import ScreenWrapper from '../../hocs/screenWrapperWithoutBackButton';
 import {useSelector, shallowEqual} from 'react-redux';
 import {showAndroidToast} from 'utils';
 import {Platform, Alert} from 'react-native';

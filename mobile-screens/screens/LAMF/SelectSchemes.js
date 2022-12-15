@@ -9,7 +9,7 @@ import {
   Dimensions,
   Pressable,
 } from 'react-native';
-import ScreenWrapper from '../../hocs/screenWrapper';
+import ScreenWrapper from '../../hocs/screenWrapperWithoutBackButton';
 import {useTheme} from 'theme';
 import _ from 'lodash';
 import {

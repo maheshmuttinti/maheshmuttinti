@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useEffect} from 'react';
 import {Text, Pressable, View, Dimensions} from 'react-native';
-import ScreenWrapper from '../../hocs/screenWrapper';
+import ScreenWrapper from '../../hocs/screenWrapperWithoutBackButton';
 import {useTheme} from 'theme';
 import {BaseButton} from 'uin';
 import {useState} from 'react';

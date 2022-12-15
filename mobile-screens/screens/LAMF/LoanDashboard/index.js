@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import * as React from 'react';
 import {useState, useCallback} from 'react';
-import ScreenWrapper from '../../../hocs/screenWrapper';
+import ScreenWrapper from '../../../hocs/screenWrapperWithoutBackButton';
 import {useTheme} from 'theme';
 import {Heading, Card, OutlinedButton, TextButton} from 'uin';
 import {View, Text} from 'react-native';

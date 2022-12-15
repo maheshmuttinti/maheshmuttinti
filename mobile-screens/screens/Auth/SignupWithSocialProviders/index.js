@@ -12,7 +12,7 @@ import {
   AppleButton,
 } from 'uin';
 import {useTheme} from 'theme';
-import AuthWrapper from '../../../hocs/AuthWrapper';
+import AuthWrapper from '../../../hocs/AuthWrapperWithOrWithoutBackButton';
 import {Separator} from 'assets';
 import {appleLogin, googleLogin} from 'services';
 import {openBrowser} from 'utils';

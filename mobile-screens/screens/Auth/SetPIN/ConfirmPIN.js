@@ -2,7 +2,7 @@
 import React, {useState, useRef, useEffect, useCallback} from 'react';
 import {Platform, View} from 'react-native';
 import {CustomKeyboard} from 'uin';
-import AuthWrapper from '../../../hocs/AuthWrapper';
+import AuthWrapper from '../../../hocs/AuthWrapperWithOrWithoutBackButton';
 import {updatePassword, updateUserProfile, getUser} from 'services';
 import {useTheme} from 'theme';
 import {KeyboardDoneIcon, KeyboardDeleteIcon} from 'assets';

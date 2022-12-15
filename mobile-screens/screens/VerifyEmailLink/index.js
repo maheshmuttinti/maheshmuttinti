@@ -4,7 +4,7 @@ import {View, Text} from 'react-native';
 import {useTheme} from 'theme';
 import {BaseButton, AuthHeading, GroupText, GrayBodyText} from 'uin';
 import {EmailActivation} from 'assets';
-import AuthWrapper from '../../hocs/AuthWrapper';
+import AuthWrapper from '../../hocs/AuthWrapperWithOrWithoutBackButton';
 import useGetCASEmails from '../../reusables/useGetCASEmails';
 import useUser from '../../reusables/useUser';
 import {useSelector, shallowEqual} from 'react-redux';

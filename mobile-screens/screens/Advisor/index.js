@@ -2,7 +2,7 @@
 import {View, TouchableOpacity, BackHandler} from 'react-native';
 import * as React from 'react';
 import {useCallback, useRef} from 'react';
-import ScreenWrapper from '../../hocs/screenWrapper';
+import ScreenWrapper from '../../hocs/screenWrapperWithoutBackButton';
 import {Heading} from 'uin';
 import {BackArrow, RiskBot} from 'assets';
 import {useTheme} from 'theme';
