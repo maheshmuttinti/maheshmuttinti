@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
-import CollectPAN from '../screens/Development/NewCASFlow/screens/CollectPAN';
+import CollectPAN from '../screens/CKYC/CollectPAN';
 
 const PANSetup = () => {
   const Stack = createStackNavigator();
