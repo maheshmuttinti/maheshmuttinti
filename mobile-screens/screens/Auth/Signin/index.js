@@ -7,21 +7,18 @@ import {
   BaseTextInput,
   BaseButton,
   TextButton,
-  AppleButton,
   GoogleButton,
+  GoogleAppleButton,
 } from 'uin';
 import AuthWrapper from '../../../hocs/AuthWrapperWithOrWithoutBackButton';
 import {Separator, WarningIcon1, TickCircle} from 'assets';
-import {NUMBER_MATCH_REGEX, openBrowser} from 'utils';
-import {
-  appleLogin,
-  googleLogin,
-  requestForLoginOTP,
-  requestVerifyRegistration,
-} from 'services';
+import {NUMBER_MATCH_REGEX} from 'utils';
+import {requestForLoginOTP, requestVerifyRegistration} from 'services';
 import useBetaForm from '@reusejs/react-form-hook';
 import {useTheme} from 'theme';
 import {useFocusEffect} from '@react-navigation/native';
+import Config from 'react-native-config';
+import {useSocialLoginsHandler} from '../../../reusables/useSocialLoginsHandler';
 
 export default function SignInScreen({navigation}) {
   const form = useBetaForm({
@@ -51,26 +48,7 @@ export default function SignInScreen({navigation}) {
 
   clearFormErrors.current = () => (form.value ? form.setErrors({}) : null);
 
-  const handleGoogleLogin = async () => {
-    try {
-      const data = await googleLogin();
-      console.log('handleGoogleLogin->data: ', data);
-      const url = data?.redirect_to;
-      await openBrowser(url);
-    } catch (error) {
-      return error;
-    }
-  };
-
-  const handleAppleLogin = async () => {
-    try {
-      const data = await appleLogin();
-      const url = data?.redirect_to;
-      await openBrowser(url);
-    } catch (error) {
-      return error;
-    }
-  };
+  const {handleAppleLogin, handleGoogleLogin} = useSocialLoginsHandler();
 
   clearForm.current = () => {
     if (form.value) {
@@ -248,18 +226,32 @@ export default function SignInScreen({navigation}) {
         <Separator />
       </View>
 
-      <View
-        style={{
-          paddingTop: 24,
-          flexDirection: 'row',
-        }}>
-        <View style={{flex: 1 / 2}}>
-          <AppleButton onPress={() => handleAppleLogin()} />
-        </View>
-        <View style={{flex: 1 / 2, marginLeft: 16}}>
-          <GoogleButton onPress={() => handleGoogleLogin()} />
-        </View>
-      </View>
+      {Platform.OS === 'android' &&
+      Config.ENABLE_APPLE_LOGIN_FOR_ANDROID === 'true' ? (
+        <GoogleAppleButton
+          type="row"
+          onGoogleLogin={() => handleGoogleLogin()}
+          onAppleLogin={() => handleAppleLogin()}
+        />
+      ) : (
+        Platform.OS === 'android' && (
+          <View style={{paddingTop: 24}}>
+            <GoogleButton
+              isSingleButton={true}
+              onPress={() => handleGoogleLogin()}>
+              Continue with Google
+            </GoogleButton>
+          </View>
+        )
+      )}
+
+      {Platform.OS === 'ios' && (
+        <GoogleAppleButton
+          type="row"
+          onGoogleLogin={() => handleGoogleLogin()}
+          onAppleLogin={() => handleAppleLogin()}
+        />
+      )}
 
       <View
         style={{

@@ -9,40 +9,21 @@ import {
   SubText,
   TextButton,
   GroupText,
+  GoogleAppleButton,
   GoogleButton,
-  AppleButton,
 } from 'uin';
 import {useTheme} from 'theme';
 import AuthWrapper from '../../../hocs/AuthWrapperWithOrWithoutBackButton';
 import {TermsAndConditionsModal} from '../../../reusables/TermsAndConditionsModal';
 import {Separator} from 'assets';
-import {appleLogin, googleLogin} from 'services';
-import {openBrowser} from 'utils';
+import Config from 'react-native-config';
+import {useSocialLoginsHandler} from '../../../reusables/useSocialLoginsHandler';
 
 export default function SignupOptionsScreen({navigation}) {
   const theme = useTheme();
   const [openTCModal, setOpenTCModal] = useState(false);
 
-  const handleGoogleLogin = async () => {
-    try {
-      const data = await googleLogin();
-      console.log('handleGoogleLogin->data: ', data);
-      const url = data?.redirect_to;
-      await openBrowser(url);
-    } catch (error) {
-      return error;
-    }
-  };
-
-  const handleAppleLogin = async () => {
-    try {
-      const data = await appleLogin();
-      const url = data?.redirect_to;
-      await openBrowser(url);
-    } catch (error) {
-      return error;
-    }
-  };
+  const {handleAppleLogin, handleGoogleLogin} = useSocialLoginsHandler();
 
   const handleSubmit = () => {
     navigation.navigate('Auth', {screen: 'SignupWithEmailAndPhoneNumber'});
@@ -64,23 +45,32 @@ export default function SignupOptionsScreen({navigation}) {
         </GrayBodyText>
       </View>
 
-      <View style={{paddingTop: 24}}>
-        <View>
-          <GoogleButton
-            isSingleButton={true}
-            onPress={() => handleGoogleLogin()}>
-            Continue with Google
-          </GoogleButton>
-          <View style={{marginTop: 15}}>
-            <AppleButton
+      {Platform.OS === 'android' &&
+      Config.ENABLE_APPLE_LOGIN_FOR_ANDROID === 'true' ? (
+        <GoogleAppleButton
+          type="column"
+          onGoogleLogin={() => handleGoogleLogin()}
+          onAppleLogin={() => handleAppleLogin()}
+        />
+      ) : (
+        Platform.OS === 'android' && (
+          <View style={{paddingTop: 24}}>
+            <GoogleButton
               isSingleButton={true}
-              onPress={() => handleAppleLogin()}>
-              Continue with Apple
-            </AppleButton>
+              onPress={() => handleGoogleLogin()}>
+              Continue with Google
+            </GoogleButton>
           </View>
-        </View>
-      </View>
+        )
+      )}
 
+      {Platform.OS === 'ios' && (
+        <GoogleAppleButton
+          type="column"
+          onGoogleLogin={() => handleGoogleLogin()}
+          onAppleLogin={() => handleAppleLogin()}
+        />
+      )}
       <GroupText
         style={{
           flexDirection: 'row',

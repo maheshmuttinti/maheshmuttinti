@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import * as React from 'react';
 import {useEffect, useCallback, useState, useRef} from 'react';
-import {View, Text, TouchableOpacity} from 'react-native';
+import {View, Text, TouchableOpacity, Platform} from 'react-native';
 import {
   GrayBodyText,
   AuthHeading,
@@ -11,13 +11,12 @@ import {
   TextButton,
   GroupText,
   GoogleButton,
-  AppleButton,
+  GoogleAppleButton,
 } from 'uin';
 import {useTheme} from 'theme';
 import AuthWrapper from '../../../hocs/AuthWrapperWithOrWithoutBackButton';
 import {Separator, WarningIcon1, TickCircle} from 'assets';
-import {appleLogin, googleLogin, register} from 'services';
-import {openBrowser} from 'utils';
+import {register} from 'services';
 import useBetaForm from '@reusejs/react-form-hook';
 import {useFocusEffect} from '@react-navigation/native';
 import {
@@ -27,6 +26,8 @@ import {
   getUserPassword,
 } from 'utils';
 import {TermsAndConditionsModal} from '../../../reusables/TermsAndConditionsModal';
+import Config from 'react-native-config';
+import {useSocialLoginsHandler} from '../../../reusables/useSocialLoginsHandler';
 
 export default function SignupOptionsScreen({navigation}) {
   const theme = useTheme();
@@ -118,26 +119,7 @@ export default function SignupOptionsScreen({navigation}) {
     }
   }, [form.value.value, form.value.type]);
 
-  const handleGoogleLogin = async () => {
-    try {
-      const data = await googleLogin();
-      console.log('handleGoogleLogin->data: ', data);
-      const url = data?.redirect_to;
-      await openBrowser(url);
-    } catch (error) {
-      return error;
-    }
-  };
-
-  const handleAppleLogin = async () => {
-    try {
-      const data = await appleLogin();
-      const url = data?.redirect_to;
-      await openBrowser(url);
-    } catch (error) {
-      return error;
-    }
-  };
+  const {handleAppleLogin, handleGoogleLogin} = useSocialLoginsHandler();
 
   const handleSignup = async () => {
     try {
@@ -340,18 +322,32 @@ export default function SignupOptionsScreen({navigation}) {
         <Separator />
       </View>
 
-      <View
-        style={{
-          paddingTop: 24,
-          flexDirection: 'row',
-        }}>
-        <View style={{flex: 1 / 2}}>
-          <AppleButton onPress={() => handleAppleLogin()} />
-        </View>
-        <View style={{flex: 1 / 2, marginLeft: 16}}>
-          <GoogleButton onPress={() => handleGoogleLogin()} />
-        </View>
-      </View>
+      {Platform.OS === 'android' &&
+      Config.ENABLE_APPLE_LOGIN_FOR_ANDROID === 'true' ? (
+        <GoogleAppleButton
+          type="row"
+          onGoogleLogin={() => handleGoogleLogin()}
+          onAppleLogin={() => handleAppleLogin()}
+        />
+      ) : (
+        Platform.OS === 'android' && (
+          <View style={{paddingTop: 24}}>
+            <GoogleButton
+              isSingleButton={true}
+              onPress={() => handleGoogleLogin()}>
+              Continue with Google
+            </GoogleButton>
+          </View>
+        )
+      )}
+
+      {Platform.OS === 'ios' && (
+        <GoogleAppleButton
+          type="row"
+          onGoogleLogin={() => handleGoogleLogin()}
+          onAppleLogin={() => handleAppleLogin()}
+        />
+      )}
 
       <View
         style={{
