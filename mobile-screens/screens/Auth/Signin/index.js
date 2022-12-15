@@ -248,30 +248,18 @@ export default function SignInScreen({navigation}) {
         <Separator />
       </View>
 
-      {Platform.OS === 'ios' && (
-        <View
-          style={{
-            paddingTop: 24,
-            flexDirection: 'row',
-          }}>
-          <View style={{flex: 1 / 2}}>
-            <AppleButton onPress={() => handleAppleLogin()} />
-          </View>
-          <View style={{flex: 1 / 2, marginLeft: 16}}>
-            <GoogleButton onPress={() => handleGoogleLogin()} />
-          </View>
+      <View
+        style={{
+          paddingTop: 24,
+          flexDirection: 'row',
+        }}>
+        <View style={{flex: 1 / 2}}>
+          <AppleButton onPress={() => handleAppleLogin()} />
         </View>
-      )}
-
-      {Platform.OS === 'android' && (
-        <View style={{paddingTop: 24}}>
-          <GoogleButton
-            isSingleButton={true}
-            onPress={() => handleGoogleLogin()}>
-            Continue with Google
-          </GoogleButton>
+        <View style={{flex: 1 / 2, marginLeft: 16}}>
+          <GoogleButton onPress={() => handleGoogleLogin()} />
         </View>
-      )}
+      </View>
 
       <View
         style={{

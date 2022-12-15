@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import * as React from 'react';
 import {useEffect, useCallback, useState, useRef} from 'react';
-import {View, Text, TouchableOpacity, Linking, Platform} from 'react-native';
+import {View, Text, TouchableOpacity} from 'react-native';
 import {
   GrayBodyText,
   AuthHeading,
@@ -26,7 +26,7 @@ import {
   INDIA_ISD_NUMBER_REGEX,
   getUserPassword,
 } from 'utils';
-import Config from 'react-native-config';
+import {TermsAndConditionsModal} from '../../../reusables/TermsAndConditionsModal';
 
 export default function SignupOptionsScreen({navigation}) {
   const theme = useTheme();
@@ -34,6 +34,8 @@ export default function SignupOptionsScreen({navigation}) {
     useState(false);
   const [showGreenCircleIconForEmail, setShowGreenCircleIconForEmail] =
     useState(false);
+  const [openTCModal, setOpenTCModal] = useState(false);
+
   const [apiCallStatus, setApiCallStatus] = useState(null);
   const limit10Digit = useRef(() => {});
 
@@ -220,6 +222,11 @@ export default function SignupOptionsScreen({navigation}) {
 
   return (
     <AuthWrapper showBackArrowIcon={navigation.canGoBack()}>
+      <TermsAndConditionsModal
+        open={openTCModal}
+        setOpen={setOpenTCModal}
+        onClose={() => setOpenTCModal(false)}
+      />
       <AuthHeading>Enhance your Financial Well-Being!</AuthHeading>
 
       <View style={{paddingTop: 18}}>
@@ -291,7 +298,7 @@ export default function SignupOptionsScreen({navigation}) {
         </View>
         <TouchableOpacity
           onPress={() => {
-            Linking.openURL(`${Config.FINEZZY_TERMS_AND_CONDITIONS_URL}`);
+            setOpenTCModal(true);
           }}
           style={{
             alignSelf: 'flex-start',
@@ -333,30 +340,18 @@ export default function SignupOptionsScreen({navigation}) {
         <Separator />
       </View>
 
-      {Platform.OS === 'ios' && (
-        <View
-          style={{
-            paddingTop: 24,
-            flexDirection: 'row',
-          }}>
-          <View style={{flex: 1 / 2}}>
-            <AppleButton onPress={() => handleAppleLogin()} />
-          </View>
-          <View style={{flex: 1 / 2, marginLeft: 16}}>
-            <GoogleButton onPress={() => handleGoogleLogin()} />
-          </View>
+      <View
+        style={{
+          paddingTop: 24,
+          flexDirection: 'row',
+        }}>
+        <View style={{flex: 1 / 2}}>
+          <AppleButton onPress={() => handleAppleLogin()} />
         </View>
-      )}
-
-      {Platform.OS === 'android' && (
-        <View style={{paddingTop: 24}}>
-          <GoogleButton
-            isSingleButton={true}
-            onPress={() => handleGoogleLogin()}>
-            Continue with Google
-          </GoogleButton>
+        <View style={{flex: 1 / 2, marginLeft: 16}}>
+          <GoogleButton onPress={() => handleGoogleLogin()} />
         </View>
-      )}
+      </View>
 
       <View
         style={{

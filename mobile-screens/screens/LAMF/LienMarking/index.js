@@ -24,11 +24,13 @@ import Config from 'react-native-config';
 import {formatDate, openBrowser, prettifyJSON, showToast, sleep} from 'utils';
 import EMIDueDatesModal from './EMIDueDatesModal';
 import {useFocusEffect} from '@react-navigation/native';
+import {TermsAndConditionsModal} from '../../../reusables/TermsAndConditionsModal';
 
 export default function ({navigation, route}) {
   const theme = useTheme();
   const data = route?.params?.data;
 
+  const [openTCModal, setOpenTCModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [EMIScheme, setEMIScheme] = useState(null);
   const [firstEMIDate, setFirstEMIDate] = useState(null);
@@ -440,6 +442,12 @@ export default function ({navigation, route}) {
         text={'Checking the lien marking status...'}
       />
 
+      <TermsAndConditionsModal
+        open={openTCModal}
+        setOpen={setOpenTCModal}
+        onClose={() => setOpenTCModal(false)}
+      />
+
       <EMIDueDatesModal
         visible={openEMIDueDatesModal}
         setVisible={setOpenEMIDueDatesModal}
@@ -722,7 +730,7 @@ export default function ({navigation, route}) {
 
           <TouchableOpacity
             onPress={() => {
-              Linking.openURL(`${Config.FINEZZY_TERMS_AND_CONDITIONS_URL}`);
+              setOpenTCModal(true);
             }}>
             <Text
               style={{

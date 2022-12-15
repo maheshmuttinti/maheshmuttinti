@@ -65,32 +65,20 @@ export default function SignupOptionsScreen({navigation}) {
       </View>
 
       <View style={{paddingTop: 24}}>
-        {Platform.OS === 'ios' && (
-          <View>
-            <GoogleButton
+        <View>
+          <GoogleButton
+            isSingleButton={true}
+            onPress={() => handleGoogleLogin()}>
+            Continue with Google
+          </GoogleButton>
+          <View style={{marginTop: 15}}>
+            <AppleButton
               isSingleButton={true}
-              onPress={() => handleGoogleLogin()}>
-              Continue with Google
-            </GoogleButton>
-            <View style={{marginTop: 15}}>
-              <AppleButton
-                isSingleButton={true}
-                onPress={() => handleAppleLogin()}>
-                Continue with Apple
-              </AppleButton>
-            </View>
+              onPress={() => handleAppleLogin()}>
+              Continue with Apple
+            </AppleButton>
           </View>
-        )}
-
-        {Platform.OS === 'android' && (
-          <View>
-            <GoogleButton
-              isSingleButton={true}
-              onPress={() => handleGoogleLogin()}>
-              Continue with Google
-            </GoogleButton>
-          </View>
-        )}
+        </View>
       </View>
 
       <GroupText
