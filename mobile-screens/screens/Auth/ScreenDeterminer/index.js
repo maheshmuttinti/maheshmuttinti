@@ -13,6 +13,7 @@ import * as Sentry from '@sentry/react-native';
 import {useHideSplashScreen} from '../../../reusables/useHideSplashScreen';
 import {useDispatch} from 'react-redux';
 import {setTokens, setUser} from 'store';
+import useOnboardingHandleRedirection from '../../../reusables/useOnboardingHandleRedirection';
 
 const getMpinStatus = (user, isUserLoggedInWithMPIN) => {
   const mpinStatus = user?.profile?.meta?.mpin_set;
@@ -54,6 +55,8 @@ export default function ({navigation, route}) {
 
   const {clearStoreForLogout} = useClearAsyncStorageKeys();
   const {hideSplashScreen} = useHideSplashScreen();
+  const {handleRedirection: handleCheckPANLinkingAndRedirect} =
+    useOnboardingHandleRedirection();
 
   const {networkStatus} = useSelector(
     ({network}) => ({
@@ -117,8 +120,9 @@ export default function ({navigation, route}) {
     }
   };
 
-  const mpinRedirection = user => {
+  const mpinRedirection = async user => {
     const mpinStatus = getMpinStatus(user, isUserLoggedInWithMPIN);
+    console.log('mpinStatus: ', mpinStatus);
     dispatch(setUser(user));
 
     const isMobileNumberExists = user?.attributes
@@ -131,7 +135,11 @@ export default function ({navigation, route}) {
       mpinStatus === 'skipped' ||
       mpinStatus === 'redirect_to_dashboard'
     ) {
-      navigation.replace('Protected');
+      if (mpinStatus === 'skipped') {
+        await handleCheckPANLinkingAndRedirect();
+      } else {
+        navigation.replace('Protected');
+      }
     } else if (mpinStatus === 'set_pin_pending') {
       navigation.replace('PINSetup', {screen: 'SetPINHome'});
     } else if (mpinStatus === 'set_pin_success') {
@@ -184,7 +192,11 @@ export default function ({navigation, route}) {
           mpinStatus === 'skipped' ||
           mpinStatus === 'redirect_to_dashboard'
         ) {
-          navigation.replace('Protected');
+          if (mpinStatus === 'skipped') {
+            await handleCheckPANLinkingAndRedirect();
+          } else {
+            navigation.replace('Protected');
+          }
         } else if (mpinStatus === 'set_pin_pending') {
           navigation.replace('PINSetup', {screen: 'SetPINHome'});
         } else if (mpinStatus === 'set_pin_success') {

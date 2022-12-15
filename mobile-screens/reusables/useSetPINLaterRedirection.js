@@ -2,9 +2,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {getUser, updateUserProfile} from 'services';
 import {setIsUserLoggedInWithMPIN} from 'store';
 import {useDispatch} from 'react-redux';
+import useOnboardingHandleRedirection from './useOnboardingHandleRedirection';
 
 export const useSetPINLaterRedirection = navigation => {
   const dispatch = useDispatch();
+  const {handleRedirection: handleCheckPANLinkingAndRedirect} =
+    useOnboardingHandleRedirection();
   const handleRedirection = async () => {
     try {
       let tokenFromStorage = await AsyncStorage.getItem('@access_token');
@@ -23,8 +26,7 @@ export const useSetPINLaterRedirection = navigation => {
 
         await updateUserProfile(updateProfilePayload);
         dispatch(setIsUserLoggedInWithMPIN(true));
-
-        navigation.replace('Protected');
+        await handleCheckPANLinkingAndRedirect();
       }
     } catch (error) {
       console.log(

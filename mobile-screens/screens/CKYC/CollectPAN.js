@@ -7,7 +7,7 @@ import {
   TextButton,
   GrayBodyText,
   BaseBodyText,
-  BaseTextInput,
+  BaseTextInputCapitalizationSupport,
   GroupText,
   Heading,
 } from 'uin';
@@ -158,7 +158,7 @@ export default function ({navigation}) {
           </GroupText>
 
           <View style={{paddingTop: 17}}>
-            <BaseTextInput
+            <BaseTextInputCapitalizationSupport
               placeholder="Enter PAN Card Number"
               onChangeText={text => handleChangeText(text)}
               value={pan}
