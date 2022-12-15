@@ -1,10 +1,5 @@
 const deepLinkConfig = {
   screens: {
-    // Auth: {
-    //   screens: {
-    //     SocialLoginRedirection: 'social-login-status',
-    //   },
-    // },
     Protected: {
       screens: {
         LoanApplication: 'signzy/video',
