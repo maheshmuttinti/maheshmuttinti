@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import ScreenWrapper from '../../hocs/screen_wrapper';
+import ScreenWrapper from '../../hocs/screenWrapper';
 import {useSelector, shallowEqual} from 'react-redux';
 import {showToast} from 'utils';
 import Content from './Content';

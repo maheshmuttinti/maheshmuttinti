@@ -9,7 +9,7 @@ import {
   BackArrow,
 } from 'assets';
 import {useTheme} from 'theme';
-import ScreenWrapper from '../../../../hocs/screen_wrapper';
+import ScreenWrapper from '../../../../hocs/screenWrapper';
 import {OTPVerification as UpdateCASCAMSOTPVerification} from '../../components/UpdateCASFromRTAs/CAMS/OTPVerification';
 import {OTPVerification as UpdateCASKarvyOTPVerification} from '../../components/UpdateCASFromRTAs/Karvy/OTPVerification';
 import {OTPVerification as CAMSRTALienMarkingOTPVerification} from '../../components/RTAsLienMarking/CAMS/OTPVerification';

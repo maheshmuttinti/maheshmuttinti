@@ -6,7 +6,7 @@ import {View} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useTheme} from 'theme';
 import {Card, Heading} from 'uin';
-import ScreenWrapper from '../../../hocs/screen_wrapper';
+import ScreenWrapper from '../../../hocs/screenWrapper';
 import useLayoutBackButtonAction from '../../../reusables/useLayoutBackButtonAction';
 import BankDetails from './Steps/BankDetails';
 import BasicDetails from './Steps/BasicDetails';

@@ -9,7 +9,7 @@ import {
   BackArrow,
 } from 'assets';
 import {useTheme} from 'theme';
-import ScreenWrapper from '../../../../../hocs/screen_wrapper';
+import ScreenWrapper from '../../../../../hocs/screenWrapper';
 import {CollectMobileAndEmail} from '../../components/FetchCASFromRTAs/CAMS/CollectMobileAndEmail';
 import {OTPVerification as CAMSOTPVerification} from '../../components/FetchCASFromRTAs/CAMS/OTPVerification';
 import {OTPVerification as KarvyOTPVerification} from '../../components/FetchCASFromRTAs/Karvy/OTPVerification';

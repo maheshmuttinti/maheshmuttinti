@@ -2,7 +2,7 @@
 import * as React from 'react';
 import {useRef, useEffect, memo, useCallback} from 'react';
 import {Text, View, TouchableOpacity, ActivityIndicator} from 'react-native';
-import ScreenWrapper from '../../hocs/screen_wrapper';
+import ScreenWrapper from '../../hocs/screenWrapper';
 import {useTheme} from 'theme';
 import {
   BaseTextInput,

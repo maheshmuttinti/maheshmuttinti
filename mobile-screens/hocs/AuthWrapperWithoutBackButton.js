@@ -9,9 +9,7 @@ import {
   ScrollView,
   Keyboard,
   View,
-  Pressable,
 } from 'react-native';
-import {BackArrow} from 'assets';
 import {useNavigation} from '@react-navigation/native';
 import {useTheme} from 'theme';
 import {useDispatch} from 'react-redux';
@@ -23,7 +21,7 @@ import Config from 'react-native-config';
  * @author
  * @function AuthScreenWrapper
  **/
-const AuthScreenWrapper = ({children, showBackArrowIcon = true, ...props}) => {
+const AuthScreenWrapper = ({children, ...props}) => {
   const navigation = useNavigation();
   const theme = useTheme();
   const dispatch = useDispatch();
@@ -100,22 +98,6 @@ const AuthScreenWrapper = ({children, showBackArrowIcon = true, ...props}) => {
               style={{
                 ...props.childrenWrapperStyles,
               }}>
-              <View style={{...backArrowIconWrapperStyle}}>
-                {showBackArrowIcon ? (
-                  <Pressable
-                    hitSlop={{top: 30, left: 30, right: 30, bottom: 30}}
-                    onPress={() => {
-                      props.onBackPress
-                        ? props.onBackPress()
-                        : navigation.canGoBack() && navigation.pop();
-                    }}
-                    style={{width: 50}}>
-                    <BackArrow />
-                  </Pressable>
-                ) : (
-                  <></>
-                )}
-              </View>
               {children}
             </View>
           </ScrollView>
