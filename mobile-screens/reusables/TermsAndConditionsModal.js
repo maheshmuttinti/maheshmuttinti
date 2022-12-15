@@ -2,7 +2,7 @@
 import React from 'react';
 import Config from 'react-native-config';
 import Modal from 'react-native-modal';
-import {WebViewComponent} from './WebView';
+import {WebViewComponent} from './WebView_new';
 import {Card} from 'uin';
 import {View, ActivityIndicator} from 'react-native';
 import Ripple from 'react-native-material-ripple';
