@@ -1,6 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import * as React from 'react';
-import {View, Text, TouchableOpacity, Linking, Platform} from 'react-native';
+import {useState} from 'react';
+import {View, Text, TouchableOpacity, Platform} from 'react-native';
 import {
   GrayBodyText,
   AuthHeading,
@@ -13,13 +14,14 @@ import {
 } from 'uin';
 import {useTheme} from 'theme';
 import AuthWrapper from '../../../hocs/AuthWrapperWithOrWithoutBackButton';
+import {TermsAndConditionsModal} from '../../../reusables/TermsAndConditionsModal';
 import {Separator} from 'assets';
 import {appleLogin, googleLogin} from 'services';
 import {openBrowser} from 'utils';
-import Config from 'react-native-config';
 
 export default function SignupOptionsScreen({navigation}) {
   const theme = useTheme();
+  const [openTCModal, setOpenTCModal] = useState(false);
 
   const handleGoogleLogin = async () => {
     try {
@@ -48,6 +50,11 @@ export default function SignupOptionsScreen({navigation}) {
 
   return (
     <AuthWrapper showBackArrowIcon={navigation.canGoBack()}>
+      <TermsAndConditionsModal
+        open={openTCModal}
+        setOpen={setOpenTCModal}
+        onClose={() => setOpenTCModal(false)}
+      />
       <AuthHeading>Enhance your Financial Well-Being!</AuthHeading>
 
       <View style={{paddingTop: 18}}>
@@ -112,7 +119,7 @@ export default function SignupOptionsScreen({navigation}) {
         </View>
         <TouchableOpacity
           onPress={() => {
-            Linking.openURL(`${Config.FINEZZY_TERMS_AND_CONDITIONS_URL}`);
+            setOpenTCModal(true);
           }}
           style={{
             alignSelf: 'flex-start',
