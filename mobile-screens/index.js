@@ -66,8 +66,6 @@ const App = () => {
   const init = React.useCallback(async () => {
     try {
       setLoading(true);
-      // Reason to comment below line of code: This will help to test the show App Promo screen condition
-      // AsyncStorage.clear();
       let tokenFromStorage = await AsyncStorage.getItem('@access_token');
 
       if (tokenFromStorage !== null) {
