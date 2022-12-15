@@ -12,6 +12,7 @@ export const InputErrorMessage = ({errorMessage}) => {
         <View
           style={{
             flexDirection: 'row',
+            alignItems: 'center',
           }}>
           <View>
             <PentagonDangerIcon fill={theme.colors.error} />
@@ -28,7 +29,7 @@ export const InputErrorMessage = ({errorMessage}) => {
                 fontWeight: theme.fontWeights.moreBold,
                 color: theme.colors.error,
                 fontFamily: theme.fonts.regular,
-                paddingLeft: 16,
+                paddingLeft: 6,
               }}>
               {errorMessage}
             </Text>

@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation} from '@react-navigation/native';
-import {getUser, updateUserProfile} from 'services';
+import {updateUserProfile, getLinkedPAN} from 'services';
 import {useResetStack} from './useResetStack';
+
 const useOnboardingHandleRedirection = () => {
   const navigation = useNavigation();
   const resetPINSetup = useResetStack('PINSetup');
@@ -32,23 +33,35 @@ const useOnboardingHandleRedirection = () => {
     }
   };
 
-  const handleRedirection = async latestUser => {
-    let tokenFromStorage = await AsyncStorage.getItem('@access_token');
+  const handleRedirection = async () => {
+    try {
+      let tokenFromStorage = await AsyncStorage.getItem('@access_token');
 
-    if (tokenFromStorage !== null) {
-      const user = latestUser || (await getUser());
+      if (tokenFromStorage !== null) {
+        const panResponse = await getLinkedPAN();
 
-      const isPANExists = !!user?.profile?.meta?.pan;
+        const isPANLinked = panResponse?.pan && panResponse?.name;
 
-      if (isPANExists) {
-        console.log('if->isPANExists: ', isPANExists);
-        resetPINSetup();
-        navigation.replace('Protected');
+        if (isPANLinked) {
+          console.log('if->isPANLinked: ', isPANLinked);
+          resetPINSetup();
+          navigation.replace('Protected');
+        } else {
+          console.log('else->isPANLinked: ', isPANLinked);
+          resetPINSetup();
+          navigation.replace('PANSetup');
+        }
+      }
+    } catch (err) {
+      console.log('error: ', err);
+      if (err?.error === 'PAN not linked') {
+        console.log('err?.error-->pan is not linked', err?.error);
+        navigation.replace('PANSetup');
       } else {
-        console.log('else->isPANExists: ', isPANExists);
-        resetPINSetup();
+        console.log('err?.error--> other error', err?.error);
         navigation.replace('PANSetup');
       }
+      return err;
     }
   };
   return {handleRedirection, handleUpdateOnboardingStep};

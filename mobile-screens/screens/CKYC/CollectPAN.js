@@ -13,13 +13,14 @@ import {
 } from 'uin';
 import {useTheme} from 'theme';
 import ScreenWrapper from '../../hocs/screenWrapperWithoutBackButton';
-import {ForwardEmail, TickCircle, WarningIcon1} from 'assets';
+import {ForwardEmail, TickCircle} from 'assets';
 import useExitApp from '../../reusables/useExitApp';
 import {usePANCollectRedirection} from '../../reusables/usePANCollectRedirection';
 import {validatePAN as basicValidatePAN} from 'utils';
 import {validatePAN as signzyValidatePAN} from 'services';
 import * as Sentry from '@sentry/react-native';
 import {InputErrorMessage} from '../../reusables/ErrorMessage';
+import useBetaForm from '@reusejs/react-form-hook';
 
 export default function ({navigation}) {
   const theme = useTheme();
@@ -30,10 +31,18 @@ export default function ({navigation}) {
   const [message, setMessage] = useState(null);
   const [validUser, setValidUser] = useState(false);
   const [isFetchingPANDetails, setIsFetchingPANDetails] = useState(false);
+  const form = useBetaForm({
+    error: '',
+  });
 
   const showGreenTickCircleIcon = useRef(() => {});
 
-  const handleRedirection = usePANCollectRedirection(pan, navigation);
+  const handleRedirection = usePANCollectRedirection(
+    pan,
+    validUser,
+    form,
+    navigation,
+  );
 
   useExitApp();
 
@@ -46,8 +55,10 @@ export default function ({navigation}) {
     setValidUser(null);
     setBasicValidationError(null);
     setMessage(null);
+    form.setErrors({});
     if (text.length <= 10) {
       showGreenTickCircleIcon.current(text);
+      form.setField(text.toUpperCase());
       setPAN(text.toUpperCase());
     }
     if (text.length === 10) {
@@ -110,6 +121,8 @@ export default function ({navigation}) {
     }
   };
 
+  console.log('getError', form.errors.get('error'));
+
   return (
     <ScreenWrapper>
       <View style={{paddingHorizontal: 24, flex: 1}}>
@@ -150,11 +163,12 @@ export default function ({navigation}) {
               onChangeText={text => handleChangeText(text)}
               value={pan}
               overlappingIcon={() =>
-                showGreenCircleIcon && (
+                (showGreenCircleIcon && !validUser) ||
+                (message && (
                   <View style={{position: 'absolute', right: 13.24}}>
                     <TickCircle />
                   </View>
-                )
+                ))
               }
             />
           </View>
@@ -164,7 +178,7 @@ export default function ({navigation}) {
               <Heading
                 style={{
                   color: theme.colors.text,
-                  fontFamily: theme.fonts.bold,
+                  fontFamily: theme.fonts.medium,
                   paddingLeft: 4,
                   paddingTop: 12,
                   ...theme.fontSizes.medium,
@@ -187,8 +201,14 @@ export default function ({navigation}) {
                     fontFamily: theme.fonts.bold,
                     paddingLeft: 4,
                     ...theme.fontSizes.medium,
-                  }}>{`${validUser}`}</Heading>
+                  }}>{`PAN Card Holder: ${validUser}`}</Heading>
               </View>
+            </>
+          ) : null}
+
+          {form.errors.get('error') ? (
+            <>
+              <InputErrorMessage errorMessage={`${form.errors.get('error')}`} />
             </>
           ) : null}
 
