@@ -36,14 +36,6 @@ Sentry.init({
   dsn: Config.SENTRY_DSN,
 });
 
-// Todo: https://mars.betalectic.com/apps/product-radical/radical/-/issues/319
-// Todo: https://mars.betalectic.com/apps/product-radical/radical/-/issues/320
-// Todo: https://mars.betalectic.com/apps/product-radical/radical/-/issues/321
-// Todo: https://mars.betalectic.com/apps/product-radical/radical/-/issues/322
-// Todo: https://mars.betalectic.com/apps/product-radical/radical/-/issues/323
-// Todo: https://mars.betalectic.com/apps/product-radical/radical/-/issues/324
-// Todo: https://mars.betalectic.com/apps/product-radical/radical/-/issues/327
-
 const Stack = createStackNavigator();
 
 console.log('Config.API_URL', Config.API_URL);
@@ -142,40 +134,12 @@ const App = () => {
   );
 
   handleExpiredSession.current = async () => {
-    console.log('mobile-screens=>isSessionExpired outside: ', isSessionExpired);
     if (isSessionExpired === true) {
-      console.log(
-        'mobile-screens=>isSessionExpired inside if: ',
-        isSessionExpired,
-      );
       await clearStoreForLogout();
     } else {
-      console.log(
-        'mobile-screens=>isSessionExpired inside else: ',
-        isSessionExpired,
-      );
       await clearStoreForLogout();
     }
   };
-
-  console.log('mobile-screens: accessToken-------->: ', accessToken);
-  console.log('mobile-screens: isSessionExpired:------> ', isSessionExpired);
-  console.log(
-    'mobile-screens: isUserLoggedInWithMPIN: ---->',
-    isUserLoggedInWithMPIN,
-  );
-
-  const willAuthStackLoad =
-    accessToken === null ||
-    accessToken === undefined ||
-    Boolean(accessToken) === false ||
-    isUserLoggedInWithMPIN === false ||
-    isUserLoggedInWithMPIN === undefined ||
-    isUserLoggedInWithMPIN === null;
-  console.log('willAuthStackLoad**************: ', willAuthStackLoad);
-  const willProtectedStackLoad =
-    accessToken !== null || isUserLoggedInWithMPIN === true;
-  console.log('willProtectedStackLoad***********: ', willProtectedStackLoad);
 
   if (loading) {
     return <Loader />;
@@ -255,7 +219,6 @@ const App = () => {
 
 const Loader = () => {
   const theme = useTheme();
-  console.log('**********Loader mounted***************');
   return (
     <View
       style={{
