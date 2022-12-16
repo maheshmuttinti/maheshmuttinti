@@ -16,6 +16,7 @@ import {prettifyJSON} from 'utils';
 import useUser from '../../../reusables/useUser';
 import * as Sentry from '@sentry/react-native';
 import {VerifyOTPLoader} from '../../../reusables/VerifyOTPLoader';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ({route, navigation}) {
   const [infoText, setInfoText] = useState('');
@@ -80,6 +81,16 @@ export default function ({route, navigation}) {
       if (verificationResponse) {
         setVerifyingOTP(false);
         console.log('verificationResponse', prettifyJSON(verificationResponse));
+        console.log(
+          'social auth: setting the is_mobile_number_verified to true---------------------------------',
+        );
+        await AsyncStorage.setItem(
+          '@is_mobile_number_verified',
+          JSON.stringify(true),
+        );
+        console.log(
+          'social auth: done the is_mobile_number_verified to true---------------------------------',
+        );
         navigation.replace('General', {screen: 'ScreenDeterminer'});
       }
     } catch (error) {

@@ -15,7 +15,12 @@ import {useTheme} from 'theme';
 import {useNavigation} from '@react-navigation/native';
 import {useDispatch, useSelector, shallowEqual} from 'react-redux';
 import NetInfo from '@react-native-community/netinfo';
-import {setNetworkStatus, setShowIntro} from 'store';
+import {
+  setNetworkStatus,
+  setShowIntro,
+  setIsUserLoggedInWithMPIN,
+  clearAuth,
+} from 'store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Config from 'react-native-config';
 
@@ -47,12 +52,14 @@ export default function ({
     }
   };
 
-  redirectionFnRef.current = () => {
+  redirectionFnRef.current = async () => {
     if (isSessionExpired === true) {
-      AsyncStorage.clear();
       dispatch(setShowIntro(false));
-      (async () =>
-        await AsyncStorage.setItem('@show_intro', JSON.stringify(false)))();
+      await AsyncStorage.setItem('@show_intro', JSON.stringify(false));
+      await AsyncStorage.setItem('@logged_into_app', JSON.stringify(true));
+      dispatch(setIsUserLoggedInWithMPIN(false));
+      dispatch(clearAuth());
+      await AsyncStorage.removeItem('@access_token');
       navigation.replace('Auth', {screen: 'SigninHome'});
     } else {
       return;

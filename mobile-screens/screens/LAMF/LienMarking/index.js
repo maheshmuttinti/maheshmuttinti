@@ -21,7 +21,7 @@ import {EditPencil, InfoIcon} from 'assets';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useUser from '../../../reusables/useUser';
 import Config from 'react-native-config';
-import {formatDate, openBrowser, prettifyJSON, showToast, sleep} from 'utils';
+import {formatDate, openBrowser, prettifyJSON, showNativeAlert, sleep} from 'utils';
 import EMIDueDatesModal from './EMIDueDatesModal';
 import {useFocusEffect} from '@react-navigation/native';
 import {TermsAndConditionsModal} from '../../../reusables/TermsAndConditionsModal';
@@ -229,7 +229,7 @@ export default function ({navigation, route}) {
       const applicationId = await AsyncStorage.getItem('applicationId');
 
       if (!applicationId) {
-        showToast('Application ID not found');
+        showNativeAlert('Application ID not found');
         setLoading(false);
       } else {
         const {isAllSchemesLienMarked, loanApplicationData} =
@@ -268,7 +268,7 @@ export default function ({navigation, route}) {
             });
           } else {
             setLoading(false);
-            showToast('Lien Marking Success Data Saving Failed.');
+            showNativeAlert('Lien Marking Success Data Saving Failed.');
           }
         } else {
           setLienMarkingStatusCheck('status_failed');
@@ -299,7 +299,7 @@ export default function ({navigation, route}) {
           );
           setLoading(false);
 
-          showToast('Lien Marking Failed');
+          showNativeAlert('Lien Marking Failed');
         }
       }
     } catch (error) {
@@ -308,7 +308,7 @@ export default function ({navigation, route}) {
         error,
       );
       setLienMarkingStatusCheck('status_failed');
-      showToast(`${error.response.data}` || 'Something went wrong');
+      showNativeAlert(`${error.response.data}` || 'Something went wrong');
       setLoading(false);
     }
   };
@@ -416,12 +416,12 @@ export default function ({navigation, route}) {
           setLoading(false);
         }
       } else {
-        showToast('Lien Marking Failed');
+        showNativeAlert('Lien Marking Failed');
         setLoading(false);
       }
     } catch (error) {
       console.log('error in onsubmit', error);
-      showToast('Lien Marking Failed. Please try again');
+      showNativeAlert('Lien Marking Failed. Please try again');
       setLoading(false);
     }
   };

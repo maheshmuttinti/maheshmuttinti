@@ -82,10 +82,29 @@ export default function ({navigation, route}) {
   redirectToNoInternetScreen.current = () =>
     navigation.navigate('EmptyStates', {screen: 'NoInternet'});
 
+  const redirectBasedOnMobileNumberVerification = async () => {
+    const isMobileNumberVerifiedOnUserSessionExpire = JSON.parse(
+      await AsyncStorage.getItem('@is_mobile_number_verified'),
+    );
+    console.log(
+      'isMobileNumberVerifiedOnUserSessionExpire: ',
+      isMobileNumberVerifiedOnUserSessionExpire,
+    );
+    if (isMobileNumberVerifiedOnUserSessionExpire !== null) {
+      if (isMobileNumberVerifiedOnUserSessionExpire === true) {
+        navigation.replace('Auth', {screen: 'SigninHome'});
+      } else {
+        navigation.replace('Auth', {screen: 'SignupWithSocialProviders'});
+      }
+    } else {
+      navigation.replace('Auth', {screen: 'SignupWithSocialProviders'});
+    }
+  };
+
   handleExpiredSession.current = async () => {
     if (isSessionExpired === true) {
       await clearStoreForLogout();
-      navigation.replace('Auth', {screen: 'SignupWithSocialProviders'});
+      await redirectBasedOnMobileNumberVerification();
     }
   };
 
@@ -111,12 +130,12 @@ export default function ({navigation, route}) {
     );
     if (loggedInStatus !== null) {
       if (loggedInStatus === true) {
-        navigation.replace('Auth', {screen: 'SigninHome'});
+        await redirectBasedOnMobileNumberVerification();
       } else {
-        navigation.replace('Auth', {screen: 'SignupWithSocialProviders'});
+        await redirectBasedOnMobileNumberVerification();
       }
     } else {
-      navigation.replace('Auth', {screen: 'SignupWithSocialProviders'});
+      await redirectBasedOnMobileNumberVerification();
     }
   };
 
@@ -149,9 +168,20 @@ export default function ({navigation, route}) {
 
   handleRedirections.current = async () => {
     try {
+      console.log(
+        'redirection started in screen determiner----------------------'.toUpperCase(),
+      );
       const tokenFromStorage = await AsyncStorage.getItem('@access_token');
 
       const showIntro = JSON.parse(await AsyncStorage.getItem('@show_intro'));
+
+      const isMobileNumberVerifiedOnUserSessionExpire = JSON.parse(
+        await AsyncStorage.getItem('@is_mobile_number_verified'),
+      );
+      console.log(
+        '--------------------isMobileNumberVerifiedOnUserSessionExpire:=================='.toUpperCase(),
+        isMobileNumberVerifiedOnUserSessionExpire,
+      );
 
       if (showIntro === null) {
         navigation.replace('AppPromo', {screen: 'AppPromo'});
@@ -205,6 +235,10 @@ export default function ({navigation, route}) {
       } else {
         await handleNoAccessTokenInAsyncStorage();
       }
+
+      console.log(
+        'redirection done in screen determiner----------------------'.toUpperCase(),
+      );
 
       hideSplashScreen();
     } catch (error) {

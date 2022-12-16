@@ -6,7 +6,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {themes, ThemeProvider, useTheme} from 'theme';
 import Config from 'react-native-config';
-import {RootNavigation} from 'utils';
+import {prettifyJSON, RootNavigation} from 'utils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {setTokens, setUser} from 'store';
 import {getUser} from 'services';
@@ -71,6 +71,7 @@ const App = () => {
       if (tokenFromStorage !== null) {
         dispatch(setTokens(JSON.parse(tokenFromStorage)));
         let userProfile = await getUser();
+        console.log('userProfile: ', prettifyJSON(userProfile));
         if (userProfile) {
           dispatch(setUser(userProfile));
           setLoading(false);
@@ -208,9 +209,9 @@ const App = () => {
               component={EmptyStates}
             />
           </Stack.Navigator>
-          <Toast config={toastConfig} />
         </NavigationContainer>
       </ThemeProvider>
+      {/* <Toast config={toastConfig} /> */}
     </>
   );
 };

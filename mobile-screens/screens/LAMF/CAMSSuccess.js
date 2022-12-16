@@ -12,7 +12,7 @@ import {
   lienMarkingStatus,
   updateApplication,
 } from 'services';
-import {prettifyJSON, showToast, sleep} from 'utils';
+import {prettifyJSON, showNativeAlert, sleep} from 'utils';
 import useLayoutBackButtonAction from '../../reusables/useLayoutBackButtonAction';
 import useHardwareButtonGoBack from '../../reusables/useHardwareButtonGoBack';
 
@@ -100,7 +100,7 @@ const CamsSuccess = ({navigation}) => {
       // const applicationId = await AsyncStorage.getItem('applicationId');
 
       if (!applicationId) {
-        showToast('Application ID not found');
+        showNativeAlert('Application ID not found');
       } else {
         const {isAllSchemesLienMarked, loanApplicationData} =
           await getLienMarkingStatus(applicationId);
@@ -142,7 +142,7 @@ const CamsSuccess = ({navigation}) => {
             //   screen: 'CAMSSuccess',
             // });
           } else {
-            showToast('Lien Marking Success Data Saving Failed.');
+            showNativeAlert('Lien Marking Success Data Saving Failed.');
           }
         } else {
           setLienMarkingStatus('failed');
@@ -172,7 +172,7 @@ const CamsSuccess = ({navigation}) => {
             prettifyJSON(lienMarkedDataWithLoanApplicationDataResponse),
           );
 
-          showToast('Lien Marking Failed');
+          showNativeAlert('Lien Marking Failed');
         }
       }
     } catch (error) {
@@ -180,7 +180,7 @@ const CamsSuccess = ({navigation}) => {
         'error in redirecting to correct screen in lien marking step',
         error,
       );
-      showToast(`${error.response.data}` || 'Something went wrong');
+      showNativeAlert(`${error.response.data}` || 'Something went wrong');
     }
   };
 

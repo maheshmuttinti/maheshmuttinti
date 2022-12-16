@@ -13,7 +13,7 @@ import {TouchableOpacity} from 'react-native';
 import * as RNFS from 'react-native-fs';
 import {PermissionsAndroid} from 'react-native';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
-import {showToast} from 'utils';
+import {showNativeAlert} from 'utils';
 
 export default function ({onDone, multiple, mode, type, child, disable}) {
   const [files, setFiles] = useState([]);
@@ -71,7 +71,7 @@ export default function ({onDone, multiple, mode, type, child, disable}) {
             response.errorCode === 'others' ||
             response.errorCode === 'permission'
           ) {
-            showToast('No permission to open camera');
+            showNativeAlert('No permission to open camera');
           } else {
             let _files = await Promise.all(
               response?.assets?.map(async asset => {
@@ -91,7 +91,7 @@ export default function ({onDone, multiple, mode, type, child, disable}) {
                   return asset;
                 } catch (error) {
                   console.log('Launch Camera Failed', error);
-                  showToast(JSON.stringify(error));
+                  showNativeAlert(JSON.stringify(error));
                   console.log('Failed copying....', error);
                 }
               }),

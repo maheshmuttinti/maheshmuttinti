@@ -1,7 +1,7 @@
 import React from 'react';
 import {DigioRNComponent} from 'digio-sdk-rn';
 import Config from 'react-native-config';
-import {showToast} from 'utils';
+import {showNativeAlert} from 'utils';
 
 const DigioSDK = ({route, navigation}) => {
   const options = {
@@ -18,7 +18,7 @@ const DigioSDK = ({route, navigation}) => {
 
   const onSuccess = t => {
     console.log(t);
-    showToast('Done');
+    showNativeAlert('Done');
     navigation.goBack();
   };
 

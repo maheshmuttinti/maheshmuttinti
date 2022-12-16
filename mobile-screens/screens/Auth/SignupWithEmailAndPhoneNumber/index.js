@@ -165,30 +165,38 @@ export default function SignupOptionsScreen({navigation}) {
           type: form?.value?.type,
           value: form?.value?.value,
           password: generatedPassword,
+          meta: {
+            email: casEmailForm?.value?.email,
+          },
         };
 
         console.log('payload-112233', payload);
         setApiCallStatus('loading');
 
         const response = await register(payload);
+        console.log('response of register:---- '.toUpperCase(), response);
         if (
           response.message === 'Already Registered' ||
           response.message === 'Successfully Registered'
         ) {
           setApiCallStatus('success');
-          clearFormErrors();
-          clearCASEmailFormErrors();
-          clearForms();
-          setShowGreenCircleIconForEmail(false);
-          setShowGreenCircleIconForMobile(false);
-          navigation.navigate('VerifyPhoneNumberDuringRegistration', {
-            value:
-              form.value.type === 'mobile_number'
-                ? '+91' + form.value.value
-                : form.value.value,
-            type: form.value.type,
-            casEmail: casEmailForm.value.email,
-          });
+          if (response.message === 'Already Registered') {
+            form.setErrors({value: 'Already registered'});
+          } else {
+            clearFormErrors();
+            clearCASEmailFormErrors();
+            clearForms();
+            setShowGreenCircleIconForEmail(false);
+            setShowGreenCircleIconForMobile(false);
+            navigation.navigate('VerifyPhoneNumberDuringRegistration', {
+              value:
+                form.value.type === 'mobile_number'
+                  ? '+91' + form.value.value
+                  : form.value.value,
+              type: form.value.type,
+              casEmail: casEmailForm.value.email,
+            });
+          }
         }
       }
     } catch (error) {

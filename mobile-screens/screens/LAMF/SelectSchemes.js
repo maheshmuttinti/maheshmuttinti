@@ -40,7 +40,7 @@ import {
   getPreApprovedLoanforPan,
 } from 'services';
 import Toast from 'react-native-toast-message';
-import {isNumber, prettifyJSON, showToast} from 'utils';
+import {isNumber, prettifyJSON, showNativeAlert} from 'utils';
 import useLayoutBackButtonAction from '../../reusables/useLayoutBackButtonAction';
 import Slider from '@react-native-community/slider';
 import Carousel from 'react-native-snap-carousel-v4';
@@ -173,7 +173,7 @@ const Index = ({route, navigation}) => {
       } else if (+_editableTotal > +total) {
         setEditableTotal(`${total}`);
         setShowSelectableList(false);
-        showToast('Please enter lower amount');
+        showNativeAlert('Please enter lower amount');
       } else if (+_editableTotal === +total) {
         setEditableTotal(`${total}`);
         setShowSelectableList(false);

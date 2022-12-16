@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {WebView} from 'react-native-webview';
-import {showToast} from 'utils';
+import {showNativeAlert} from 'utils';
 import {Platform} from 'react-native';
 
 export default function ({route, navigation}) {
@@ -14,7 +14,7 @@ export default function ({route, navigation}) {
         params: {step: 2, applicationId: applicationId},
       });
       setShow(false);
-      showToast('Document fetching failed');
+      showNativeAlert('Document fetching failed');
     } else if (
       address.url.includes('code') &&
       address.url.includes('state') &&
@@ -26,7 +26,7 @@ export default function ({route, navigation}) {
         params: {step: 2, applicationId: applicationId},
       });
       setShow(false);
-      showToast('Document fetching success');
+      showNativeAlert('Document fetching success');
     }
   };
   return (

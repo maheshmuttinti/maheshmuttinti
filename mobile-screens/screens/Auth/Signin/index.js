@@ -93,7 +93,13 @@ export default function SignInScreen({navigation}) {
             : form?.value?.value,
       };
 
-      await requestVerifyRegistration(requestOtpPayload);
+      const requestVerifyRegistrationResponse = await requestVerifyRegistration(
+        requestOtpPayload,
+      );
+      console.log(
+        'requestVerifyRegistrationResponse-------------: '.toUpperCase(),
+        requestVerifyRegistrationResponse,
+      );
 
       clearFormErrors.current();
       navigation.navigate('VerifyPhoneNumberDuringRegistration', {
@@ -144,6 +150,7 @@ export default function SignInScreen({navigation}) {
       if (error?.errors?.value[0] === 'Please enter a value') {
         form.setErrors({value: 'Please enter valid phone number'});
       } else if (error?.message === 'AttributeNotVerified') {
+        console.log('error?.message in signin screen: ', error?.message);
         await handleRegisteredUserVerifyOTP();
       } else if (error?.message === 'AttributeNotRegistered') {
         form.setErrors({value: 'Phone number is not registered'});
@@ -217,48 +224,7 @@ export default function SignInScreen({navigation}) {
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'center',
-          paddingTop: 24,
-        }}>
-        <Separator />
-        <Text style={{marginHorizontal: 8, color: theme.colors.bodyGray}}>
-          or
-        </Text>
-        <Separator />
-      </View>
-
-      {Platform.OS === 'android' &&
-      Config.ENABLE_APPLE_LOGIN_FOR_ANDROID === 'true' ? (
-        <GoogleAppleButton
-          type="row"
-          onGoogleLogin={() => handleGoogleLogin()}
-          onAppleLogin={() => handleAppleLogin()}
-        />
-      ) : (
-        Platform.OS === 'android' && (
-          <View style={{paddingTop: 24}}>
-            <GoogleButton
-              isSingleButton={true}
-              onPress={() => handleGoogleLogin()}>
-              Continue with Google
-            </GoogleButton>
-          </View>
-        )
-      )}
-
-      {Platform.OS === 'ios' && (
-        <GoogleAppleButton
-          type="row"
-          onGoogleLogin={() => handleGoogleLogin()}
-          onAppleLogin={() => handleAppleLogin()}
-        />
-      )}
-
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          paddingTop: 169,
+          paddingTop: 61,
         }}>
         <TextButton
           onPress={() =>

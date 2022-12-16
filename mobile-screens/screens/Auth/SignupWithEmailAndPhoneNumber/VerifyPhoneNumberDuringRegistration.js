@@ -17,7 +17,7 @@ import {setTokens} from 'store';
 import BackgroundTimer from '../../../reusables/BackgroundTimer';
 import {VerifyOTPLoader} from '../../../reusables/VerifyOTPLoader';
 import {useTheme} from 'theme';
-import {prettifyJSON, showToast} from 'utils';
+import {prettifyJSON, showNativeAlert} from 'utils';
 import * as Sentry from '@sentry/react-native';
 
 export default function ({route, navigation}) {
@@ -37,8 +37,15 @@ export default function ({route, navigation}) {
 
       if (tokenFromStorage !== null) {
         const user = await getUser();
+        console.log('handleRedirect -> user: --------'.toUpperCase(), user);
+        const accessMetaEmail = user?.profile?.meta?.email;
+        let addCASEmailResponse = null;
+        if (accessMetaEmail) {
+          addCASEmailResponse = await handleAddCASEmail(accessMetaEmail);
+        } else {
+          addCASEmailResponse = await handleAddCASEmail();
+        }
 
-        const addCASEmailResponse = await handleAddCASEmail();
         console.log('addCASEmailResponse: ', prettifyJSON(addCASEmailResponse));
         const metaForCasEmail = {
           meta: {
@@ -74,7 +81,7 @@ export default function ({route, navigation}) {
         });
       } else {
         setLoading(false);
-        showToast('Unable to Logged into the App, Please try again!');
+        showNativeAlert('Unable to Logged into the App, Please try again!');
       }
     } catch (err) {
       console.log('error', err);
@@ -108,6 +115,7 @@ export default function ({route, navigation}) {
       };
 
       const response = await verifyRegistration(payload);
+      console.log('response of verify registration: '.toUpperCase(), response);
 
       if (response?.access_token) {
         form.setErrors({});
@@ -126,10 +134,10 @@ export default function ({route, navigation}) {
     }
   };
 
-  const handleAddCASEmail = async () => {
+  const handleAddCASEmail = async accessMetaEmail => {
     try {
       const addCASEmailPayload = {
-        email: casEmail,
+        email: accessMetaEmail || casEmail,
         email_type: 'non_gmail',
       };
 
@@ -138,7 +146,7 @@ export default function ({route, navigation}) {
       const addCASEmailResponse = await addCASEmail(addCASEmailPayload);
       return addCASEmailResponse;
     } catch (error) {
-      showToast('Something went wrong while adding CAS Email');
+      showNativeAlert('Something went wrong while adding CAS Email');
       console.log('error', error);
       Sentry.captureException(error);
       return error;
@@ -156,6 +164,17 @@ export default function ({route, navigation}) {
           }),
         );
         await AsyncStorage.setItem('@logged_into_app', JSON.stringify(true));
+        console.log(
+          'email&phone: setting the is_mobile_number_verified to true---------------------------------',
+        );
+        await AsyncStorage.setItem(
+          '@is_mobile_number_verified',
+          JSON.stringify(true),
+        );
+        console.log(
+          'email&phone: done the is_mobile_number_verified to true---------------------------------',
+        );
+
         await handleRedirect();
         setLoading(false);
       }

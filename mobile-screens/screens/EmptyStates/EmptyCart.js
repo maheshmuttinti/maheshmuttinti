@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import ScreenWrapper from '../../hocs/screenWrapperWithoutBackButton';
 import {useSelector, shallowEqual} from 'react-redux';
-import {showToast} from 'utils';
+import {showNativeAlert} from 'utils';
 import Content from './Content';
 
 export default function SignInScreen({navigation}) {
@@ -17,7 +17,7 @@ export default function SignInScreen({navigation}) {
   });
 
   const handleClick = () => {
-    showToast('Coming Soon!');
+    showNativeAlert('Coming Soon!');
   };
 
   return (

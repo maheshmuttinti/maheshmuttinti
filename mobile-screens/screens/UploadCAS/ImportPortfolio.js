@@ -24,7 +24,7 @@ import {
 } from 'assets';
 import {addCASEmail, requestCAS, getCASEmails} from 'services';
 import MFPortfolioSteps from '../../reusables/mfPortfolioSteps';
-import {prettifyJSON, EMAIL_REGEX, showToast, formatDate} from 'utils';
+import {prettifyJSON, EMAIL_REGEX, showNativeAlert, formatDate} from 'utils';
 import {useSelector, shallowEqual, useDispatch} from 'react-redux';
 import {setRequestTrackingId} from 'store';
 import {openInbox} from 'react-native-email-link';
@@ -153,7 +153,7 @@ export default function ({navigation}) {
 
           dispatch(setRequestTrackingId(requestCASResponse.data?.uuid));
           if (requestCASResponse.message) {
-            showToast(requestCASResponse?.message);
+            showNativeAlert(requestCASResponse?.message);
             return requestCASResponse.message;
           }
           return requestCASResponse.status;
@@ -161,7 +161,7 @@ export default function ({navigation}) {
         return requestCASResponse;
       }
     } catch (err) {
-      showToast('Something went wrong');
+      showNativeAlert('Something went wrong');
       setRefreshCASEmailsOnRequestFailed(prevState => !prevState);
     }
   };
@@ -208,7 +208,7 @@ export default function ({navigation}) {
     } catch (err) {
       console.log('error', err);
       setApiCallStatus('add_cas_email_failed');
-      showToast('Something went wrong');
+      showNativeAlert('Something went wrong');
     }
   };
 
@@ -392,7 +392,7 @@ const EmailListItem = ({email, index, navigation, refreshCasRequestCb}) => {
       }
     } catch (err) {
       console.log('error', err);
-      showToast('Something went wrong');
+      showNativeAlert('Something went wrong');
     }
   };
 

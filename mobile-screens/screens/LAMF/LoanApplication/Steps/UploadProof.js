@@ -19,7 +19,7 @@ import {
 import Loader from '../../../../reusables/loader';
 import useBetaForm from '@reusejs/react-form-hook';
 import SingleImageUpload from '../../../../mobile-scope-components/FileUpload/singleImageUpload';
-import {showToast} from 'utils';
+import {showNativeAlert} from 'utils';
 
 export default function ({navigation, applicationId, setStep, currentStep}) {
   const theme = useTheme();
@@ -97,7 +97,7 @@ export default function ({navigation, applicationId, setStep, currentStep}) {
       setRedirectingToDigilocker(true);
       const response = await digiLockerRequest();
       if (response?.error?.message) {
-        showToast(response.error.message);
+        showNativeAlert(response.error.message);
         setRedirectingToDigilocker(false);
         return;
       }
@@ -140,11 +140,11 @@ export default function ({navigation, applicationId, setStep, currentStep}) {
         setDigilockerUploadSuccess(true);
       } else {
         setLoading(false);
-        showToast('Error in Document Fetching');
+        showNativeAlert('Error in Document Fetching');
       }
     } catch (err) {
       setLoading(false);
-      showToast('Error in Document Fetching');
+      showNativeAlert('Error in Document Fetching');
     }
   };
 
@@ -178,7 +178,7 @@ export default function ({navigation, applicationId, setStep, currentStep}) {
       await updateApplication(applicationId, loanPayload);
       setStep(currentStep + 1);
     } else {
-      showToast('Please upload your identity and address proof');
+      showNativeAlert('Please upload your identity and address proof');
     }
   };
   return (

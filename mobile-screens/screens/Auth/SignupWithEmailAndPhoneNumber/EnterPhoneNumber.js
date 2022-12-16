@@ -11,18 +11,20 @@ import {
 import AuthWrapper from '../../../hocs/AuthWrapperWithOrWithoutBackButton';
 import {TickCircle, WarningIcon1} from 'assets';
 import useExitApp from '../../../reusables/useExitApp';
-import {NUMBER_MATCH_REGEX, prettifyJSON, showToast} from 'utils';
+import {NUMBER_MATCH_REGEX, prettifyJSON} from 'utils';
 import {logout, updateAttribute} from 'services';
 import useBetaForm from '@reusejs/react-form-hook';
 import Ripple from 'react-native-material-ripple';
 import {useTheme} from 'theme';
 import {useClearAsyncStorageKeys} from '../../../reusables/useClearAsyncStorageKeys';
+import {InputErrorMessage} from '../../../reusables/ErrorMessage';
 
 export default function ({navigation}) {
   const [error, setError] = useState('');
   const [showGreenCircleIcon, setShowGreenCircleIcon] = useState(false);
   const [disableButton, setDisableButton] = useState(false);
   const theme = useTheme();
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const {clearStoreForLogout} = useClearAsyncStorageKeys();
 
@@ -48,6 +50,7 @@ export default function ({navigation}) {
   const handleChangeText = text => {
     console.log('text', text);
     setError(null);
+    setErrorMessage(null);
     let numberMatch = NUMBER_MATCH_REGEX.test(text.trim());
     if (!numberMatch) {
       form.setField('type', 'mobile_number');
@@ -61,7 +64,7 @@ export default function ({navigation}) {
       const logoutResponse = await logout();
       console.log('logoutResponse', logoutResponse);
       clearStoreForLogout();
-      navigation.replace('Auth', {screen: 'SigninHome'});
+      navigation.replace('Auth', {screen: 'SignupWithSocialProviders'});
     } catch (err) {
       console.log('err while logout', err);
       return err;
@@ -124,6 +127,11 @@ export default function ({navigation}) {
         />
       </View>
 
+      {errorMessage ? (
+        <>
+          <InputErrorMessage errorMessage={`${errorMessage}`} />
+        </>
+      ) : null}
       <VerifyMobileNumberButton
         navigation={navigation}
         phoneNumber={form.value.value}
@@ -133,6 +141,7 @@ export default function ({navigation}) {
         payload={form.value}
         showGreenCircleIcon={showGreenCircleIcon}
         setError={setError}
+        onError={message => setErrorMessage(message)}
       />
 
       <Ripple
@@ -163,6 +172,7 @@ export const VerifyMobileNumberButton = ({
   showGreenCircleIcon,
   payload,
   onEmptyPhoneNumberLength = () => true,
+  onError = () => {},
 }) => {
   const [apiCallStatus, setApiCallStatus] = useState(null);
 
@@ -204,9 +214,11 @@ export const VerifyMobileNumberButton = ({
     } catch (err) {
       setApiCallStatus('failure');
       if (err.value[0] === 'Value should be unique') {
-        showToast('Phone number already used by other account');
+        onError(
+          'Phone number already used by other account, Please try with another number.',
+        );
       } else {
-        showToast('Something went wrong');
+        onError('Something went wrong, Please try again.');
       }
       return err;
     }

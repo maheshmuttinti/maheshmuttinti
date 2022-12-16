@@ -1,15 +1,10 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useState, useEffect, useRef} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import {GrayBodyText, AuthHeading, CustomOTPInputWithAutoFill} from 'uin';
 import AuthWrapper from '../../../hocs/AuthWrapperWithOrWithoutBackButton';
 import useBetaForm from '@reusejs/react-form-hook';
-import {
-  loginWithOTP,
-  getUser,
-  requestForLoginOTP,
-  updateUserProfile,
-} from 'services';
+import {loginWithOTP, getUser, requestForLoginOTP} from 'services';
 import {setTokens, setUser} from 'store';
 import {useDispatch} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -26,7 +21,6 @@ export default function ({route, navigation}) {
   const dispatch = useDispatch();
   const handleLogin = useRef(() => {});
   const persistLogin = useRef(() => {});
-  const updateUserProfileFnRef = useRef(() => {});
   const [verifyingOTP, setVerifyingOTP] = useState(false);
   const theme = useTheme();
 
@@ -98,6 +92,16 @@ export default function ({route, navigation}) {
           JSON.stringify({
             accessToken: response?.access_token,
           }),
+        );
+        console.log(
+          'signin with mobile number: setting the is_mobile_number_verified to true---------------------------------',
+        );
+        await AsyncStorage.setItem(
+          '@is_mobile_number_verified',
+          JSON.stringify(true),
+        );
+        console.log(
+          'signin with mobile number: done the is_mobile_number_verified to true---------------------------------',
         );
         await AsyncStorage.setItem('@logged_into_app', JSON.stringify(true));
         setCheckLoginStatus('logged_in');

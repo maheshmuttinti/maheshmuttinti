@@ -29,6 +29,7 @@ export const useClearAsyncStorageKeys = () => {
       dispatch(setIsUserLoggedInWithMPIN(false));
       dispatch(clearAuth());
       await AsyncStorage.removeItem('@access_token');
+      await AsyncStorage.removeItem('@is_mobile_number_verified');
     } catch (error) {
       console.log(
         'error while redirection after set pin later button clicked',

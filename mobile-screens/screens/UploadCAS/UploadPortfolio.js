@@ -9,7 +9,7 @@ import {BackArrow, FileIcon, TickCircle} from 'assets';
 import {Heading, Card, SinglePdfUpload, GrayBodyText, SubText} from 'uin';
 import {uploadCAS} from 'services';
 import useBetaForm from '@reusejs/react-form-hook';
-import {showToast} from 'utils';
+import {showNativeAlert} from 'utils';
 
 export default function ({navigation, route}) {
   const theme = useTheme();
@@ -44,7 +44,7 @@ export default function ({navigation, route}) {
         uploadCASResponse.status === 'processing_failed' ||
         uploadCASResponse.status === 'portfolio_generation_failed'
       ) {
-        // showToast('Something went wrong, Please upload pdf again!');
+        // showNativeAlert('Something went wrong, Please upload pdf again!');
         await uploadCAS(payload);
         setApiCallStatus('success');
         navigation.replace('Protected');
@@ -54,7 +54,7 @@ export default function ({navigation, route}) {
       }
     } catch (error) {
       setApiCallStatus('failed');
-      showToast('Something went wrong, Please upload pdf again!');
+      showNativeAlert('Something went wrong, Please upload pdf again!');
       console.log('error', error);
     }
   };
