@@ -301,7 +301,7 @@ const BankDetails = ({applicationId, currentStep, setStep}) => {
             }}
             value={form.getField('ifsc')}
             error={form.errors.get('ifsc')}
-            onFieldBlur={() => makeIfscCapital()}
+            autoCapitalize={'characters'}
           />
         </View>
         {isFetchingBranchName ? (

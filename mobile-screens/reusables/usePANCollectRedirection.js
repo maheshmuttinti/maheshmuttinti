@@ -10,7 +10,7 @@ export const usePANCollectRedirection = (pan, name, form, navigation) => {
 
       if (tokenFromStorage !== null) {
         const payload = {
-          pan,
+          pan: pan?.toUpperCase(),
           name,
         };
         console.log('payload: ', payload);

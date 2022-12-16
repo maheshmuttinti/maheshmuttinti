@@ -1,13 +1,13 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useEffect, useRef, useState, useCallback} from 'react';
-import {View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import {
   AuthHeading,
   BaseButton,
   TextButton,
   GrayBodyText,
   BaseBodyText,
-  BaseTextInputCapitalizationSupport,
+  BaseTextInput,
   GroupText,
   Heading,
 } from 'uin';
@@ -58,8 +58,7 @@ export default function ({navigation}) {
     form.setErrors({});
     if (text.length <= 10) {
       showGreenTickCircleIcon.current(text);
-      form.setField(text.toUpperCase());
-      setPAN(text.toUpperCase());
+      setPAN(text);
     }
     if (text.length === 10) {
       if (basicValidatePAN(text) === false) {
@@ -158,35 +157,23 @@ export default function ({navigation}) {
           </GroupText>
 
           <View style={{paddingTop: 17}}>
-            <BaseTextInputCapitalizationSupport
+            <BaseTextInput
               placeholder="Enter PAN Card Number"
               onChangeText={text => handleChangeText(text)}
               value={pan}
+              editable={!isFetchingPANDetails}
               overlappingIcon={() =>
-                (showGreenCircleIcon && !validUser) ||
-                (message && (
+                isFetchingPANDetails && (
                   <View style={{position: 'absolute', right: 13.24}}>
-                    <TickCircle />
+                    <ActivityIndicator color={theme.colors.primaryBlue} />
                   </View>
-                ))
+                )
               }
+              autoCapitalize={'characters'}
             />
           </View>
 
-          {isFetchingPANDetails ? (
-            <>
-              <Heading
-                style={{
-                  color: theme.colors.text,
-                  fontFamily: theme.fonts.medium,
-                  paddingLeft: 4,
-                  paddingTop: 12,
-                  ...theme.fontSizes.medium,
-                }}>
-                Loading PAN Card Details...
-              </Heading>
-            </>
-          ) : validUser ? (
+          {validUser ? (
             <>
               <View
                 style={{
