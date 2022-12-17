@@ -52,7 +52,6 @@ export default function ({navigation, route}) {
               accessToken: loginResponse?.access_token,
             }),
           );
-          await AsyncStorage.setItem('@logged_into_app', JSON.stringify(true));
           dispatch(setTokens(loginResponse));
           dispatch(setIsUserLoggedInWithMPIN(true));
           await handleRedirection(userProfile);
