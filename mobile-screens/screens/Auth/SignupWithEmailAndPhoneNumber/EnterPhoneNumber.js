@@ -18,6 +18,7 @@ import Ripple from 'react-native-material-ripple';
 import {useTheme} from 'theme';
 import {useClearAsyncStorageKeys} from '../../../reusables/useClearAsyncStorageKeys';
 import {InputErrorMessage} from '../../../reusables/ErrorMessage';
+import {useResetStack} from '../../../reusables/useResetStack';
 
 export default function ({navigation}) {
   const [error, setError] = useState('');
@@ -27,6 +28,7 @@ export default function ({navigation}) {
   const [errorMessage, setErrorMessage] = useState(null);
 
   const {clearStoreForLogout} = useClearAsyncStorageKeys();
+  const resetAuthStack = useResetStack('Auth');
 
   const form = useBetaForm({
     type: '',
@@ -64,7 +66,7 @@ export default function ({navigation}) {
       const logoutResponse = await logout();
       console.log('logoutResponse', logoutResponse);
       clearStoreForLogout();
-      navigation.replace('Auth', {screen: 'SignupWithSocialProviders'});
+      resetAuthStack();
     } catch (err) {
       console.log('err while logout', err);
       return err;

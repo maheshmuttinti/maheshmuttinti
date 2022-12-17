@@ -15,14 +15,9 @@ import {useTheme} from 'theme';
 import {useNavigation} from '@react-navigation/native';
 import {useDispatch, useSelector, shallowEqual} from 'react-redux';
 import NetInfo from '@react-native-community/netinfo';
-import {
-  setNetworkStatus,
-  setShowIntro,
-  setIsUserLoggedInWithMPIN,
-  clearAuth,
-} from 'store';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {setNetworkStatus} from 'store';
 import Config from 'react-native-config';
+import {useClearAsyncStorageKeys} from '../reusables/useClearAsyncStorageKeys';
 
 export default function ({
   scrollView = true,
@@ -37,6 +32,7 @@ export default function ({
   const redirectionFnRef = useRef(() => {});
 
   const fnRef1 = useRef(() => {});
+  const {clearStoreForLogout} = useClearAsyncStorageKeys();
 
   const {isSessionExpired} = useSelector(
     ({auth}) => ({
@@ -54,15 +50,7 @@ export default function ({
 
   redirectionFnRef.current = async () => {
     if (isSessionExpired === true) {
-      dispatch(setShowIntro(false));
-      await AsyncStorage.setItem('@show_intro', JSON.stringify(false));
-      await AsyncStorage.setItem('@logged_into_app', JSON.stringify(true));
-      dispatch(setIsUserLoggedInWithMPIN(false));
-      dispatch(clearAuth());
-      await AsyncStorage.removeItem('@access_token');
-      navigation.replace('Auth', {screen: 'SigninHome'});
-    } else {
-      return;
+      clearStoreForLogout();
     }
   };
 

@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import {GrayBodyText, AuthHeading, CustomOTPInputWithAutoFill} from 'uin';
 import AuthWrapper from '../../../hocs/AuthWrapperWithOrWithoutBackButton';
 import useBetaForm from '@reusejs/react-form-hook';
@@ -24,7 +24,7 @@ export default function ({route, navigation}) {
   const value = route?.params?.value;
   const type = route?.params?.type;
   const casEmail = route?.params?.casEmail;
-  const [loading, setLoading] = useState(false);
+  const [verifyingOTP, setVerifyingOTP] = useState(false);
   const dispatch = useDispatch();
   const theme = useTheme();
 
@@ -80,12 +80,12 @@ export default function ({route, navigation}) {
           },
         });
       } else {
-        setLoading(false);
+        setVerifyingOTP(false);
         showNativeAlert('Unable to Logged into the App, Please try again!');
       }
     } catch (err) {
       console.log('error', err);
-      setLoading(false);
+      setVerifyingOTP(false);
       Sentry.captureException(err);
       throw err;
     }
@@ -105,7 +105,7 @@ export default function ({route, navigation}) {
 
   const handleVerifyOTP = async () => {
     try {
-      setLoading(true);
+      setVerifyingOTP(true);
       form.setErrors({token: ''});
       const payload = {
         type: form.value.type,
@@ -120,10 +120,10 @@ export default function ({route, navigation}) {
       if (response?.access_token) {
         form.setErrors({});
         await storeTheTokenInAsyncStorage(response?.access_token);
-        setLoading(false);
+        setVerifyingOTP(false);
       }
     } catch (error) {
-      setLoading(false);
+      setVerifyingOTP(false);
 
       console.log('error while verifying otp', prettifyJSON(error));
       if (error?.message === 'Invalid Token') {
@@ -163,7 +163,6 @@ export default function ({route, navigation}) {
             accessToken: accessToken,
           }),
         );
-        await AsyncStorage.setItem('@logged_into_app', JSON.stringify(true));
         console.log(
           'email&phone: setting the is_mobile_number_verified to true---------------------------------',
         );
@@ -176,10 +175,10 @@ export default function ({route, navigation}) {
         );
 
         await handleRedirect();
-        setLoading(false);
+        setVerifyingOTP(false);
       }
     } catch (error) {
-      setLoading(false);
+      setVerifyingOTP(false);
       console.log('storeTheTokenInAsyncStorage-error', error);
       Sentry.captureException(error);
     }
@@ -244,8 +243,15 @@ export default function ({route, navigation}) {
               : theme.colors.primaryBlue
           }
           secureTextEntry={false}
+          overlappingIcon={() =>
+            verifyingOTP ? (
+              <View style={{position: 'absolute', right: 13.24}}>
+                <ActivityIndicator color={theme.colors.primaryBlue} />
+              </View>
+            ) : null
+          }
         />
-        <VerifyOTPLoader loading={loading} />
+        {/* <VerifyOTPLoader verifyingOTP={verifyingOTP} /> */}
       </View>
 
       <BackgroundTimer

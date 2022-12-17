@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useState, useEffect, useRef} from 'react';
-import {View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import {GrayBodyText, AuthHeading, CustomOTPInputWithAutoFill} from 'uin';
 import AuthWrapper from '../../../hocs/AuthWrapperWithOrWithoutBackButton';
 import useBetaForm from '@reusejs/react-form-hook';
@@ -103,7 +103,6 @@ export default function ({route, navigation}) {
         console.log(
           'signin with mobile number: done the is_mobile_number_verified to true---------------------------------',
         );
-        await AsyncStorage.setItem('@logged_into_app', JSON.stringify(true));
         setCheckLoginStatus('logged_in');
       }
     } catch (error) {
@@ -188,19 +187,16 @@ export default function ({route, navigation}) {
               ? theme.colors.error
               : theme.colors.primaryBlue
           }
-          // overlappingIcon={() => {
-          //   if (verifyingOTP === true) {
-          //     return (
-          //       <View style={{position: 'absolute', right: 13.24}}>
-          //         <ActivityIndicator color={theme.colors.primaryBlue} />
-          //       </View>
-          //     );
-          //   }
-          //   return null;
-          // }}
           secureTextEntry={false}
+          overlappingIcon={() =>
+            verifyingOTP ? (
+              <View style={{position: 'absolute', right: 13.24}}>
+                <ActivityIndicator color={theme.colors.primaryBlue} />
+              </View>
+            ) : null
+          }
         />
-        <VerifyOTPLoader loading={verifyingOTP} />
+        {/* <VerifyOTPLoader loading={verifyingOTP} /> */}
       </View>
 
       <BackgroundTimer

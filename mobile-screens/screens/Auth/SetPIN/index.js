@@ -11,6 +11,7 @@ import OverLayLoader from '../../../reusables/loader';
 import {useAutoRedirectOnEnterMPIN} from '../../../reusables/useAutoRedirectOnEnterMPIN';
 import {useSetPINLaterRedirection} from '../../../reusables/useSetPINLaterRedirection';
 import {useFocusEffect} from '@react-navigation/native';
+import useExitApp from '../../../reusables/useExitApp';
 
 export default function ({navigation}) {
   const theme = useTheme();
@@ -18,6 +19,8 @@ export default function ({navigation}) {
   const [loading, setLoading] = useState(false);
 
   const pinScreenRef = useRef(null);
+
+  useExitApp();
 
   useEffect(() => {
     navigation?.addListener('blur', () => {

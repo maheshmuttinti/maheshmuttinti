@@ -31,9 +31,14 @@ import {
   SelectSchemeWarningComponent,
 } from './screens/Toasts';
 import {linking} from './deepLinkConfigs';
+import withAuth from './hocs/withAuth';
+
+// Sentry.init({
+//   dsn: Config.SENTRY_DSN,
+// });
 
 Sentry.init({
-  dsn: Config.SENTRY_DSN,
+  dsn: 'https://46dc0a69bc474e73a0e00f6eee639b70@o4504345470763008.ingest.sentry.io/4504345475022849',
 });
 
 const Stack = createStackNavigator();
@@ -135,8 +140,6 @@ const App = () => {
   handleExpiredSession.current = async () => {
     if (isSessionExpired === true) {
       await clearStoreForLogout();
-    } else {
-      await clearStoreForLogout();
     }
   };
 
@@ -164,27 +167,27 @@ const App = () => {
               }}
               component={AppPromo}
             />
-            {(accessToken === null ||
+            {/* {(accessToken === null ||
               accessToken === undefined ||
               Boolean(accessToken) === false ||
               isUserLoggedInWithMPIN === false ||
               isUserLoggedInWithMPIN === undefined ||
-              isUserLoggedInWithMPIN === null) && (
-              <Stack.Screen
-                name="Auth"
-                options={{
-                  headerShown: false,
-                }}
-                component={Auth}
-              />
-            )}
+              isUserLoggedInWithMPIN === null) && ( */}
+            <Stack.Screen
+              name="Auth"
+              options={{
+                headerShown: false,
+              }}
+              component={Auth}
+            />
+            {/* )} */}
             {(accessToken !== null || isUserLoggedInWithMPIN === true) && (
               <Stack.Screen
                 name="Protected"
                 options={{
                   headerShown: false,
                 }}
-                component={Protected}
+                component={withAuth(Protected)}
               />
             )}
             <Stack.Screen

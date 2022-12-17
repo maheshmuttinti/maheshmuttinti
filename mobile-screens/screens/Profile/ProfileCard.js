@@ -5,7 +5,7 @@ import {useState, useEffect, useCallback, useRef} from 'react';
 import {BaseTextInput, Heading, GradientButton} from 'uin';
 import {useTheme} from 'theme';
 import {EditPencilProfile} from 'assets';
-import {getShortName} from 'utils';
+import {getShortName, prettifyJSON} from 'utils';
 import {getUser, updateUserProfile} from 'services';
 import {useFocusEffect} from '@react-navigation/native';
 
@@ -18,7 +18,7 @@ export default function ProfileCard({}) {
   const handleGetUserName = async () => {
     try {
       const userResponse = await getUser();
-      console.log('userResponse: ', userResponse);
+      console.log('userResponse: ', prettifyJSON(userResponse));
 
       setUser(userResponse);
       let existingUserName = userResponse?.profile?.meta?.username;

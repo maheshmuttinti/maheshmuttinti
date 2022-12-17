@@ -33,7 +33,6 @@ export default function ({navigation, route}) {
           }),
         );
         dispatch(setTokens({access_token: accessToken}));
-        await AsyncStorage.setItem('@logged_into_app', JSON.stringify(true));
         const user = await getUser();
         dispatch(setUser(user));
 

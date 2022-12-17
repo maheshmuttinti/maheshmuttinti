@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useEffect, useState, useRef} from 'react';
-import {View, BackHandler, Platform} from 'react-native';
+import {View, Platform} from 'react-native';
 import {TextButton, CustomKeyboard} from 'uin';
 import AuthWrapper from '../../../hocs/AuthWrapperWithOrWithoutBackButton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -10,6 +10,7 @@ import {setTokens, setIsUserLoggedInWithMPIN} from 'store';
 import {useTheme} from 'theme';
 import {KeyboardDeleteIcon, KeyboardDoneIcon} from 'assets';
 import useOnboardingHandleRedirection from '../../../reusables/useOnboardingHandleRedirection';
+import useExitApp from '../../../reusables/useExitApp';
 import OverLayLoader from '../../../reusables/loader';
 import {sleep} from 'utils';
 
@@ -20,16 +21,7 @@ export default function ({navigation, route}) {
   const dispatch = useDispatch();
   const theme = useTheme();
 
-  const goBack = () => {
-    BackHandler.exitApp();
-  };
-
-  useEffect(() => {
-    BackHandler.addEventListener('hardwareBackPress', goBack);
-    return () => {
-      BackHandler.removeEventListener('hardwareBackPress', goBack);
-    };
-  }, []);
+  useExitApp();
 
   const {handleRedirection} = useOnboardingHandleRedirection();
 

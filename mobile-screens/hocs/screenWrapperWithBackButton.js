@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import * as React from 'react';
-import {useEffect, useRef} from 'react';
+import {useEffect, useRef, useCallback} from 'react';
 import {
   View,
   KeyboardAvoidingView,
@@ -12,17 +12,13 @@ import {
   SafeAreaView,
 } from 'react-native';
 import {useTheme} from 'theme';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {useDispatch, useSelector, shallowEqual} from 'react-redux';
 import NetInfo from '@react-native-community/netinfo';
-import {
-  setNetworkStatus,
-  setShowIntro,
-  setIsUserLoggedInWithMPIN,
-  clearAuth,
-} from 'store';
+import {setNetworkStatus} from 'store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Config from 'react-native-config';
+import {useClearAsyncStorageKeys} from '../reusables/useClearAsyncStorageKeys';
 
 export default function ({
   scrollView = true,
@@ -30,13 +26,12 @@ export default function ({
   backgroundColor = null,
   ...props
 }) {
-  console.log('props.navigation', props?.navigation);
   const theme = useTheme();
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const redirectionFnRef = useRef(() => {});
-
-  const fnRef1 = useRef(() => {});
+  const handleSessionExpired = useRef(() => {});
+  const handleNoInternet = useRef(() => {});
+  const {clearStoreForLogout} = useClearAsyncStorageKeys();
 
   const {isSessionExpired} = useSelector(
     ({auth}) => ({
@@ -45,35 +40,55 @@ export default function ({
     shallowEqual,
   );
 
-  fnRef1.current = state => {
+  handleNoInternet.current = state => {
     dispatch(setNetworkStatus(state.isConnected ? 'online' : 'offline'));
     if (!state.isConnected) {
       navigation.navigate('EmptyStates', {screen: 'NoInternet'});
     }
   };
 
-  redirectionFnRef.current = async () => {
+  handleSessionExpired.current = async () => {
     if (isSessionExpired === true) {
-      dispatch(setShowIntro(false));
-      await AsyncStorage.setItem('@show_intro', JSON.stringify(false));
-      await AsyncStorage.setItem('@logged_into_app', JSON.stringify(true));
-      dispatch(setIsUserLoggedInWithMPIN(false));
-      dispatch(clearAuth());
-      await AsyncStorage.removeItem('@access_token');
-      navigation.replace('Auth', {screen: 'SigninHome'});
-    } else {
-      return;
+      await clearStoreForLogout();
+      await redirectBasedOnMobileNumberVerification();
     }
   };
 
-  useEffect(() => {
-    const unsubscribe = NetInfo.addEventListener(state => {
-      fnRef1.current(state);
-    });
-    redirectionFnRef.current();
+  const redirectBasedOnMobileNumberVerification = async () => {
+    const isMobileNumberVerifiedOnUserSessionExpire = JSON.parse(
+      await AsyncStorage.getItem('@is_mobile_number_verified'),
+    );
+    console.log(
+      'isMobileNumberVerifiedOnUserSessionExpire: ',
+      isMobileNumberVerifiedOnUserSessionExpire,
+    );
+    if (isMobileNumberVerifiedOnUserSessionExpire !== null) {
+      if (isMobileNumberVerifiedOnUserSessionExpire === true) {
+        navigation.replace('Auth', {screen: 'SigninHome'});
+      } else {
+        navigation.replace('Auth', {screen: 'SignupWithSocialProviders'});
+      }
+    } else {
+      navigation.replace('Auth', {screen: 'SignupWithSocialProviders'});
+    }
+  };
 
-    return () => unsubscribe();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      const unsubscribe = NetInfo.addEventListener(state => {
+        handleNoInternet.current(state);
+      });
+
+      return () => unsubscribe();
+    }, []),
+  );
+
+  useEffect(() => {
+    if (isSessionExpired === true) {
+      handleSessionExpired.current();
+    }
+  }, [isSessionExpired]);
+
   const safeAreaViewStyle = {
     flex: 1,
     backgroundColor: theme.colors.background,

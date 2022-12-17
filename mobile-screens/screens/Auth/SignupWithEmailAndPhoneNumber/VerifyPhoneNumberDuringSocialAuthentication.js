@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useState, useEffect, useRef} from 'react';
-import {View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import {GrayBodyText, AuthHeading, CustomOTPInputWithAutoFill} from 'uin';
 import AuthWrapper from '../../../hocs/AuthWrapperWithOrWithoutBackButton';
 import useBetaForm from '@reusejs/react-form-hook';
@@ -184,8 +184,15 @@ export default function ({route, navigation}) {
               : theme.colors.primaryBlue
           }
           secureTextEntry={false}
+          overlappingIcon={() =>
+            verifyingOTP ? (
+              <View style={{position: 'absolute', right: 13.24}}>
+                <ActivityIndicator color={theme.colors.primaryBlue} />
+              </View>
+            ) : null
+          }
         />
-        <VerifyOTPLoader loading={verifyingOTP} />
+        {/* <VerifyOTPLoader loading={verifyingOTP} /> */}
       </View>
 
       <BackgroundTimer

@@ -117,7 +117,7 @@ export default function ({navigation}) {
   const handleSubmit = async () => {
     try {
       dispatch(setShowIntro(false));
-      await AsyncStorage.setItem('@show_intro', JSON.stringify(false));
+      await AsyncStorage.setItem('@show_app_promo', JSON.stringify(false));
       return navigation.replace('Auth', {screen: 'SignupWithSocialProviders'});
     } catch (error) {
       Sentry.captureException(error);

@@ -14,35 +14,7 @@ import {useHideSplashScreen} from '../../../reusables/useHideSplashScreen';
 import {useDispatch} from 'react-redux';
 import {setTokens, setUser} from 'store';
 import useOnboardingHandleRedirection from '../../../reusables/useOnboardingHandleRedirection';
-
-const getMpinStatus = (user, isUserLoggedInWithMPIN) => {
-  const mpinStatus = user?.profile?.meta?.mpin_set;
-
-  switch (mpinStatus) {
-    case 'skip':
-      return 'skipped';
-    case true:
-      if (isUserLoggedInWithMPIN !== null) {
-        if (isUserLoggedInWithMPIN === true) {
-          return 'redirect_to_dashboard';
-        } else {
-          return 'set_pin_success';
-        }
-      } else {
-        return 'set_pin_success';
-      }
-    default:
-      if (isUserLoggedInWithMPIN !== null) {
-        if (isUserLoggedInWithMPIN === true) {
-          return 'redirect_to_dashboard';
-        } else {
-          return 'set_pin_pending';
-        }
-      } else {
-        return 'set_pin_pending';
-      }
-  }
-};
+import {getMPINStatus} from './mpinFunctions';
 
 export default function ({navigation, route}) {
   const theme = useTheme();
@@ -108,47 +80,25 @@ export default function ({navigation, route}) {
     }
   };
 
-  const handleNoInternet = () => {
-    if (networkStatus === 'offline') {
-      redirectToNoInternetScreen.current();
-    }
-  };
-
   useEffect(() => {
     if (networkStatus === 'offline') {
       redirectToNoInternetScreen.current();
     }
   }, [networkStatus]);
 
-  // Note: The names which starts with "@" are referred to AsyncStorage variables
-  // Purpose: 1. To show the Signup after App Promo "@show_intro" is set to false
-  // Purpose: 2. If there is no "@access_token" stored in AsyncStorage
+  const handleRedirectionUntilDashboard = async user => {
+    const mpinStatus = getMPINStatus(user, isUserLoggedInWithMPIN);
+    console.log('handleRedirectionUntilDashboard->mpinStatus: ', mpinStatus);
 
-  const handleNoAccessTokenInAsyncStorage = async () => {
-    const loggedInStatus = JSON.parse(
-      await AsyncStorage.getItem('@logged_into_app'),
-    );
-    if (loggedInStatus !== null) {
-      if (loggedInStatus === true) {
-        await redirectBasedOnMobileNumberVerification();
-      } else {
-        await redirectBasedOnMobileNumberVerification();
-      }
-    } else {
-      await redirectBasedOnMobileNumberVerification();
-    }
-  };
-
-  const mpinRedirection = async user => {
-    const mpinStatus = getMpinStatus(user, isUserLoggedInWithMPIN);
-    console.log('mpinStatus: ', mpinStatus);
-    dispatch(setUser(user));
-
-    const isMobileNumberExists = user?.attributes
+    const isUserRegisteredWithMobileNumber = user?.attributes
       ?.map(item => item.type)
       ?.includes('mobile_number');
 
-    if (!isMobileNumberExists) {
+    console.log(
+      'isUserRegisteredWithMobileNumber: ',
+      isUserRegisteredWithMobileNumber,
+    );
+    if (!isUserRegisteredWithMobileNumber) {
       navigation.replace('Auth', {screen: 'EnterPhoneNumber'});
     } else if (
       mpinStatus === 'skipped' ||
@@ -173,18 +123,13 @@ export default function ({navigation, route}) {
       );
       const tokenFromStorage = await AsyncStorage.getItem('@access_token');
 
-      const showIntro = JSON.parse(await AsyncStorage.getItem('@show_intro'));
-
-      const isMobileNumberVerifiedOnUserSessionExpire = JSON.parse(
-        await AsyncStorage.getItem('@is_mobile_number_verified'),
-      );
-      console.log(
-        '--------------------isMobileNumberVerifiedOnUserSessionExpire:=================='.toUpperCase(),
-        isMobileNumberVerifiedOnUserSessionExpire,
+      const showAppPromo = JSON.parse(
+        await AsyncStorage.getItem('@show_app_promo'),
       );
 
-      if (showIntro === null) {
+      if (showAppPromo === null) {
         navigation.replace('AppPromo', {screen: 'AppPromo'});
+        hideSplashScreen(100);
       } else if (accessToken) {
         await AsyncStorage.setItem(
           '@access_token',
@@ -193,56 +138,24 @@ export default function ({navigation, route}) {
           }),
         );
         dispatch(setTokens({access_token: accessToken}));
-        await AsyncStorage.setItem('@logged_into_app', JSON.stringify(true));
         const user = await getUser();
         dispatch(setUser(user));
-
-        const isMobileNumberExists = user?.attributes
-          ?.map(item => item.type)
-          ?.includes('mobile_number');
-
-        if (!isMobileNumberExists) {
-          navigation.replace('Auth', {screen: 'EnterPhoneNumber'});
-        } else {
-          mpinRedirection(user);
-        }
+        await handleRedirectionUntilDashboard(user);
+        hideSplashScreen();
       } else if (tokenFromStorage !== null) {
         const user = await getUser();
-
-        const mpinStatus = getMpinStatus(user, isUserLoggedInWithMPIN);
         dispatch(setUser(user));
-
-        const isMobileNumberExists = user?.attributes
-          ?.map(item => item.type)
-          ?.includes('mobile_number');
-
-        if (!isMobileNumberExists) {
-          navigation.replace('Auth', {screen: 'EnterPhoneNumber'});
-        } else if (
-          mpinStatus === 'skipped' ||
-          mpinStatus === 'redirect_to_dashboard'
-        ) {
-          if (mpinStatus === 'skipped') {
-            await handleCheckPANLinkingAndRedirect();
-          } else {
-            navigation.replace('Protected');
-          }
-        } else if (mpinStatus === 'set_pin_pending') {
-          navigation.replace('PINSetup', {screen: 'SetPINHome'});
-        } else if (mpinStatus === 'set_pin_success') {
-          navigation.replace('PINSetup', {screen: 'EnterPINHome'});
-        }
+        await handleRedirectionUntilDashboard(user);
+        hideSplashScreen();
       } else {
-        await handleNoAccessTokenInAsyncStorage();
+        await redirectBasedOnMobileNumberVerification();
+        hideSplashScreen();
       }
 
       console.log(
         'redirection done in screen determiner----------------------'.toUpperCase(),
       );
-
-      hideSplashScreen();
     } catch (error) {
-      handleNoInternet();
       handleExpiredSession.current();
       hideSplashScreen();
       Sentry.captureException(error);
