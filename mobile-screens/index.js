@@ -32,6 +32,7 @@ import {
 } from './screens/Toasts';
 import {linking} from './deepLinkConfigs';
 import withAuth from './hocs/withAuth';
+import FetchCAS from './stacks/FetchCAS';
 
 // Sentry.init({
 //   dsn: Config.SENTRY_DSN,
@@ -203,6 +204,13 @@ const App = () => {
                 headerShown: false,
               }}
               component={PANSetup}
+            />
+            <Stack.Screen
+              name="FetchCAS"
+              options={{
+                headerShown: false,
+              }}
+              component={FetchCAS}
             />
             <Stack.Screen
               name="EmptyStates"

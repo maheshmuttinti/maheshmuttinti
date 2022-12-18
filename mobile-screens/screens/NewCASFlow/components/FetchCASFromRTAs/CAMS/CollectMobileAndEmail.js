@@ -2,7 +2,13 @@
 import * as React from 'react';
 import {useEffect, useCallback, useState, useRef} from 'react';
 import {View, Text} from 'react-native';
-import {AuthHeading, BaseTextInput, BaseButton, TextButton} from 'uin';
+import {
+  AuthHeading,
+  BaseTextInput,
+  BaseButton,
+  TextButton,
+  useStepper,
+} from 'uin';
 import {useTheme} from 'theme';
 import {WarningIcon1, TickCircle, PentagonDangerIcon} from 'assets';
 import useBetaForm from '@reusejs/react-form-hook';
@@ -19,7 +25,7 @@ const errMsg =
 export const CollectMobileAndEmail = ({
   navigation,
   onSubmit = () => {},
-  currentStep,
+  // currentStep,
   totalSteps,
 }) => {
   const theme = useTheme();
@@ -30,6 +36,8 @@ export const CollectMobileAndEmail = ({
   const [apiCallStatus, setApiCallStatus] = useState(null);
   const limit10Digit = useRef(() => {});
   const [errorMessage, setErrorMessage] = useState(errMsg);
+
+  const {currentStep, skipCurrentStep, setActiveStep} = useStepper();
 
   const form = useBetaForm({
     type: '',
@@ -280,6 +288,7 @@ export const CollectMobileAndEmail = ({
           <TextButton
             // disable={processing}
             onPress={() => {
+              skipCurrentStep(currentStep);
               // !processing && navigation.replace('Protected');
             }}>
             Skip CAMS verification
