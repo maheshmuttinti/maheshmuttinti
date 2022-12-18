@@ -29,7 +29,7 @@ export default function ({navigation}) {
   const [showGreenCircleIcon, setShowGreenCircleIcon] = useState(false);
   const [loading, setLoading] = useState(null);
   const [message, setMessage] = useState(null);
-  const [validUser, setValidUser] = useState(false);
+  const [validUser, setValidUser] = useState(null);
   const [isFetchingPANDetails, setIsFetchingPANDetails] = useState(false);
   const form = useBetaForm({
     error: '',
@@ -81,20 +81,20 @@ export default function ({navigation}) {
         setIsFetchingPANDetails(false);
       }
     } catch (err) {
-      setValidUser(false);
-      console.log('err: ', err);
+      setValidUser(null);
+      form.setErrors({error: err?.message?.errors?.error});
       if (err?.pan) {
         setMessage(err?.pan);
         setIsFetchingPANDetails(false);
-        setValidUser(false);
+        setValidUser(null);
       } else {
         if (err?.error) {
           setMessage(err?.error);
           setIsFetchingPANDetails(false);
-          setValidUser(false);
+          setValidUser(null);
         } else {
           setIsFetchingPANDetails(false);
-          setValidUser(false);
+          setValidUser(null);
         }
       }
       Sentry.captureException(err);
@@ -120,7 +120,10 @@ export default function ({navigation}) {
     }
   };
 
-  console.log('getError', form.errors.get('error'));
+  const handleSkip = () => {
+    navigation.replace('Protected');
+    // navigation.navigate('FetchCAS', {screen: 'FetchCASFromRTAs'});
+  };
 
   return (
     <ScreenWrapper>
@@ -256,7 +259,7 @@ export default function ({navigation}) {
               paddingBottom: 24,
             }}>
             <TextButton
-              onPress={() => !loading && navigation.replace('Protected')}
+              onPress={() => !loading && handleSkip()}
               style={{
                 paddingHorizontal: 30,
               }}>
