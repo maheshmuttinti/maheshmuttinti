@@ -43,7 +43,6 @@ export default function ({navigation}) {
       : setShowGreenCircleIcon(false);
   };
 
-  useExitApp();
 
   useEffect(() => {
     showGreenTickCircleIcon();

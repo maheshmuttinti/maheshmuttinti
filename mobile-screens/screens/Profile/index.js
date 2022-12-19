@@ -1,11 +1,9 @@
 /* eslint-disable react-native/no-inline-styles */
-import {View, TouchableOpacity, BackHandler, Text} from 'react-native';
+import {View, TouchableOpacity, Text} from 'react-native';
 import * as React from 'react';
-import {useCallback, useRef, useState} from 'react';
+import {useRef, useState} from 'react';
 import ScreenWrapper from '../../hocs/screenWrapperWithoutBackButton';
 import {deleteAccount, logout} from 'services';
-import {useDispatch} from 'react-redux';
-import {clearAuth, setShowIntro, setIsUserLoggedInWithMPIN} from 'store';
 import {
   Heading,
   TextButton,
@@ -17,7 +15,6 @@ import {
   Card,
   PrivacyPolicyFooterSection,
 } from 'uin';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   CartIcon,
   BackArrow,
@@ -36,7 +33,7 @@ import {
   WarningIcon1,
 } from 'assets';
 import {useTheme} from 'theme';
-import {useNavigation, useFocusEffect} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import Ripple from 'react-native-material-ripple';
 import ProfileCard from './ProfileCard';
 import Toast from 'react-native-toast-message';
@@ -367,16 +364,6 @@ export default function () {
       }
     });
   };
-
-  useFocusEffect(
-    useCallback(() => {
-      BackHandler.addEventListener('hardwareBackPress', goBack.current);
-      setSelectedOptionIndex(null);
-      return () => {
-        BackHandler.removeEventListener('hardwareBackPress', goBack.current);
-      };
-    }, []),
-  );
 
   const showComingSoonPopMessage = () => {
     Toast.show({

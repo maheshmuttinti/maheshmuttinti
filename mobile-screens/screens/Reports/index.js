@@ -1,12 +1,12 @@
 /* eslint-disable react-native/no-inline-styles */
-import {View, TouchableOpacity, BackHandler} from 'react-native';
+import {View, TouchableOpacity} from 'react-native';
 import * as React from 'react';
-import {useCallback, useRef} from 'react';
+import {useRef} from 'react';
 import ScreenWrapper from '../../hocs/screenWrapperWithoutBackButton';
 import {Heading, LabelValue} from 'uin';
 import {BackArrow} from 'assets';
 import {useTheme} from 'theme';
-import {useNavigation, useFocusEffect} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import DummyGraphSection from './DummyGraphSection';
 import ExtraAddons from '../Dashboard/ExtraAddons';
 
@@ -18,15 +18,6 @@ export default function () {
   goBack.current = () => {
     navigation.jumpTo('Home');
   };
-
-  useFocusEffect(
-    useCallback(() => {
-      BackHandler.addEventListener('hardwareBackPress', goBack.current);
-      return () => {
-        BackHandler.removeEventListener('hardwareBackPress', goBack.current);
-      };
-    }, []),
-  );
 
   return (
     <ScreenWrapper backgroundColor={theme.colors.primaryBlue}>

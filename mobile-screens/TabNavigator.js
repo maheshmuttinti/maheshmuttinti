@@ -54,7 +54,7 @@ export default function ({HomeScreen}) {
               return focused ? <HomeFilled /> : <Home />;
             case 'Reports':
               return <ReportsTabIcon />;
-            case 'Advisior':
+            case 'Advisor':
               return <AdvisorTabIcon />;
             case 'Profile':
               return focused ? <ProfileTabFilledIcon /> : <ProfileTabIcon />;
