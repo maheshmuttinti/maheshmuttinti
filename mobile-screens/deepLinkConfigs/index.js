@@ -8,7 +8,7 @@ const deepLinkConfig = {
     },
     General: {
       screens: {
-        CasEmailVerificationStatus: 'cas-email-verification-status',
+        CheckEmailVerification: 'cas-email-verification-status',
         ScreenDeterminer: 'social-login-status',
       },
     },

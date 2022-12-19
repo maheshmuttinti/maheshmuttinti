@@ -1,8 +1,8 @@
 import React, {useEffect} from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import ScreenDeterminer from '../screens/Auth/ScreenDeterminer';
-import EmailActivationLinkScreen from '../screens/VerifyEmailLink';
-import CasEmailVerificationStatus from '../screens/UploadCAS/CasEmailVerificationStatus';
+import EmailVerificationStatus from '../screens/EmailVerification';
+import CheckEmailVerification from '../screens/EmailVerification/CheckEmailVerification';
 
 const General = () => {
   const Stack = createStackNavigator();
@@ -21,16 +21,15 @@ const General = () => {
         options={{headerShown: false}}
         component={ScreenDeterminer}
       />
-
       <Stack.Screen
-        name="EmailActivationLinkScreen"
+        name="CheckEmailVerification"
         options={{headerShown: false}}
-        component={EmailActivationLinkScreen}
+        component={CheckEmailVerification}
       />
       <Stack.Screen
-        name="CasEmailVerificationStatus"
+        name="EmailVerificationStatus"
         options={{headerShown: false}}
-        component={CasEmailVerificationStatus}
+        component={EmailVerificationStatus}
       />
     </Stack.Navigator>
   );

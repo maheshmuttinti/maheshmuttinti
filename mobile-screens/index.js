@@ -168,20 +168,20 @@ const App = () => {
               }}
               component={AppPromo}
             />
-            {/* {(accessToken === null ||
+            {(accessToken === null ||
               accessToken === undefined ||
               Boolean(accessToken) === false ||
               isUserLoggedInWithMPIN === false ||
               isUserLoggedInWithMPIN === undefined ||
-              isUserLoggedInWithMPIN === null) && ( */}
-            <Stack.Screen
-              name="Auth"
-              options={{
-                headerShown: false,
-              }}
-              component={Auth}
-            />
-            {/* )} */}
+              isUserLoggedInWithMPIN === null) && (
+              <Stack.Screen
+                name="Auth"
+                options={{
+                  headerShown: false,
+                }}
+                component={Auth}
+              />
+            )}
             {(accessToken !== null || isUserLoggedInWithMPIN === true) && (
               <Stack.Screen
                 name="Protected"

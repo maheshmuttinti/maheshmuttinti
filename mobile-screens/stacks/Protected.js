@@ -19,7 +19,6 @@ import UploadPortfolio from '../screens/UploadCAS/UploadPortfolio';
 import FAQ from '../screens/UploadCAS/FAQ';
 import DigioSDK from '../reusables/digioSDK';
 import WebBrowser from '../reusables/WebBrowser';
-import EmailActivationLinkScreen from '../screens/VerifyEmailLink';
 
 const Protected = () => {
   const Stack = createStackNavigator();
@@ -46,11 +45,6 @@ const Protected = () => {
         },
       }}
       initialRouteName={'Drawer'}>
-      <Stack.Screen
-        name="EmailActivationLinkScreen"
-        options={{headerShown: false}}
-        component={EmailActivationLinkScreen}
-      />
       <Stack.Screen
         name="Drawer"
         options={{headerShown: false}}

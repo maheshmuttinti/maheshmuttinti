@@ -183,14 +183,14 @@ export default function ({navigation}) {
 
         setApiCallStatus('add_cas_email_success');
         if (addCasEmailResponse?.data?.verification_status === 'pending') {
-          console.log('go to EmailActivationLinkScreen');
+          console.log('go to EmailVerificationStatus');
 
           setEmail('');
           setIsNewEmailAdded(prevState => !prevState);
           setApiCallStatus('add_cas_email_success');
 
           navigation.navigate('General', {
-            screen: 'EmailActivationLinkScreen',
+            screen: 'EmailVerificationStatus',
             params: {
               email: addCasEmailResponse?.data?.email,
             },
@@ -381,10 +381,10 @@ const EmailListItem = ({email, index, navigation, refreshCasRequestCb}) => {
       const addCasEmailResponse = await addCASEmail(addCASEmailPayload);
 
       if (addCasEmailResponse?.data?.verification_status === 'pending') {
-        console.log('go to EmailActivationLinkScreen');
+        console.log('go to EmailVerificationStatus');
 
         navigation.navigate('General', {
-          screen: 'EmailActivationLinkScreen',
+          screen: 'EmailVerificationStatus',
           params: {
             email: addCasEmailResponse?.data?.email,
           },

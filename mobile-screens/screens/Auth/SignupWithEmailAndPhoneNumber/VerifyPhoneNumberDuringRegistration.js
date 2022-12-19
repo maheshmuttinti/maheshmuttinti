@@ -7,15 +7,14 @@ import useBetaForm from '@reusejs/react-form-hook';
 import {
   verifyRegistration,
   requestVerifyRegistration,
-  updateUserProfile,
   getUser,
   addCASEmail,
+  saveEmail,
 } from 'services';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useDispatch} from 'react-redux';
 import {setTokens} from 'store';
 import BackgroundTimer from '../../../reusables/BackgroundTimer';
-import {VerifyOTPLoader} from '../../../reusables/VerifyOTPLoader';
 import {useTheme} from 'theme';
 import {prettifyJSON, showNativeAlert} from 'utils';
 import * as Sentry from '@sentry/react-native';
@@ -37,48 +36,38 @@ export default function ({route, navigation}) {
 
       if (tokenFromStorage !== null) {
         const user = await getUser();
-        console.log('handleRedirect -> user: --------'.toUpperCase(), user);
-        const accessMetaEmail = user?.profile?.meta?.email;
-        let addCASEmailResponse = null;
-        if (accessMetaEmail) {
-          addCASEmailResponse = await handleAddCASEmail(accessMetaEmail);
+        console.log(
+          'handleRedirect on verify phone number -> user: --------'.toUpperCase(),
+          user,
+        );
+
+        const saveEmailResponse = await saveEmail();
+
+        console.log(
+          '--------------------saveEmailResponse----------: ',
+          prettifyJSON(saveEmailResponse),
+        );
+        if (saveEmailResponse?.email_verified === false) {
+          navigation.replace('General', {
+            screen: 'EmailVerificationStatus',
+            params: {
+              email: saveEmailResponse?.email,
+              type: 'auth_flow',
+              verificationStatus: saveEmailResponse?.email_verified,
+            },
+          });
+          setVerifyingOTP(false);
         } else {
-          addCASEmailResponse = await handleAddCASEmail();
+          navigation.replace('General', {
+            screen: 'EmailVerificationStatus',
+            params: {
+              email: saveEmailResponse?.email,
+              type: 'auth_flow',
+              verificationStatus: saveEmailResponse?.email_verified,
+            },
+          });
+          setVerifyingOTP(false);
         }
-
-        console.log('addCASEmailResponse: ', prettifyJSON(addCASEmailResponse));
-        const metaForCasEmail = {
-          meta: {
-            ...user?.profile?.meta,
-            cas_email_uuid: addCASEmailResponse?.data?.uuid,
-            cas_email: addCASEmailResponse?.data?.email,
-            cas_email_verification_status:
-              addCASEmailResponse?.data?.verification_status,
-          },
-        };
-        const updatedProfileMetaPayloadWithCasEmail = {
-          ...metaForCasEmail,
-        };
-        console.log(
-          'updatedProfileMetaPayloadWithCasEmail: ',
-          prettifyJSON(updatedProfileMetaPayloadWithCasEmail),
-        );
-        const updateProfileResponseForCasEmail = await updateUserProfile(
-          updatedProfileMetaPayloadWithCasEmail,
-        );
-
-        console.log(
-          '--------------------updateProfileResponseForCasEmail----------: ',
-          prettifyJSON(updateProfileResponseForCasEmail),
-        );
-        navigation.replace('General', {
-          screen: 'EmailActivationLinkScreen',
-          params: {
-            email: addCASEmailResponse?.email,
-            type: 'auth_flow',
-            verificationStatus: addCASEmailResponse?.verification_status,
-          },
-        });
       } else {
         setVerifyingOTP(false);
         showNativeAlert('Unable to Logged into the App, Please try again!');

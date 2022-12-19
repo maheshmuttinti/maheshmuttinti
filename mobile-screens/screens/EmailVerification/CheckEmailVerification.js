@@ -5,7 +5,6 @@ import {View, Text} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import {useTheme} from 'theme';
 import {BaseButton} from 'uin';
-
 import {useHideSplashScreen} from '../../reusables/useHideSplashScreen';
 import {EmailActivation} from 'assets';
 
@@ -13,7 +12,7 @@ export default function ({navigation, route}) {
   const theme = useTheme();
   const verificationStatus = route?.params?.verification_status;
   console.log(
-    'verificationStatus in CasEmailVerificationStatus: ',
+    'verificationStatus in CheckEmailVerification: ',
     verificationStatus,
   );
   const {hideSplashScreen} = useHideSplashScreen();

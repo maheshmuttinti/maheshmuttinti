@@ -25,7 +25,7 @@ const errMsg =
 export const CollectMobileAndEmail = ({
   navigation,
   onSubmit = () => {},
-  // currentStep,
+  onSkip = () => {},
   totalSteps,
 }) => {
   const theme = useTheme();
@@ -36,8 +36,6 @@ export const CollectMobileAndEmail = ({
   const [apiCallStatus, setApiCallStatus] = useState(null);
   const limit10Digit = useRef(() => {});
   const [errorMessage, setErrorMessage] = useState(errMsg);
-
-  const {currentStep, skipCurrentStep, setActiveStep} = useStepper();
 
   const form = useBetaForm({
     type: '',
@@ -288,8 +286,7 @@ export const CollectMobileAndEmail = ({
           <TextButton
             // disable={processing}
             onPress={() => {
-              skipCurrentStep(currentStep);
-              // !processing && navigation.replace('Protected');
+              onSkip();
             }}>
             Skip CAMS verification
           </TextButton>

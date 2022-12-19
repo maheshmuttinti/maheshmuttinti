@@ -17,6 +17,7 @@ import {OTPVerification as KarvyOTPVerification} from '../Karvy/OTPVerification'
 const SCREEN_BACKGROUND_COLOR = 'white';
 const ICON_HEIGHT = 16;
 const ICON_WIDTH = 16;
+const STEPS_COUNT = 2;
 
 export default function ({navigation}) {
   const [redirectToCAMSOTPVerification, setRedirectToCAMSOTPVerification] =
@@ -105,9 +106,10 @@ export default function ({navigation}) {
               />
             ))}
 
-          {!redirectToCAMSOTPVerification && currentStepToShow === 2 && (
-            <KarvyOTPVerification onSubmit={() => incrementCurrentStep()} />
-          )}
+          {!redirectToCAMSOTPVerification &&
+            currentStepToShow === STEPS_COUNT && (
+              <KarvyOTPVerification onSubmit={() => incrementCurrentStep()} />
+            )}
         </View>
       </View>
     </ScreenWrapper>

@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import {Pressable, View, Text} from 'react-native';
-import React, {useState, useMemo} from 'react';
+import React, {useState, useMemo, useEffect} from 'react';
 import {Stepper, useStepper} from 'uin';
 import {
   BlueDotCircle,
@@ -17,14 +17,19 @@ import {OTPVerification as KarvyOTPVerification} from '../../components/FetchCAS
 const SCREEN_BACKGROUND_COLOR = 'white';
 const ICON_HEIGHT = 16;
 const ICON_WIDTH = 16;
+const STEPS_COUNT = 2;
 
 export default function ({navigation}) {
   const [redirectToCAMSOTPVerification, setRedirectToCAMSOTPVerification] =
     useState(false);
   const theme = useTheme();
 
-  const {incrementCurrentStep, decrementCurrentStep, currentStep, steps} =
+  const {incrementCurrentStep, currentStep, steps, setActiveStep, activeStep} =
     useStepper();
+
+  const [skippedSteps, setSkippedSteps] = useState([]);
+  const [completedSteps, setCompletedSteps] = useState([]);
+
   const backArrowIconWrapperStyle = {
     paddingTop: 48,
   };
@@ -38,6 +43,10 @@ export default function ({navigation}) {
     //   decrementCurrentStep();
     // }
   };
+
+  useEffect(() => {
+    setActiveStep(0);
+  }, []);
 
   const currentStepToShow = useMemo(
     () => (currentStep + 1 > steps?.length ? steps.length : currentStep + 1),
@@ -70,7 +79,9 @@ export default function ({navigation}) {
             selectedLabelColor="black"
             notSelectedLabelColor="grey"
             hideDefaultHeader={true}
-            activeStep={0}
+            activeStep={activeStep}
+            skippedSteps={skippedSteps}
+            completedSteps={completedSteps}
             capitalizeLabel={true}
             labelTopSpace={10}>
             <Stepper.Steps>
@@ -96,18 +107,28 @@ export default function ({navigation}) {
                 onSubmit={() => {
                   setRedirectToCAMSOTPVerification(true);
                 }}
+                onSkip={() => {
+                  incrementCurrentStep();
+                  setSkippedSteps(prevSteps => [...prevSteps, 0]);
+                }}
               />
             ) : (
               <CAMSOTPVerification
                 onSubmit={() => {
-                  setRedirectToCAMSOTPVerification(false);
                   incrementCurrentStep();
+                  setRedirectToCAMSOTPVerification(false);
+                  setCompletedSteps(prevSteps => [...prevSteps, 0]);
                 }}
               />
             ))}
 
-          {!redirectToCAMSOTPVerification && currentStepToShow === 2 && (
-            <KarvyOTPVerification onSubmit={() => incrementCurrentStep()} />
+          {!redirectToCAMSOTPVerification && currentStepToShow === STEPS_COUNT && (
+            <KarvyOTPVerification
+              onSubmit={() => {
+                incrementCurrentStep();
+                setCompletedSteps(prevSteps => [...prevSteps, 1]);
+              }}
+            />
           )}
         </View>
       </View>
