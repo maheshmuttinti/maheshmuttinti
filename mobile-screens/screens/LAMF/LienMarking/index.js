@@ -19,9 +19,15 @@ import useLayoutBackButtonAction from '../../../reusables/useLayoutBackButtonAct
 import {useState} from 'react';
 import {EditPencil, InfoIcon} from 'assets';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import useUser from '../../../reusables/useUser';
+import useFetchUser from '../../../reusables/useFetchUser';
 import Config from 'react-native-config';
-import {formatDate, openBrowser, prettifyJSON, showNativeAlert, sleep} from 'utils';
+import {
+  formatDate,
+  openBrowser,
+  prettifyJSON,
+  showNativeAlert,
+  sleep,
+} from 'utils';
 import EMIDueDatesModal from './EMIDueDatesModal';
 import {useFocusEffect} from '@react-navigation/native';
 import {TermsAndConditionsModal} from '../../../reusables/TermsAndConditionsModal';
@@ -41,7 +47,7 @@ export default function ({navigation, route}) {
   const getFirstEMIDate = useRef(() => {});
   const nbfcCode = data?.nbfc?.nbfc_code;
 
-  const user = useUser();
+  const {user} = useFetchUser();
 
   useLayoutBackButtonAction();
 

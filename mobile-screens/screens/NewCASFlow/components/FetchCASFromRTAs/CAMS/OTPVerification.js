@@ -1,45 +1,96 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import {GrayBodyText, AuthHeading, CustomOtpInput} from 'uin';
+import React, {useEffect} from 'react';
+import {ActivityIndicator, View} from 'react-native';
+import {GrayBodyText, AuthHeading, CustomOtpInput, useStepper} from 'uin';
 import useBetaForm from '@reusejs/react-form-hook';
 import BackgroundTimer from '../../../../../reusables/BackgroundTimer';
 import {useTheme} from 'theme';
+import * as Sentry from '@sentry/react-native';
+import {useHandleCASFetching} from '../../../../../reusables/CASFetching/useHandleCASFetching';
+import {useState} from 'react';
 
-export const OTPVerification = ({route, onSubmit}) => {
-  const value = route?.params?.value;
-  const type = route?.params?.type;
-  const handleLogin = useRef(() => {});
+export const OTPVerification = ({
+  payload,
+  onSubmit = () => {},
+  onRequestResendOTP = () => {},
+}) => {
   const theme = useTheme();
-
-  const form = useBetaForm({
-    type: type,
-    value: value,
-    token: '',
+  const [isSubmittingCASRequest, setIsSubmittingCASRequest] = useState(false);
+  const submitCASRequestOTPForm = useBetaForm({
+    data_fetching_provider: 'cams',
+    otp: '',
   });
+  const {handleSubmitRequestCASOTPVerification, handleInitiateCASRequest} =
+    useHandleCASFetching();
 
   useEffect(() => {
-    if (form.value.token.length === 6) {
-      handleLogin.current();
-      onSubmit();
+    if (submitCASRequestOTPForm?.value?.otp?.length === 5) {
+      (async () => {
+        setIsSubmittingCASRequest(true);
+        const handleSubmitRequestCASOTPVerificationResponse =
+          await handleSubmitRequestCASOTPVerification(
+            submitCASRequestOTPForm?.value,
+            'cams',
+          );
+        console.log(
+          'handleSubmitRequestCASOTPVerificationResponse: ',
+          handleSubmitRequestCASOTPVerificationResponse,
+        );
+        if (
+          handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
+            'Invalid OTP' ||
+          handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
+            'Invalid OTP attempt maximum reached.'
+        ) {
+          submitCASRequestOTPForm.setErrors({
+            otp: handleSubmitRequestCASOTPVerificationResponse?.otp?.[0],
+          });
+          onSubmit(null);
+          setIsSubmittingCASRequest(false);
+        } else {
+          onSubmit(handleSubmitRequestCASOTPVerificationResponse);
+          setIsSubmittingCASRequest(false);
+        }
+      })();
     }
-  }, [form.value.token]);
-
-  handleLogin.current = async () => {
-    try {
-      console.log('form.value', form.value);
-    } catch (error) {}
-  };
+  }, [submitCASRequestOTPForm.value.otp]);
 
   const handleResendOTP = async () => {
     try {
-    } catch (error) {}
+      if (isSubmittingCASRequest) {
+        return null;
+      } else {
+        submitCASRequestOTPForm.setField('otp', '');
+        submitCASRequestOTPForm.setErrors({});
+        onRequestResendOTP(true);
+        const handleSubmitRequestCASOTPVerificationResponse =
+          await handleInitiateCASRequest(payload, 'cams');
+        console.log(
+          'handleSubmitRequestCASOTPVerificationResponse: ',
+          handleSubmitRequestCASOTPVerificationResponse,
+        );
+        onRequestResendOTP(handleSubmitRequestCASOTPVerificationResponse);
+      }
+    } catch (error) {
+      console.log(
+        'handleResendOTP->handleSubmitRequestCASOTPVerification->error: ',
+        error,
+      );
+      Sentry.captureException(error);
+      return error;
+    }
+  };
+
+  const handleChange = text => {
+    if (text?.length <= 5) {
+      submitCASRequestOTPForm.setErrors({});
+      submitCASRequestOTPForm.setField('otp', text);
+    }
   };
 
   return (
     <>
       <AuthHeading>CAMS Verification</AuthHeading>
-
       <View style={{paddingTop: 16}}>
         <GrayBodyText>
           CAMS has sent a message with a verification code to registered email
@@ -49,12 +100,13 @@ export const OTPVerification = ({route, onSubmit}) => {
 
       <View style={{paddingTop: 24}}>
         <CustomOtpInput
+          editable={!isSubmittingCASRequest}
           defaultValue={''}
-          onChangeText={text => form.setField('token', text)}
-          value={form.getField('token')}
-          error={form.errors.get('token')}
+          onChangeText={text => handleChange(text)}
+          value={submitCASRequestOTPForm.getField('otp')}
+          error={submitCASRequestOTPForm.errors.get('otp')}
           textInputStyles={
-            form.errors.get('token')
+            submitCASRequestOTPForm.errors.get('otp')
               ? {
                   borderColor: theme.colors.error,
                   backgroundColor: theme.colors.greyscale50,
@@ -65,9 +117,16 @@ export const OTPVerification = ({route, onSubmit}) => {
                 }
           }
           tintColor={
-            form.errors.get('token')
+            submitCASRequestOTPForm.errors.get('otp')
               ? theme.colors.error
               : theme.colors.primaryBlue
+          }
+          overlappingIcon={() =>
+            isSubmittingCASRequest ? (
+              <View style={{position: 'absolute', right: 13.24}}>
+                <ActivityIndicator color={theme.colors.primaryBlue} />
+              </View>
+            ) : null
           }
           secureTextEntry={false}
         />
@@ -75,7 +134,7 @@ export const OTPVerification = ({route, onSubmit}) => {
 
       <BackgroundTimer
         wrapperStyles={{paddingTop: 32}}
-        callBack={() => handleResendOTP()}
+        callBack={async () => await handleResendOTP()}
       />
     </>
   );

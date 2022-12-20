@@ -7,7 +7,7 @@ import {requestResetPassword} from 'services';
 import {prettifyJSON} from 'utils';
 import {useTheme} from 'theme';
 import {KeyboardDoneIcon, KeyboardDeleteIcon} from 'assets';
-import useUser from '../../../reusables/useUser';
+import useFetchUser from '../../../reusables/useFetchUser';
 
 export default function ({navigation, route}) {
   const [confirmMpin, setConfirmMpin] = useState('');
@@ -16,7 +16,7 @@ export default function ({navigation, route}) {
   const pinScreenRef = React.useRef(null);
   const mpin = route?.params?.mpin;
 
-  const user = useUser();
+  const {user} = useFetchUser();
 
   const requestResetPasswordCallback = useCallback(async () => {
     try {

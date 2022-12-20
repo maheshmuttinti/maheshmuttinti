@@ -16,7 +16,7 @@ import ScreenWrapper from '../../hocs/screenWrapperWithoutBackButton';
 import {ForwardEmail, TickCircle} from 'assets';
 import useExitApp from '../../reusables/useExitApp';
 import {usePANCollectRedirection} from '../../reusables/usePANCollectRedirection';
-import {validatePAN as basicValidatePAN} from 'utils';
+import {prettifyJSON, validatePAN as basicValidatePAN} from 'utils';
 import {validatePAN as signzyValidatePAN} from 'services';
 import * as Sentry from '@sentry/react-native';
 import {InputErrorMessage} from '../../reusables/ErrorMessage';
@@ -73,11 +73,13 @@ export default function ({navigation}) {
       setBasicValidationError(null);
       setMessage(null);
       setIsFetchingPANDetails(true);
-      const payload = {pan};
+      const payload = {pan: pan?.toUpperCase()};
+      console.log('payload for validatePAN: ', prettifyJSON(payload));
       const panValidationResponse = await signzyValidatePAN(payload);
       console.log('panValidationResponse: ', panValidationResponse);
       if (panValidationResponse?.pan && panValidationResponse?.name) {
         setValidUser(panValidationResponse?.name);
+        // setValidUser('MUTTINTI MAHESH');
         setIsFetchingPANDetails(false);
       }
     } catch (err) {
@@ -111,7 +113,6 @@ export default function ({navigation}) {
   const handleSubmit = async () => {
     try {
       setLoading(true);
-
       await handleRedirection();
       setLoading(false);
     } catch (err) {
@@ -122,7 +123,7 @@ export default function ({navigation}) {
 
   const handleSkip = () => {
     navigation.replace('Protected');
-    // navigation.navigate('FetchCAS', {screen: 'FetchCASFromRTAs'});
+    // navigation.replace('FetchCAS', {screen: 'FetchCASFromRTAs'});
   };
 
   return (

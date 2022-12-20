@@ -43,22 +43,20 @@ const useOnboardingHandleRedirection = () => {
         const isPANLinked = panResponse?.pan && panResponse?.name;
 
         if (isPANLinked) {
-          console.log('if->isPANLinked: ', isPANLinked);
           resetPINSetup();
-          navigation.replace('Protected');
+
+          // Todo: uncomment below code once testing is done
+          // navigation.replace('Protected');
+          navigation.replace('FetchCAS', {screen: 'FetchCASFromRTAs'});
         } else {
-          console.log('else->isPANLinked: ', isPANLinked);
           resetPINSetup();
           navigation.replace('PANSetup');
         }
       }
     } catch (err) {
-      console.log('error: ', err);
       if (err?.error === 'PAN not linked') {
-        console.log('err?.error-->pan is not linked', err?.error);
         navigation.replace('PANSetup');
       } else {
-        console.log('err?.error--> other error', err?.error);
         navigation.replace('PANSetup');
       }
       return err;

@@ -1,8 +1,8 @@
 import {useMemo} from 'react';
-import useUser from './useUser';
+import useFetchUser from './useFetchUser';
 
 export const useAuthentication = () => {
-  const user = useUser();
+  const {user} = useFetchUser();
   console.log('useAuthentication->user---------: ', user);
 
   const isPhoneNumberVerified = useMemo(

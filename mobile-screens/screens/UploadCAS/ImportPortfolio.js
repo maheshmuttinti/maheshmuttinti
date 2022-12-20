@@ -28,7 +28,7 @@ import {prettifyJSON, EMAIL_REGEX, showNativeAlert, formatDate} from 'utils';
 import {useSelector, shallowEqual, useDispatch} from 'react-redux';
 import {setRequestTrackingId} from 'store';
 import {openInbox} from 'react-native-email-link';
-import useUser from '../../reusables/useUser';
+import useFetchUser from '../../reusables/useFetchUser';
 import useOnboardingHandleRedirection from '../../reusables/useOnboardingHandleRedirection';
 import {useFocusEffect} from '@react-navigation/native';
 
@@ -59,7 +59,7 @@ export default function ({navigation}) {
   const [showGreenCircleIcon, setShowGreenCircleIcon] = useState(false);
   const [refreshCASEmailsOnRequestFailed, setRefreshCASEmailsOnRequestFailed] =
     useState(false);
-  const user = useUser();
+  const {user} = useFetchUser();
   const {handleUpdateOnboardingStep} = useOnboardingHandleRedirection();
   const dispatch = useDispatch();
 

@@ -10,7 +10,7 @@ import {
   getStateByCountryCode,
   updateApplication,
 } from 'services';
-import useUser from '../../../../reusables/useUser';
+import useFetchUser from '../../../../reusables/useFetchUser';
 
 export default function ({
   currentStep,
@@ -20,7 +20,7 @@ export default function ({
   setSubmittedBasicDetails,
 }) {
   const theme = useTheme();
-  const userResponse = useUser();
+  const {user: userResponse} = useFetchUser();
 
   const [data, setData] = useState({});
   const [stateCode, setStateCode] = useState('');

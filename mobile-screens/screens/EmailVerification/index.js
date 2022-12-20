@@ -6,13 +6,13 @@ import {BaseButton, AuthHeading, GroupText, GrayBodyText} from 'uin';
 import {EmailActivation} from 'assets';
 import AuthWrapper from '../../hocs/AuthWrapperWithOrWithoutBackButton';
 import useGetCASEmails from '../../reusables/useGetCASEmails';
-import useUser from '../../reusables/useUser';
+import useFetchUser from '../../reusables/useFetchUser';
 import {useSelector, shallowEqual} from 'react-redux';
 
 export default function ({navigation, route}) {
   const theme = useTheme();
 
-  const user = useUser();
+  const {user} = useFetchUser();
   const email = route?.params?.email;
   console.log('email: ', email);
   const type = route?.params?.type;

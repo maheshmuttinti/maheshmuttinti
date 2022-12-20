@@ -1,71 +1,103 @@
 /* eslint-disable react-native/no-inline-styles */
-import {Pressable, View, Text} from 'react-native';
-import React, {useState, useMemo, useEffect} from 'react';
+import {View, Text} from 'react-native';
+import React, {useMemo} from 'react';
 import {Stepper, useStepper} from 'uin';
-import {
-  BlueDotCircle,
-  GreyCircle,
-  GreenTickCircleSmall,
-  BackArrow,
-} from 'assets';
+import {BlueDotCircle, GreyCircle, GreenTickCircleSmall} from 'assets';
 import {useTheme} from 'theme';
 import ScreenWrapper from '../../../../hocs/screenWrapperWithoutBackButton';
-import {CollectMobileAndEmail} from '../../components/FetchCASFromRTAs/CAMS/CollectMobileAndEmail';
+import {CollectMobileAndEmail as CollectMobileAndEmailForCAMS} from '../../components/FetchCASFromRTAs/CAMS/CollectMobileAndEmail';
+import {CollectMobileAndEmail as CollectMobileAndEmailForKarvy} from '../../components/FetchCASFromRTAs/Karvy/CollectMobileAndEmail';
 import {OTPVerification as CAMSOTPVerification} from '../../components/FetchCASFromRTAs/CAMS/OTPVerification';
 import {OTPVerification as KarvyOTPVerification} from '../../components/FetchCASFromRTAs/Karvy/OTPVerification';
+import OverLayLoader from '../../../../reusables/loader';
+import {useHandleCASFetching} from '../../../../reusables/CASFetching/useHandleCASFetching';
+import {prettifyJSON} from 'utils';
+import {useEffect} from 'react';
+import {useState} from 'react';
+import useBetaForm from '@reusejs/react-form-hook';
 
 const SCREEN_BACKGROUND_COLOR = 'white';
 const ICON_HEIGHT = 16;
 const ICON_WIDTH = 16;
 const STEPS_COUNT = 2;
 
-export default function ({navigation}) {
-  const [redirectToCAMSOTPVerification, setRedirectToCAMSOTPVerification] =
-    useState(false);
+export default function () {
   const theme = useTheme();
-
-  const {incrementCurrentStep, currentStep, steps, setActiveStep, activeStep} =
-    useStepper();
-
-  const [skippedSteps, setSkippedSteps] = useState([]);
+  const [initialStep, setInitialStep] = useState(0);
+  const {currentStep, steps, activeStep} = useStepper();
   const [completedSteps, setCompletedSteps] = useState([]);
+  const [skippedSteps, setSkippedSteps] = useState([]);
+  const [nextStep, setNextStep] = useState(null);
+  const [loadingText, setLoadingText] = useState(null);
 
-  const backArrowIconWrapperStyle = {
-    paddingTop: 48,
-  };
+  const initiateCAMSCASForm = useBetaForm({
+    credentials: 'user',
+    data_fetching_provider: 'cams',
+  });
+  const initiateKarvyCASForm = useBetaForm({
+    credentials: 'user',
+    data_fetching_provider: 'karvy',
+  });
 
-  const handleGoBack = () => {
-    navigation.pop();
-    // if (redirectToCAMSOTPVerification === true) {
-    //   setRedirectToCAMSOTPVerification(false);
-    // } else if (!redirectToCAMSOTPVerification && currentStepToShow === 2) {
-    //   setRedirectToCAMSOTPVerification(true);
-    //   decrementCurrentStep();
-    // }
-  };
+  const {handleInitiateCASRequest} = useHandleCASFetching();
 
   useEffect(() => {
-    setActiveStep(0);
-  }, []);
+    (async () => {
+      setLoadingText(
+        "Initializing CAS Request from CAMS, Please don't close the app",
+      );
+      const handleInitiateCASRequestResponse = await handleInitiateCASRequest(
+        initiateCAMSCASForm?.value,
+        'cams',
+      );
+      console.log(
+        'handleInitiateCASRequestResponse in email and phone: ',
+        handleInitiateCASRequestResponse,
+      );
+      setLoadingText(null);
+
+      setNextStep(handleInitiateCASRequestResponse);
+    })();
+  }, [initiateCAMSCASForm?.value]);
+
+  useEffect(() => {
+    (async () => {
+      if (nextStep === 'karvy_auto_check') {
+        setLoadingText(
+          "Initializing CAS Request from Karvy, Please don't close the app",
+        );
+        const handleInitiateCASRequestResponse = await handleInitiateCASRequest(
+          initiateKarvyCASForm?.value,
+          'karvy',
+        );
+        console.log(
+          'handleInitiateCASRequestResponse in email and phone: ',
+          handleInitiateCASRequestResponse,
+        );
+        setLoadingText(null);
+
+        setNextStep(handleInitiateCASRequestResponse);
+      }
+    })();
+  }, [initiateKarvyCASForm?.value, nextStep]);
+
+  console.log('nextStep in index file: ', nextStep);
 
   const currentStepToShow = useMemo(
     () => (currentStep + 1 > steps?.length ? steps.length : currentStep + 1),
     [currentStep, steps],
   );
+  console.log('currentStepToShow: ', currentStepToShow);
 
   return (
     <ScreenWrapper style={{backgroundColor: SCREEN_BACKGROUND_COLOR}}>
-      <View style={{paddingHorizontal: 24, flex: 1}}>
-        <View style={{...backArrowIconWrapperStyle}}>
-          <Pressable
-            hitSlop={{top: 30, left: 30, right: 30, bottom: 30}}
-            onPress={() => {
-              handleGoBack();
-            }}
-            style={{width: 50}}>
-            <BackArrow />
-          </Pressable>
-        </View>
+      <OverLayLoader
+        loading={!!loadingText}
+        backdropOpacity={0.5}
+        text={loadingText || ''}
+      />
+
+      <View style={{paddingHorizontal: 24, paddingTop: 24, flex: 1}}>
         <View style={{marginTop: 16}}>
           <Stepper
             iconHeight={ICON_HEIGHT}
@@ -79,7 +111,7 @@ export default function ({navigation}) {
             selectedLabelColor="black"
             notSelectedLabelColor="grey"
             hideDefaultHeader={true}
-            activeStep={activeStep}
+            activeStep={initialStep}
             skippedSteps={skippedSteps}
             completedSteps={completedSteps}
             capitalizeLabel={true}
@@ -102,34 +134,76 @@ export default function ({navigation}) {
             {`VERIFICATION ${currentStepToShow} of ${steps?.length}`}
           </Text>
           {currentStepToShow === 1 &&
-            (redirectToCAMSOTPVerification === false ? (
-              <CollectMobileAndEmail
-                onSubmit={() => {
-                  setRedirectToCAMSOTPVerification(true);
-                }}
-                onSkip={() => {
-                  incrementCurrentStep();
-                  setSkippedSteps(prevSteps => [...prevSteps, 0]);
-                }}
-              />
-            ) : (
-              <CAMSOTPVerification
-                onSubmit={() => {
-                  incrementCurrentStep();
-                  setRedirectToCAMSOTPVerification(false);
-                  setCompletedSteps(prevSteps => [...prevSteps, 0]);
-                }}
-              />
-            ))}
-
-          {!redirectToCAMSOTPVerification && currentStepToShow === STEPS_COUNT && (
-            <KarvyOTPVerification
-              onSubmit={() => {
-                incrementCurrentStep();
-                setCompletedSteps(prevSteps => [...prevSteps, 1]);
+          (!nextStep || nextStep === 'request_using_custom') ? (
+            <CollectMobileAndEmailForCAMS
+              onLoading={status => {
+                if (status === true) {
+                  setLoadingText(
+                    "Initializing CAS Request from CAMS, Please don't close the app",
+                  );
+                } else {
+                  setLoadingText(null);
+                }
+              }}
+              onSubmit={step => {
+                console.log('step: ', step);
+                setNextStep(step);
+              }}
+              onSkip={() => setSkippedSteps(prevStep => [...prevStep, 0])}
+            />
+          ) : currentStepToShow === 1 && nextStep === 'ask_cams_otp' ? (
+            <CAMSOTPVerification
+              onSubmit={step => {
+                if (!step) {
+                  console.log('CAMSOTPVerification->!step: ', step);
+                  // setNextStep('ask_cams_otp');
+                } else {
+                  console.log('CAMSOTPVerification->step', step);
+                  setNextStep('karvy_auto_check');
+                  setCompletedSteps(prevStep => [...prevStep, 0]);
+                }
+              }}
+              payload={initiateCAMSCASForm?.value}
+              onRequestResendOTP={status => {
+                console.log('onRequestResendOTP->status: ', status);
+                if (status === true) {
+                  setLoadingText(
+                    "Initializing CAS Request from CAMS, Please don't close the app",
+                  );
+                } else {
+                  setLoadingText(null);
+                }
               }}
             />
-          )}
+          ) : null}
+
+          {currentStepToShow === STEPS_COUNT &&
+          nextStep === 'request_using_custom' ? (
+            <CollectMobileAndEmailForKarvy
+              onLoading={status => {
+                if (status === true) {
+                  setLoadingText(
+                    "Initializing CAS Request from Karvy, Please don't close the app",
+                  );
+                } else {
+                  setLoadingText(null);
+                }
+              }}
+              onSubmit={step => {
+                console.log('step: ', step);
+                setNextStep(step);
+              }}
+              onSkip={() => setSkippedSteps(prevStep => [...prevStep, 1])}
+            />
+          ) : currentStepToShow === STEPS_COUNT &&
+            nextStep === 'ask_karvy_otp' ? (
+            <KarvyOTPVerification
+              onComplete={() => {
+                setNextStep();
+                setCompletedSteps(prevStep => [...prevStep, 1]);
+              }}
+            />
+          ) : null}
         </View>
       </View>
     </ScreenWrapper>

@@ -107,7 +107,9 @@ export default function ({navigation, route}) {
       if (mpinStatus === 'skipped') {
         await handleCheckPANLinkingAndRedirect();
       } else {
-        navigation.replace('Protected');
+        // Todo: uncomment below code once testing is done
+        // navigation.replace('Protected');
+        navigation.replace('FetchCAS', {screen: 'FetchCASFromRTAs'});
       }
     } else if (mpinStatus === 'set_pin_pending') {
       navigation.replace('PINSetup', {screen: 'SetPINHome'});

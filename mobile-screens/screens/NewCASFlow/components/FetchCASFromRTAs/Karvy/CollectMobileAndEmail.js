@@ -7,34 +7,37 @@ import {useTheme} from 'theme';
 import {WarningIcon1, TickCircle, PentagonDangerIcon} from 'assets';
 import useBetaForm from '@reusejs/react-form-hook';
 import {useFocusEffect} from '@react-navigation/native';
-import {
-  EMAIL_REGEX,
-  NUMBER_MATCH_REGEX,
-  INDIA_ISD_NUMBER_REGEX,
-  getUserPassword,
-} from 'utils';
+import {EMAIL_REGEX, NUMBER_MATCH_REGEX, INDIA_ISD_NUMBER_REGEX} from 'utils';
+import {useHandleCASFetching} from '../../../../../reusables/CASFetching/useHandleCASFetching';
 const errMsg =
   'The phone number and email address aren’t matching at the CAMS system. Please enter the correct email and mobile number.';
 
 export const CollectMobileAndEmail = ({
-  navigation,
+  onLoading = () => {},
   onSubmit = () => {},
-  currentStep,
-  totalSteps,
+  onSkip = () => {},
 }) => {
   const theme = useTheme();
   const [showGreenCircleIconForMobile, setShowGreenCircleIconForMobile] =
     useState(false);
   const [showGreenCircleIconForEmail, setShowGreenCircleIconForEmail] =
     useState(false);
-  const [apiCallStatus, setApiCallStatus] = useState(null);
   const limit10Digit = useRef(() => {});
   const [errorMessage, setErrorMessage] = useState(errMsg);
+
+  const initiateKarvyCASForm = useBetaForm({
+    credentials: 'custom',
+    data_fetching_provider: 'karvy',
+    email: '',
+    mobile: '',
+  });
+
+  const {handleInitiateCASRequest, handleSkipInitiateCASRequest} =
+    useHandleCASFetching();
 
   const form = useBetaForm({
     type: '',
     value: '',
-    password: '',
   });
 
   const casEmailForm = useBetaForm({
@@ -59,7 +62,6 @@ export const CollectMobileAndEmail = ({
   const clearForms = () => {
     form.setField('type', '');
     form.setField('value', '');
-    form.setField('password', '');
     casEmailForm.setField('email', '');
   };
 
@@ -110,67 +112,64 @@ export const CollectMobileAndEmail = ({
     }
   };
 
-  const handleSignup = async () => {
+  const handleInitiateCASRequestForRedirection = async () => {
     try {
-      onSubmit();
-      // enable the below code in real time
-      // clearFormErrors();
-      // casEmailForm.setErrors({});
+      clearFormErrors();
+      casEmailForm.setErrors({});
 
-      // let emailMatch = EMAIL_REGEX.test(casEmailForm.value.email.trim());
-      // let numberMatch = INDIA_ISD_NUMBER_REGEX.test(
-      //   `+91${form.value.value.trim()}`,
-      // );
+      let emailMatch = EMAIL_REGEX.test(casEmailForm.value.email.trim());
+      let numberMatch = INDIA_ISD_NUMBER_REGEX.test(
+        `+91${form.value.value.trim()}`,
+      );
 
-      // if (casEmailForm.value.email.length === 0) {
-      //   casEmailForm.setErrors({email: 'Please enter Email ID'});
-      // } else {
-      //   if (emailMatch) {
-      //     casEmailForm.setField('email', casEmailForm.value.email.trim());
-      //     setShowGreenCircleIconForEmail(true);
-      //   } else {
-      //     casEmailForm.setErrors({email: 'Please enter valid email ID'});
-      //   }
-      // }
-      // if (form.value.value.length === 0) {
-      //   form.setErrors({value: 'Please enter phone number'});
-      // } else {
-      //   if (numberMatch && !isNaN(form.value.value.slice(3))) {
-      //     form.setField('value', form.value.value.trim());
-      //     setShowGreenCircleIconForMobile(true);
-      //   } else {
-      //     form.setErrors({value: 'Please enter a valid phone number'});
-      //   }
-      // }
-
-      // if (emailMatch && numberMatch) {
-      //   let userName =
-      //     form.value.type === 'mobile_number'
-      //       ? `+91${form.value.value}`
-      //       : form.value.value;
-
-      //   let generatedPassword = await getUserPassword(userName);
-      //   console.log('generatedPassword-1234', generatedPassword);
-
-      //   let payload = {
-      //     type: form?.value?.type,
-      //     value: form?.value?.value,
-      //     password: generatedPassword,
-      //   };
-
-      //   console.log('payload-112233', payload);
-      //   setApiCallStatus('loading');
-      //   onSubmit();
-      //   setApiCallStatus('success');
-      // }
-    } catch (error) {
-      console.log('handleSignup-error', error);
-      setApiCallStatus('failed');
-      if (error?.errors?.value[0] === 'Value should be unique') {
-        form.setErrors({value: 'Already registered'});
+      if (casEmailForm.value.email.length === 0) {
+        casEmailForm.setErrors({email: 'Please enter Email ID'});
       } else {
-        form.setErrors(error);
+        if (emailMatch) {
+          casEmailForm.setField('email', casEmailForm.value.email.trim());
+          setShowGreenCircleIconForEmail(true);
+        } else {
+          casEmailForm.setErrors({email: 'Please enter valid email ID'});
+        }
       }
+      if (form.value.value.length === 0) {
+        form.setErrors({value: 'Please enter phone number'});
+      } else {
+        if (numberMatch && !isNaN(form.value.value.slice(3))) {
+          form.setField('value', form.value.value.trim());
+          setShowGreenCircleIconForMobile(true);
+        } else {
+          form.setErrors({value: 'Please enter a valid phone number'});
+        }
+      }
+
+      if (emailMatch && numberMatch) {
+        const payload = {
+          ...initiateKarvyCASForm?.value,
+          email: casEmailForm.value.email,
+          mobile: form.value.value,
+        };
+
+        console.log(
+          'payload-112233 for Karvy Custom Flow------------------',
+          payload,
+        );
+        onLoading(true);
+
+        const handleInitiateCASRequestResponse = await handleInitiateCASRequest(
+          payload,
+          'karvy',
+        );
+        console.log(
+          'handleInitiateCASRequestResponse in email and phone------KARVY: ',
+          handleInitiateCASRequestResponse,
+        );
+        onSubmit(handleInitiateCASRequestResponse);
+        onLoading(false);
+      }
+    } catch (error) {
+      console.log('handleInitiateCASRequestForRedirection-error', error);
+      onLoading(false);
     }
   };
 
@@ -263,9 +262,8 @@ export const CollectMobileAndEmail = ({
         }}>
         <View style={{}}>
           <BaseButton
-            loading={apiCallStatus === 'loading'}
-            onPress={() => {
-              handleSignup();
+            onPress={async () => {
+              await handleInitiateCASRequestForRedirection();
             }}>
             Submit
           </BaseButton>
@@ -280,7 +278,8 @@ export const CollectMobileAndEmail = ({
           <TextButton
             // disable={processing}
             onPress={() => {
-              // !processing && navigation.replace('Protected');
+              handleSkipInitiateCASRequest('karvy');
+              onSkip();
             }}>
             Skip CAMS verification
           </TextButton>

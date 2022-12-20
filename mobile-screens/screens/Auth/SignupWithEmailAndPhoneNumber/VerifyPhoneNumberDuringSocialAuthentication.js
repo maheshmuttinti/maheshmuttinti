@@ -13,9 +13,8 @@ import {
 import BackgroundTimer from '../../../reusables/BackgroundTimer';
 import {useTheme} from 'theme';
 import {prettifyJSON} from 'utils';
-import useUser from '../../../reusables/useUser';
+import useFetchUser from '../../../reusables/useFetchUser';
 import * as Sentry from '@sentry/react-native';
-import {VerifyOTPLoader} from '../../../reusables/VerifyOTPLoader';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ({route, navigation}) {
@@ -27,7 +26,7 @@ export default function ({route, navigation}) {
   const updateUserProfileFnRef = useRef(() => {});
   const theme = useTheme();
 
-  const user = useUser();
+  const {user} = useFetchUser();
 
   const form = useBetaForm({
     type: type,
