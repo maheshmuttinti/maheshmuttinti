@@ -21,10 +21,10 @@ const ICON_HEIGHT = 16;
 const ICON_WIDTH = 16;
 const STEPS_COUNT = 2;
 
-export default function () {
+export default function ({navigation}) {
   const theme = useTheme();
   const [initialStep, setInitialStep] = useState(0);
-  const {currentStep, steps, activeStep} = useStepper();
+  const {currentStep, steps} = useStepper();
   const [completedSteps, setCompletedSteps] = useState([]);
   const [skippedSteps, setSkippedSteps] = useState([]);
   const [nextStep, setNextStep] = useState(null);
@@ -52,7 +52,7 @@ export default function () {
       );
       console.log(
         'handleInitiateCASRequestResponse in email and phone: ',
-        handleInitiateCASRequestResponse,
+        prettifyJSON(handleInitiateCASRequestResponse),
       );
       setLoadingText(null);
 
@@ -72,7 +72,7 @@ export default function () {
         );
         console.log(
           'handleInitiateCASRequestResponse in email and phone: ',
-          handleInitiateCASRequestResponse,
+          prettifyJSON(handleInitiateCASRequestResponse),
         );
         setLoadingText(null);
 
@@ -87,7 +87,6 @@ export default function () {
     () => (currentStep + 1 > steps?.length ? steps.length : currentStep + 1),
     [currentStep, steps],
   );
-  console.log('currentStepToShow: ', currentStepToShow);
 
   return (
     <ScreenWrapper style={{backgroundColor: SCREEN_BACKGROUND_COLOR}}>
@@ -156,7 +155,6 @@ export default function () {
               onSubmit={step => {
                 if (!step) {
                   console.log('CAMSOTPVerification->!step: ', step);
-                  // setNextStep('ask_cams_otp');
                 } else {
                   console.log('CAMSOTPVerification->step', step);
                   setNextStep('karvy_auto_check');
@@ -168,7 +166,7 @@ export default function () {
                 console.log('onRequestResendOTP->status: ', status);
                 if (status === true) {
                   setLoadingText(
-                    "Initializing CAS Request from CAMS, Please don't close the app",
+                    "Initializing CAS Request from Karvy, Please don't close the app",
                   );
                 } else {
                   setLoadingText(null);
@@ -198,9 +196,26 @@ export default function () {
           ) : currentStepToShow === STEPS_COUNT &&
             nextStep === 'ask_karvy_otp' ? (
             <KarvyOTPVerification
-              onComplete={() => {
-                setNextStep();
-                setCompletedSteps(prevStep => [...prevStep, 1]);
+              onSubmit={step => {
+                if (!step) {
+                  console.log('KarvyOTPVerification->!step: ', step);
+                } else {
+                  console.log('KarvyOTPVerification->step', step);
+                  setNextStep('karvy_auto_check');
+                  setCompletedSteps(prevStep => [...prevStep, 1]);
+                  navigation.replace('Protected');
+                }
+              }}
+              payload={initiateKarvyCASForm?.value}
+              onRequestResendOTP={status => {
+                console.log('onRequestResendOTP->status: ', status);
+                if (status === true) {
+                  setLoadingText(
+                    "Initializing CAS Request from Karvy, Please don't close the app",
+                  );
+                } else {
+                  setLoadingText(null);
+                }
               }}
             />
           ) : null}

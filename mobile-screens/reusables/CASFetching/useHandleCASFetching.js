@@ -58,7 +58,9 @@ export const useHandleCASFetching = () => {
         handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
           'Invalid OTP' ||
         handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
-          'Invalid OTP attempt maximum reached.'
+          'Invalid OTP attempt maximum reached.' ||
+        handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
+          'Authentication Failed'
       ) {
         return handleSubmitRequestCASOTPVerificationResponse;
       } else {

@@ -128,6 +128,7 @@ export default function ({route, navigation}) {
       //   'response',
       //   JSON.stringify(resendOTPAttributeResponse, null, 2),
       // );
+      return true;
     } catch (error) {
       console.log('error', error);
       if (error?.message === 'Invalid Token') {

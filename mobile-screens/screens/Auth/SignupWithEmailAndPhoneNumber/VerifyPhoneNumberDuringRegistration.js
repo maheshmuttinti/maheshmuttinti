@@ -183,6 +183,7 @@ export default function ({route, navigation}) {
       };
       console.log('resendPayload', resendPayload);
       await requestVerifyRegistration(resendPayload);
+      return true;
     } catch (error) {
       console.log('error', error.response.data);
     }

@@ -70,6 +70,7 @@ export const OTPVerification = ({
           handleSubmitRequestCASOTPVerificationResponse,
         );
         onRequestResendOTP(handleSubmitRequestCASOTPVerificationResponse);
+        return true;
       }
     } catch (error) {
       console.log(

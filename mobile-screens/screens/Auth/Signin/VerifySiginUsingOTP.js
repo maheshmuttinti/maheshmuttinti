@@ -133,6 +133,7 @@ export default function ({route, navigation}) {
       console.log('payload for resend otp -login', payload);
       const resendOTPResponse = await requestForLoginOTP(payload);
       console.log('response', JSON.stringify(resendOTPResponse, null, 2));
+      return true;
     } catch (error) {
       console.log('error', error);
       if (error?.message === 'Invalid Token') {

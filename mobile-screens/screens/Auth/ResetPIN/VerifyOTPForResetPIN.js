@@ -57,6 +57,7 @@ export default function ({route, navigation}) {
         requestResetPasswordResponse?.message ===
         'Request for verification successfully'
       ) {
+        return true;
       }
     } catch (err) {
       console.log('error while request reset password otp', err);

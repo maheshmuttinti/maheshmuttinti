@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {GrayBodyText, AuthHeading, CustomOtpInput} from 'uin';
 import useBetaForm from '@reusejs/react-form-hook';
@@ -8,29 +8,72 @@ import {useTheme} from 'theme';
 import * as Sentry from '@sentry/react-native';
 import {useHandleCASFetching} from '../../../../../reusables/CASFetching/useHandleCASFetching';
 
-export const OTPVerification = () => {
+export const OTPVerification = ({
+  payload,
+  onSubmit = () => {},
+  onRequestResendOTP = () => {},
+}) => {
   const theme = useTheme();
+  const [isSubmittingCASRequest, setIsSubmittingCASRequest] = useState(false);
+
   const submitCASRequestOTPForm = useBetaForm({
-    data_fetching_provider: 'cams',
+    data_fetching_provider: 'karvy',
     otp: '',
   });
-  const {handleSubmitRequestCASOTPVerification, isSubmittingCASRequest} =
+  const {handleSubmitRequestCASOTPVerification, handleInitiateCASRequest} =
     useHandleCASFetching();
 
   useEffect(() => {
-    if (submitCASRequestOTPForm.value.otp.length === 6) {
-      handleSubmitRequestCASOTPVerification(submitCASRequestOTPForm?.value);
+    if (submitCASRequestOTPForm?.value?.otp?.length === 6) {
+      (async () => {
+        setIsSubmittingCASRequest(true);
+        const handleSubmitRequestCASOTPVerificationResponse =
+          await handleSubmitRequestCASOTPVerification(
+            submitCASRequestOTPForm?.value,
+            'karvy',
+          );
+        console.log(
+          'handleSubmitRequestCASOTPVerificationResponse: ',
+          handleSubmitRequestCASOTPVerificationResponse,
+        );
+        if (
+          handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
+            'Invalid OTP' ||
+          handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
+            'Invalid OTP attempt maximum reached.' ||
+          handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
+            'Authentication Failed'
+        ) {
+          submitCASRequestOTPForm.setErrors({
+            otp: handleSubmitRequestCASOTPVerificationResponse?.otp?.[0],
+          });
+          onSubmit(null);
+          setIsSubmittingCASRequest(false);
+        } else {
+          onSubmit(handleSubmitRequestCASOTPVerificationResponse);
+          setIsSubmittingCASRequest(false);
+        }
+      })();
     }
   }, [submitCASRequestOTPForm.value.otp]);
 
   const handleResendOTP = async () => {
     try {
-      const handleSubmitRequestCASOTPVerificationResponse =
-        handleSubmitRequestCASOTPVerification(submitCASRequestOTPForm?.value);
-      console.log(
-        'handleSubmitRequestCASOTPVerificationResponse: ',
-        handleSubmitRequestCASOTPVerificationResponse,
-      );
+      if (isSubmittingCASRequest) {
+        return null;
+      } else {
+        submitCASRequestOTPForm.setField('otp', '');
+        submitCASRequestOTPForm.setErrors({});
+        onRequestResendOTP(true);
+        const handleSubmitRequestCASOTPVerificationResponse =
+          await handleInitiateCASRequest(payload, 'karvy');
+        console.log(
+          'handleSubmitRequestCASOTPVerificationResponse: ',
+          handleSubmitRequestCASOTPVerificationResponse,
+        );
+        onRequestResendOTP(handleSubmitRequestCASOTPVerificationResponse);
+        return true;
+      }
     } catch (error) {
       console.log(
         'handleResendOTP->handleSubmitRequestCASOTPVerification->error: ',
@@ -38,6 +81,13 @@ export const OTPVerification = () => {
       );
       Sentry.captureException(error);
       return error;
+    }
+  };
+
+  const handleChange = text => {
+    if (text?.length <= 6) {
+      submitCASRequestOTPForm.setErrors({});
+      submitCASRequestOTPForm.setField('otp', text);
     }
   };
 
@@ -54,12 +104,13 @@ export const OTPVerification = () => {
 
       <View style={{paddingTop: 24}}>
         <CustomOtpInput
+          editable={!isSubmittingCASRequest}
           defaultValue={''}
-          onChangeText={text => submitCASRequestOTPForm.setField('token', text)}
-          value={submitCASRequestOTPForm.getField('token')}
-          error={submitCASRequestOTPForm.errors.get('token')}
+          onChangeText={text => handleChange(text)}
+          value={submitCASRequestOTPForm.getField('otp')}
+          error={submitCASRequestOTPForm.errors.get('otp')}
           textInputStyles={
-            submitCASRequestOTPForm.errors.get('token')
+            submitCASRequestOTPForm.errors.get('otp')
               ? {
                   borderColor: theme.colors.error,
                   backgroundColor: theme.colors.greyscale50,
@@ -70,7 +121,7 @@ export const OTPVerification = () => {
                 }
           }
           tintColor={
-            submitCASRequestOTPForm.errors.get('token')
+            submitCASRequestOTPForm.errors.get('otp')
               ? theme.colors.error
               : theme.colors.primaryBlue
           }
@@ -87,7 +138,7 @@ export const OTPVerification = () => {
 
       <BackgroundTimer
         wrapperStyles={{paddingTop: 32}}
-        callBack={() => handleResendOTP()}
+        callBack={async () => await handleResendOTP()}
       />
     </>
   );
