@@ -16,8 +16,11 @@ const ResendOtpTimer = ({type, callBack = new Promise(), ...props}) => {
   const handleResendOtp = async () => {
     setTimerActive(false);
     try {
-      await callBack();
-      setTimerActive(true);
+      const result = await callBack();
+      console.log('handleResendOtp->result: ', result);
+      if (result) {
+        setTimerActive(true);
+      }
     } catch (error) {
       console.log('handleResendOtp', error);
     }
