@@ -45,9 +45,7 @@ const useOnboardingHandleRedirection = () => {
         if (isPANLinked) {
           resetPINSetup();
 
-          // Todo: uncomment below code once testing is done
-          // navigation.replace('Protected');
-          navigation.replace('FetchCAS', {screen: 'FetchCASFromRTAs'});
+          navigation.replace('Protected');
         } else {
           resetPINSetup();
           navigation.replace('PANSetup');

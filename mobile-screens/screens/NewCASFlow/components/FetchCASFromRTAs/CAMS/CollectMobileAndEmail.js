@@ -19,19 +19,27 @@ import Config from 'react-native-config';
 // const errMsg =
 //   'The phone number and email address aren’t matching at the CAMS system. Please enter the correct email and mobile number.';
 
-const errMsg = null;
 export const CollectMobileAndEmail = ({
   onSkip = () => {},
   onSubmit = () => {},
   onLoading = () => {},
+  errorMsg,
 }) => {
+  console.log('errorMsg----CAMS: ', errorMsg);
   const theme = useTheme();
   const [showGreenCircleIconForMobile, setShowGreenCircleIconForMobile] =
     useState(false);
   const [showGreenCircleIconForEmail, setShowGreenCircleIconForEmail] =
     useState(false);
+  const [errorMessage, setErrorMessage] = useState(errorMsg);
   const limit10Digit = useRef(() => {});
-  const [errorMessage, setErrorMessage] = useState(errMsg);
+  console.log('errorMessage: ', errorMessage);
+
+  useEffect(() => {
+    if (errorMsg) {
+      setErrorMessage(errorMsg);
+    }
+  }, [errorMsg]);
 
   const initiateCAMSCASForm = useBetaForm({
     credentials: 'custom',
@@ -102,6 +110,7 @@ export const CollectMobileAndEmail = ({
 
   const handleValidatePhoneNumber = text => {
     clearFormErrors();
+    setErrorMessage(null);
     let numberMatch = NUMBER_MATCH_REGEX.test(text.trim());
     if (!numberMatch) {
       form.setField('type', 'mobile_number');
@@ -111,6 +120,7 @@ export const CollectMobileAndEmail = ({
 
   const handleValidateEmail = text => {
     casEmailForm.setErrors({});
+    setErrorMessage(null);
     let emailMatch = EMAIL_REGEX.test(text.trim());
     if (emailMatch) {
       casEmailForm.setField('email', text.trim());
@@ -211,7 +221,8 @@ export const CollectMobileAndEmail = ({
                     fontFamily: theme.fonts.regular,
                     paddingLeft: 16,
                   }}>
-                  {errorMessage}
+                  The phone number and email address aren’t matching at the CAMS
+                  system. Please enter the correct email and mobile number.
                 </Text>
               </View>
             </View>

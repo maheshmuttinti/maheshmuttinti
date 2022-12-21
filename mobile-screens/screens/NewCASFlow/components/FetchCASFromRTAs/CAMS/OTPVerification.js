@@ -28,30 +28,24 @@ export const OTPVerification = ({
   useEffect(() => {
     if (submitCASRequestOTPForm?.value?.otp?.length === 5) {
       (async () => {
-        setIsSubmittingCASRequest(true);
-        const handleSubmitRequestCASOTPVerificationResponse =
-          await handleSubmitRequestCASOTPVerification(
-            submitCASRequestOTPForm?.value,
-            'cams',
+        try {
+          setIsSubmittingCASRequest(true);
+          const handleSubmitRequestCASOTPVerificationResponse =
+            await handleSubmitRequestCASOTPVerification(
+              submitCASRequestOTPForm?.value,
+              'cams',
+            );
+          console.log(
+            'handleSubmitRequestCASOTPVerificationResponse: ',
+            handleSubmitRequestCASOTPVerificationResponse,
           );
-        console.log(
-          'handleSubmitRequestCASOTPVerificationResponse: ',
-          handleSubmitRequestCASOTPVerificationResponse,
-        );
-        if (
-          handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
-            'Invalid OTP' ||
-          handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
-            'Invalid OTP attempt maximum reached.'
-        ) {
-          submitCASRequestOTPForm.setErrors({
-            otp: handleSubmitRequestCASOTPVerificationResponse?.otp?.[0],
-          });
-          onSubmit(null);
-          setIsSubmittingCASRequest(false);
-        } else {
+
           onSubmit(handleSubmitRequestCASOTPVerificationResponse);
           setIsSubmittingCASRequest(false);
+        } catch (error) {
+          submitCASRequestOTPForm.setErrors(error);
+          Sentry.captureException(error);
+          throw error;
         }
       })();
     }
@@ -80,7 +74,7 @@ export const OTPVerification = ({
         error,
       );
       Sentry.captureException(error);
-      return error;
+      throw error;
     }
   };
 

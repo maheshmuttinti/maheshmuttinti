@@ -8,25 +8,29 @@ export const useHandleCASFetching = () => {
   const {incrementCurrentStep} = useStepper();
 
   const handleInitiateCASRequest = async (initiateCASRequestPayload, rta) => {
-    console.log(
-      'initiateCASRequestPayload: ',
-      prettifyJSON(initiateCASRequestPayload),
-    );
-    console.log('handleInitiateCASRequest-----------RTA:', rta);
-    const handleInitiateCASRequestResponse = await handleInitiateRequestCAS(
-      initiateCASRequestPayload,
-    );
-    console.log(
-      'handleInitiateCASRequestResponse-------------: ',
-      handleInitiateCASRequestResponse,
-    );
-    if (rta === 'cams') {
-      console.log('handleInitiateCASRequest-----------------CAMS: ', rta);
-      return handleInitiateCASRequestResponse;
-    }
-    if (rta === 'karvy') {
-      console.log('handleInitiateCASRequest-----------KARVY: ', rta);
-      return handleInitiateCASRequestResponse;
+    try {
+      console.log(
+        'initiateCASRequestPayload: ',
+        prettifyJSON(initiateCASRequestPayload),
+      );
+      console.log('handleInitiateCASRequest-----------RTA:', rta);
+      const handleInitiateCASRequestResponse = await handleInitiateRequestCAS(
+        initiateCASRequestPayload,
+      );
+      console.log(
+        'handleInitiateCASRequestResponse-------------: ',
+        handleInitiateCASRequestResponse,
+      );
+      if (rta === 'cams') {
+        console.log('handleInitiateCASRequest-----------------CAMS: ', rta);
+        return handleInitiateCASRequestResponse;
+      }
+      if (rta === 'karvy') {
+        console.log('handleInitiateCASRequest-----------KARVY: ', rta);
+        return handleInitiateCASRequestResponse;
+      }
+    } catch (error) {
+      throw error;
     }
   };
 
@@ -34,39 +38,23 @@ export const useHandleCASFetching = () => {
     submitCASRequestPayload,
     rta,
   ) => {
-    console.log('handleSubmitRequestCASOTPVerification-----------RTA: ', rta);
-    const handleSubmitRequestCASOTPVerificationResponse =
-      await handleSubmitCASRequest(submitCASRequestPayload);
-    console.log(
-      'handleSubmitRequestCASOTPVerificationResponse-----------------: ',
-      handleSubmitRequestCASOTPVerificationResponse,
-    );
-    if (rta === 'cams') {
-      if (
-        handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
-          'Invalid OTP' ||
-        handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
-          'Invalid OTP attempt maximum reached.'
-      ) {
+    try {
+      console.log('handleSubmitRequestCASOTPVerification-----------RTA: ', rta);
+      const handleSubmitRequestCASOTPVerificationResponse =
+        await handleSubmitCASRequest(submitCASRequestPayload);
+      console.log(
+        'handleSubmitRequestCASOTPVerificationResponse-----------------: ',
+        handleSubmitRequestCASOTPVerificationResponse,
+      );
+      if (rta === 'cams') {
+        incrementCurrentStep();
         return handleSubmitRequestCASOTPVerificationResponse;
-      } else {
+      } else if (rta === 'karvy') {
         incrementCurrentStep();
         return handleSubmitRequestCASOTPVerificationResponse;
       }
-    } else if (rta === 'karvy') {
-      if (
-        handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
-          'Invalid OTP' ||
-        handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
-          'Invalid OTP attempt maximum reached.' ||
-        handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
-          'Authentication Failed'
-      ) {
-        return handleSubmitRequestCASOTPVerificationResponse;
-      } else {
-        incrementCurrentStep();
-        return handleSubmitRequestCASOTPVerificationResponse;
-      }
+    } catch (error) {
+      throw error;
     }
   };
 

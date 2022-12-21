@@ -28,32 +28,41 @@ export const OTPVerification = ({
   useEffect(() => {
     if (submitCASRequestOTPForm?.value?.otp?.length === 6) {
       (async () => {
-        setIsSubmittingCASRequest(true);
-        const handleSubmitRequestCASOTPVerificationResponse =
-          await handleSubmitRequestCASOTPVerification(
-            submitCASRequestOTPForm?.value,
-            'karvy',
+        try {
+          setIsSubmittingCASRequest(true);
+          // Todo: Wait for 3 seconds and navigate
+          // Todo: If it's been 3 seconds, assume it's
+          // Todo: If u get response within 3 seconds, if it is failure, show error
+          // Todo: If it is success, navigate
+          const handleSubmitRequestCASOTPVerificationResponse =
+            await handleSubmitRequestCASOTPVerification(
+              submitCASRequestOTPForm?.value,
+              'karvy',
+            );
+          console.log(
+            'handleSubmitRequestCASOTPVerificationResponse: ',
+            handleSubmitRequestCASOTPVerificationResponse,
           );
-        console.log(
-          'handleSubmitRequestCASOTPVerificationResponse: ',
-          handleSubmitRequestCASOTPVerificationResponse,
-        );
-        if (
-          handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
-            'Invalid OTP' ||
-          handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
-            'Invalid OTP attempt maximum reached.' ||
-          handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
-            'Authentication Failed'
-        ) {
-          submitCASRequestOTPForm.setErrors({
-            otp: handleSubmitRequestCASOTPVerificationResponse?.otp?.[0],
-          });
-          onSubmit(null);
-          setIsSubmittingCASRequest(false);
-        } else {
-          onSubmit(handleSubmitRequestCASOTPVerificationResponse);
-          setIsSubmittingCASRequest(false);
+          if (
+            handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
+              'Invalid OTP' ||
+            handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
+              'Invalid OTP attempt maximum reached.' ||
+            handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
+              'Authentication Failed'
+          ) {
+            submitCASRequestOTPForm.setErrors({
+              otp: handleSubmitRequestCASOTPVerificationResponse?.otp?.[0],
+            });
+            onSubmit(null);
+            setIsSubmittingCASRequest(false);
+          } else {
+            onSubmit(handleSubmitRequestCASOTPVerificationResponse);
+            setIsSubmittingCASRequest(false);
+          }
+        } catch (error) {
+          submitCASRequestOTPForm.setErrors(error);
+          throw error;
         }
       })();
     }
@@ -82,7 +91,7 @@ export const OTPVerification = ({
         error,
       );
       Sentry.captureException(error);
-      return error;
+      throw error;
     }
   };
 

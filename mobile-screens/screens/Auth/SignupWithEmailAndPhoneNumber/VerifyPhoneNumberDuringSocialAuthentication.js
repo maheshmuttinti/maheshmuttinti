@@ -9,6 +9,7 @@ import {
   verifyAttribute,
   // requestVerifyAttribute,
   updateAttribute,
+  saveEmail,
 } from 'services';
 import BackgroundTimer from '../../../reusables/BackgroundTimer';
 import {useTheme} from 'theme';
@@ -82,6 +83,13 @@ export default function ({route, navigation}) {
         console.log('verificationResponse', prettifyJSON(verificationResponse));
         console.log(
           'social auth: setting the is_mobile_number_verified to true---------------------------------',
+        );
+
+        const saveEmailResponse = await saveEmail();
+
+        console.log(
+          '--------------------saveEmailResponse----------: ',
+          prettifyJSON(saveEmailResponse),
         );
         await AsyncStorage.setItem(
           '@is_mobile_number_verified',

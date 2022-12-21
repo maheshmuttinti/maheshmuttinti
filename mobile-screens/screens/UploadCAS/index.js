@@ -78,7 +78,10 @@ export default function ({navigation}) {
             wrapperStyles={{...orangeButtonWrapperStyle}}
             textStyles={{}}
             onPress={() => {
-              navigation.navigate('FetchCAS', {screen: 'FetchCASFromRTAs'});
+              navigation.navigate('FetchCAS', {
+                screen: 'FetchCASFromRTAs',
+                // params: {currentStep: 'karvy'},
+              });
             }}
             gradientReverse={true}
             bgColor={theme.colors.primaryOrange}

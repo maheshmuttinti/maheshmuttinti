@@ -21,7 +21,7 @@ export const useCASFetchAPIs = () => {
     } catch (error) {
       console.log('handleInitiateRequestCAS------------->error: ', error);
       Sentry.captureException(error);
-      return error;
+      throw error;
     }
   };
   const handleSubmitCASRequest = async submitCASRequestPayload => {
@@ -32,7 +32,6 @@ export const useCASFetchAPIs = () => {
       console.log(
         'Awaiting 10 seconds to Submit the RTA CAS Request OTP for Verification...',
       );
-      await sleep(10000);
       console.log('Calling the Submit RTA CAS Request OTP API...');
       const submitCASRequestResponse = await submitCASRequest(
         submitCASRequestPayload,
@@ -45,7 +44,7 @@ export const useCASFetchAPIs = () => {
     } catch (error) {
       console.log('handleInitiateRequestCAS---------->error: ', error);
       Sentry.captureException(error);
-      return error;
+      throw error;
     }
   };
 
