@@ -78,12 +78,12 @@ export default function ({navigation}) {
             wrapperStyles={{...orangeButtonWrapperStyle}}
             textStyles={{}}
             onPress={() => {
-              navigation.navigate('Protected', {screen: 'ImportPortfolio'});
+              navigation.navigate('FetchCAS', {screen: 'FetchCASFromRTAs'});
             }}
             gradientReverse={true}
             bgColor={theme.colors.primaryOrange}
             textColor={theme.colors.primary}>
-            Import Portfolio
+            Fetch CAS
           </BaseButton>
           <View
             style={{

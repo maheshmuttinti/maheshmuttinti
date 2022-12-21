@@ -107,9 +107,7 @@ export default function ({navigation, route}) {
       if (mpinStatus === 'skipped') {
         await handleCheckPANLinkingAndRedirect();
       } else {
-        // Todo: uncomment below code once testing is done
-        // navigation.replace('Protected');
-        navigation.replace('FetchCAS', {screen: 'FetchCASFromRTAs'});
+        navigation.replace('Protected');
       }
     } else if (mpinStatus === 'set_pin_pending') {
       navigation.replace('PINSetup', {screen: 'SetPINHome'});
@@ -158,6 +156,7 @@ export default function ({navigation, route}) {
         'redirection done in screen determiner----------------------'.toUpperCase(),
       );
     } catch (error) {
+      console.log('error in screen determiner--------------: ', error);
       handleExpiredSession.current();
       hideSplashScreen();
       Sentry.captureException(error);
@@ -167,7 +166,7 @@ export default function ({navigation, route}) {
   useFocusEffect(
     useCallback(() => {
       handleRedirections.current();
-      handleExpiredSession.current();
+      // handleExpiredSession.current();
     }, []),
   );
 
