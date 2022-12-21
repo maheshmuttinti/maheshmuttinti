@@ -7,6 +7,7 @@ import BackgroundTimer from '../../../../../reusables/BackgroundTimer';
 import {useTheme} from 'theme';
 import * as Sentry from '@sentry/react-native';
 import {useHandleCASFetching} from '../../../../../reusables/CASFetching/useHandleCASFetching';
+import Config from 'react-native-config';
 
 export const OTPVerification = ({
   payload,
@@ -19,6 +20,7 @@ export const OTPVerification = ({
   const submitCASRequestOTPForm = useBetaForm({
     data_fetching_provider: 'karvy',
     otp: '',
+    fi_code: `${Config.FI_CODE}`,
   });
   const {handleSubmitRequestCASOTPVerification, handleInitiateCASRequest} =
     useHandleCASFetching();

@@ -41,7 +41,7 @@ export default function ({navigation, route}) {
       return 'Email is Already Verified by other user';
     }
     if (verificationStatus === 'link_expired') {
-      return 'Email verification link is expired';
+      return 'Email verification link is expired. We have sent you new link.';
     }
   };
 

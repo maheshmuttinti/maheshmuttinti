@@ -7,11 +7,19 @@ import {useTheme} from 'theme';
 import {WarningIcon1, TickCircle, PentagonDangerIcon} from 'assets';
 import useBetaForm from '@reusejs/react-form-hook';
 import {useFocusEffect} from '@react-navigation/native';
-import {EMAIL_REGEX, NUMBER_MATCH_REGEX, INDIA_ISD_NUMBER_REGEX} from 'utils';
+import {
+  EMAIL_REGEX,
+  NUMBER_MATCH_REGEX,
+  INDIA_ISD_NUMBER_REGEX,
+  // showNativeAlert,
+} from 'utils';
 import {useHandleCASFetching} from '../../../../../reusables/CASFetching/useHandleCASFetching';
-const errMsg =
-  'The phone number and email address aren’t matching at the CAMS system. Please enter the correct email and mobile number.';
+import Config from 'react-native-config';
 
+// const errMsg =
+//   'The phone number and email address aren’t matching at the CAMS system. Please enter the correct email and mobile number.';
+
+const errMsg = null;
 export const CollectMobileAndEmail = ({
   onSkip = () => {},
   onSubmit = () => {},
@@ -30,6 +38,7 @@ export const CollectMobileAndEmail = ({
     data_fetching_provider: 'cams',
     email: '',
     mobile: '',
+    fi_code: `${Config.FI_CODE}`,
   });
 
   const {handleInitiateCASRequest, handleSkipInitiateCASRequest} =
@@ -170,6 +179,7 @@ export const CollectMobileAndEmail = ({
     } catch (error) {
       onLoading(false);
       console.log('handleInitiateCASRequestForRedirection-error', error);
+      // showNativeAlert(`${error?.message?.message}`);
     }
   };
 
@@ -179,7 +189,7 @@ export const CollectMobileAndEmail = ({
         <AuthHeading>CAMS Verification</AuthHeading>
 
         <View style={{paddingTop: 16}}>
-          {errorMessage && (
+          {errorMessage ? (
             <View
               style={{
                 flexDirection: 'row',
@@ -205,7 +215,7 @@ export const CollectMobileAndEmail = ({
                 </Text>
               </View>
             </View>
-          )}
+          ) : null}
         </View>
 
         <View style={{paddingTop: 24}}>

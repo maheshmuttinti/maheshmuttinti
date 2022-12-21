@@ -15,16 +15,24 @@ import {prettifyJSON} from 'utils';
 import {useEffect} from 'react';
 import {useState} from 'react';
 import useBetaForm from '@reusejs/react-form-hook';
+import Config from 'react-native-config';
+import {WebViewComponent} from '../../../../reusables/WebView_new';
+import {Loader} from '../../../../reusables/TermsAndConditionsModal';
 
 const SCREEN_BACKGROUND_COLOR = 'white';
 const ICON_HEIGHT = 16;
 const ICON_WIDTH = 16;
 const STEPS_COUNT = 2;
 
+const CAMS_REQUEST_TEXT =
+  "Initializing CAS Request from CAMS, Please don't close the app";
+const KARVY_REQUEST_TEXT =
+  "Initializing CAS Request from Karvy, Please don't close the app";
+
 export default function ({navigation}) {
   const theme = useTheme();
   const [initialStep, setInitialStep] = useState(0);
-  const {currentStep, steps} = useStepper();
+  const {incrementCurrentStep, currentStep, steps} = useStepper();
   const [completedSteps, setCompletedSteps] = useState([]);
   const [skippedSteps, setSkippedSteps] = useState([]);
   const [nextStep, setNextStep] = useState(null);
@@ -33,19 +41,19 @@ export default function ({navigation}) {
   const initiateCAMSCASForm = useBetaForm({
     credentials: 'user',
     data_fetching_provider: 'cams',
+    fi_code: `${Config.FI_CODE}`,
   });
   const initiateKarvyCASForm = useBetaForm({
     credentials: 'user',
     data_fetching_provider: 'karvy',
+    fi_code: `${Config.FI_CODE}`,
   });
 
   const {handleInitiateCASRequest} = useHandleCASFetching();
 
   useEffect(() => {
     (async () => {
-      setLoadingText(
-        "Initializing CAS Request from CAMS, Please don't close the app",
-      );
+      setLoadingText(CAMS_REQUEST_TEXT);
       const handleInitiateCASRequestResponse = await handleInitiateCASRequest(
         initiateCAMSCASForm?.value,
         'cams',
@@ -62,10 +70,8 @@ export default function ({navigation}) {
 
   useEffect(() => {
     (async () => {
-      if (nextStep === 'karvy_auto_check') {
-        setLoadingText(
-          "Initializing CAS Request from Karvy, Please don't close the app",
-        );
+      if (nextStep === 'karvy_auto_check' || nextStep === 'skip_cams') {
+        setLoadingText(KARVY_REQUEST_TEXT);
         const handleInitiateCASRequestResponse = await handleInitiateCASRequest(
           initiateKarvyCASForm?.value,
           'karvy',
@@ -87,6 +93,7 @@ export default function ({navigation}) {
     () => (currentStep + 1 > steps?.length ? steps.length : currentStep + 1),
     [currentStep, steps],
   );
+  console.log('currentStepToShow: ', currentStepToShow);
 
   return (
     <ScreenWrapper style={{backgroundColor: SCREEN_BACKGROUND_COLOR}}>
@@ -121,6 +128,13 @@ export default function ({navigation}) {
             </Stepper.Steps>
           </Stepper>
         </View>
+        {nextStep?.message?.includes('html') ? (
+          <WebViewComponent
+            url={{html: nextStep?.message}}
+            containerStyle={{height: '100%', marginTop: 24}}
+            loaderComponent={() => <Loader />}
+          />
+        ) : null}
         <View style={{marginTop: 64, flex: 1}}>
           <Text
             style={{
@@ -132,25 +146,34 @@ export default function ({navigation}) {
             }}>
             {`VERIFICATION ${currentStepToShow} of ${steps?.length}`}
           </Text>
-          {currentStepToShow === 1 &&
-          (!nextStep || nextStep === 'request_using_custom') ? (
+
+          {currentStepToShow === 1 && nextStep === 'request_using_custom' ? (
             <CollectMobileAndEmailForCAMS
               onLoading={status => {
                 if (status === true) {
-                  setLoadingText(
-                    "Initializing CAS Request from CAMS, Please don't close the app",
-                  );
+                  setLoadingText(CAMS_REQUEST_TEXT);
                 } else {
                   setLoadingText(null);
                 }
               }}
               onSubmit={step => {
                 console.log('step: ', step);
-                setNextStep(step);
+                if (step === 'ask_for_otp') {
+                  setNextStep(step);
+                } else {
+                  incrementCurrentStep();
+                  setNextStep('skip_cams');
+                  setSkippedSteps(prevStep => [...prevStep, 0]);
+                }
               }}
-              onSkip={() => setSkippedSteps(prevStep => [...prevStep, 0])}
+              onSkip={() => {
+                console.log('onSkip called in CAMS 1st screen: ');
+                setNextStep('skip_cams');
+                // incrementCurrentStep();
+                setSkippedSteps(prevStep => [...prevStep, 0]);
+              }}
             />
-          ) : currentStepToShow === 1 && nextStep === 'ask_cams_otp' ? (
+          ) : currentStepToShow === 1 && nextStep === 'ask_for_otp' ? (
             <CAMSOTPVerification
               onSubmit={step => {
                 if (!step) {
@@ -158,6 +181,7 @@ export default function ({navigation}) {
                 } else {
                   console.log('CAMSOTPVerification->step', step);
                   setNextStep('karvy_auto_check');
+                  // incrementCurrentStep();
                   setCompletedSteps(prevStep => [...prevStep, 0]);
                 }
               }}
@@ -165,9 +189,7 @@ export default function ({navigation}) {
               onRequestResendOTP={status => {
                 console.log('onRequestResendOTP->status: ', status);
                 if (status === true) {
-                  setLoadingText(
-                    "Initializing CAS Request from Karvy, Please don't close the app",
-                  );
+                  setLoadingText(CAMS_REQUEST_TEXT);
                 } else {
                   setLoadingText(null);
                 }
@@ -175,33 +197,41 @@ export default function ({navigation}) {
             />
           ) : null}
 
-          {currentStepToShow === STEPS_COUNT &&
-          nextStep === 'request_using_custom' ? (
+          {(currentStepToShow === STEPS_COUNT &&
+            nextStep === 'request_using_custom') ||
+          (currentStepToShow === STEPS_COUNT && nextStep === 'skip_cams') ? (
             <CollectMobileAndEmailForKarvy
               onLoading={status => {
                 if (status === true) {
-                  setLoadingText(
-                    "Initializing CAS Request from Karvy, Please don't close the app",
-                  );
+                  setLoadingText(KARVY_REQUEST_TEXT);
                 } else {
                   setLoadingText(null);
                 }
               }}
               onSubmit={step => {
                 console.log('step: ', step);
-                setNextStep(step);
+                if (step === 'ask_for_otp') {
+                  setNextStep(step);
+                } else {
+                  incrementCurrentStep();
+                  setNextStep('skip_karvy');
+                  setSkippedSteps(prevStep => [...prevStep, 1]);
+                  navigation.replace('Protected');
+                }
               }}
-              onSkip={() => setSkippedSteps(prevStep => [...prevStep, 1])}
+              onSkip={() => {
+                setSkippedSteps(prevStep => [...prevStep, 1]);
+                navigation.replace('Protected');
+              }}
             />
           ) : currentStepToShow === STEPS_COUNT &&
-            nextStep === 'ask_karvy_otp' ? (
+            nextStep === 'ask_for_otp' ? (
             <KarvyOTPVerification
               onSubmit={step => {
                 if (!step) {
                   console.log('KarvyOTPVerification->!step: ', step);
                 } else {
                   console.log('KarvyOTPVerification->step', step);
-                  setNextStep('karvy_auto_check');
                   setCompletedSteps(prevStep => [...prevStep, 1]);
                   navigation.replace('Protected');
                 }
@@ -210,9 +240,7 @@ export default function ({navigation}) {
               onRequestResendOTP={status => {
                 console.log('onRequestResendOTP->status: ', status);
                 if (status === true) {
-                  setLoadingText(
-                    "Initializing CAS Request from Karvy, Please don't close the app",
-                  );
+                  setLoadingText(KARVY_REQUEST_TEXT);
                 } else {
                   setLoadingText(null);
                 }

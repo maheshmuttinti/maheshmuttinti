@@ -60,7 +60,7 @@ export const TermsAndConditionsModal = ({
   );
 };
 
-const Loader = () => {
+export const Loader = () => {
   return (
     <View
       style={{

@@ -4,6 +4,7 @@ import {WebView} from 'react-native-webview';
 
 export const WebViewComponent = ({
   url,
+  html,
   navigation,
   containerStyle,
   onLoadStart = () => {},
@@ -12,7 +13,7 @@ export const WebViewComponent = ({
 }) => {
   return (
     <WebView
-      source={{uri: url}}
+      source={url ? {uri: url} : {html}}
       goBack={() => navigation?.goBack()}
       originWhitelist={['http://*', 'https://*', 'intent://*', 'finezzy://*']}
       style={{
