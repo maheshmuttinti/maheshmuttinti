@@ -14,6 +14,7 @@ export const OTPVerification = ({
   onSubmit = () => {},
   onRequestResendOTP = () => {},
   onError = () => {},
+  incrementCurrentStep,
 }) => {
   const theme = useTheme();
   const [isSubmittingCASRequest, setIsSubmittingCASRequest] = useState(false);
@@ -24,7 +25,7 @@ export const OTPVerification = ({
     fi_code: `${Config.FI_CODE}`,
   });
   const {handleSubmitRequestCASOTPVerification, handleInitiateCASRequest} =
-    useHandleCASFetching();
+    useHandleCASFetching(incrementCurrentStep);
 
   useEffect(() => {
     if (submitCASRequestOTPForm?.value?.otp?.length === 6) {

@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useEffect, useRef, useState, useCallback} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, TouchableOpacity, View} from 'react-native';
 import {
   AuthHeading,
   BaseButton,
@@ -13,7 +13,7 @@ import {
 } from 'uin';
 import {useTheme} from 'theme';
 import ScreenWrapper from '../../hocs/screenWrapperWithoutBackButton';
-import {ForwardEmail, TickCircle} from 'assets';
+import {BackArrow, ForwardEmail, TickCircle} from 'assets';
 import useExitApp from '../../reusables/useExitApp';
 import {usePANCollectRedirection} from '../../reusables/usePANCollectRedirection';
 import {prettifyJSON, validatePAN as basicValidatePAN} from 'utils';
@@ -129,7 +129,17 @@ export default function ({navigation}) {
   return (
     <ScreenWrapper>
       <View style={{paddingHorizontal: 24, flex: 1}}>
-        <View style={{marginTop: 41}}>
+        <View style={{marginTop: navigation.canGoBack() ? 24 : 41}}>
+          {navigation.canGoBack() ? (
+            <View style={{paddingBottom: 24}}>
+              <TouchableOpacity
+                hitSlop={{top: 30, left: 30, right: 30, bottom: 30}}
+                onPress={() => navigation.canGoBack() && navigation.pop()}
+                style={{flex: 0.3 / 4}}>
+                <BackArrow />
+              </TouchableOpacity>
+            </View>
+          ) : null}
           <AuthHeading>Your pre approved loan is waiting for you</AuthHeading>
 
           <View style={{paddingTop: 24, alignItems: 'center'}}>

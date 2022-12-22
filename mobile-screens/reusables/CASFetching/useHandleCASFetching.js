@@ -2,10 +2,10 @@ import {useStepper} from 'uin';
 import {prettifyJSON} from 'utils';
 import {useCASFetchAPIs} from './useCASFetchAPIs';
 
-export const useHandleCASFetching = () => {
+export const useHandleCASFetching = incrementCurrentStep => {
   const {handleInitiateRequestCAS, handleSubmitCASRequest} = useCASFetchAPIs();
 
-  const {incrementCurrentStep} = useStepper();
+  // const {incrementCurrentStep} = useStepper();
 
   const handleInitiateCASRequest = async (initiateCASRequestPayload, rta) => {
     try {

@@ -19,6 +19,7 @@ export const CollectMobileAndEmail = ({
   onSubmit = () => {},
   onSkip = () => {},
   onError = () => {},
+  incrementCurrentStep,
 }) => {
   const theme = useTheme();
   const [showGreenCircleIconForMobile, setShowGreenCircleIconForMobile] =
@@ -27,7 +28,6 @@ export const CollectMobileAndEmail = ({
     useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const limit10Digit = useRef(() => {});
-  console.log('errorMessage: ', errorMessage);
 
   const initiateKarvyCASForm = useBetaForm({
     credentials: 'custom',
@@ -38,7 +38,7 @@ export const CollectMobileAndEmail = ({
   });
 
   const {handleInitiateCASRequest, handleSkipInitiateCASRequest} =
-    useHandleCASFetching();
+    useHandleCASFetching(incrementCurrentStep);
 
   const form = useBetaForm({
     type: '',
@@ -187,6 +187,7 @@ export const CollectMobileAndEmail = ({
       } else {
         onError(error);
       }
+      throw error;
     }
   };
 

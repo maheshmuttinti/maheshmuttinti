@@ -3,7 +3,7 @@ import * as React from 'react';
 import {useRef, useCallback, useEffect} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useFocusEffect} from '@react-navigation/native';
-import {getUser} from 'services';
+import {getUser, saveEmail} from 'services';
 import {useSelector, shallowEqual} from 'react-redux';
 import {View} from 'react-native';
 import {useTheme} from 'theme';
@@ -105,6 +105,7 @@ export default function ({navigation, route}) {
       mpinStatus === 'redirect_to_dashboard'
     ) {
       if (mpinStatus === 'skipped') {
+        await saveEmail();
         await handleCheckPANLinkingAndRedirect();
       } else {
         navigation.replace('Protected');

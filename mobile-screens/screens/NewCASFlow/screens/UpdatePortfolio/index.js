@@ -23,14 +23,14 @@ const UpdatePortfolio = ({navigation}) => {
         if (isPANLinked) {
           navigation.navigate('FetchCAS', {screen: 'FetchCASFromRTAs'});
         } else {
-          navigation.replace('PANSetup');
+          navigation.navigate('PANSetup');
         }
       }
     } catch (err) {
       if (err?.error === 'PAN not linked') {
-        navigation.replace('PANSetup');
+        navigation.navigate('PANSetup');
       } else {
-        navigation.replace('PANSetup');
+        navigation.navigate('PANSetup');
       }
       throw err;
     }

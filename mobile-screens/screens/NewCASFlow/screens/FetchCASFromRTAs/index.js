@@ -42,7 +42,6 @@ const showStepCount = (provider = 'cams') => {
   }
 };
 
-
 export default function ({navigation, route}) {
   const theme = useTheme();
   const defaultSelectedStep = route?.params?.dataProvider || 'cams';
@@ -72,7 +71,7 @@ export default function ({navigation, route}) {
     fi_code: `${Config.FI_CODE}`,
   });
 
-  const {handleInitiateCASRequest} = useHandleCASFetching();
+  const {handleInitiateCASRequest} = useHandleCASFetching(incrementCurrentStep);
 
   useEffect(() => {
     setActiveStep(initialStep);
@@ -102,11 +101,6 @@ export default function ({navigation, route}) {
       }
     })();
   }, [initiateCAMSCASForm?.value, currentStep]);
-
-  console.log(
-    'initiateCAMSCASForm',
-    prettifyJSON(initiateCAMSCASForm.errors.get('error')),
-  );
 
   useEffect(() => {
     (async () => {
@@ -204,6 +198,9 @@ export default function ({navigation, route}) {
                   setLoadingText(null);
                 }
               }}
+              incrementCurrentStep={incrementCurrentStep}
+              currentStep={currentStep}
+              steps={steps}
               errorMsg={initiateCAMSCASForm.errors.get('error')?.[0]}
               onSubmit={nextAction => {
                 if (nextAction === 'ask_for_otp') {
@@ -237,6 +234,9 @@ export default function ({navigation, route}) {
                   setCompletedSteps(prevStep => [...prevStep, 0]);
                 }
               }}
+              incrementCurrentStep={incrementCurrentStep}
+              currentStep={currentStep}
+              steps={steps}
               onError={nextAction => {
                 incrementCurrentStep();
                 setAction('karvy_auto_check');
@@ -267,6 +267,9 @@ export default function ({navigation, route}) {
                   setLoadingText(null);
                 }
               }}
+              incrementCurrentStep={incrementCurrentStep}
+              currentStep={currentStep}
+              steps={steps}
               errorMsg={initiateKarvyCASForm.errors.get('error')?.[0]}
               onSubmit={nextAction => {
                 if (nextAction === 'ask_for_otp') {
@@ -310,6 +313,9 @@ export default function ({navigation, route}) {
                   navigation.replace('Protected');
                 }
               }}
+              incrementCurrentStep={incrementCurrentStep}
+              currentStep={currentStep}
+              steps={steps}
               onError={nextAction => {
                 incrementCurrentStep();
                 setAction(null);

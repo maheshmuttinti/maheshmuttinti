@@ -3,7 +3,7 @@ import {View, TouchableOpacity, Text} from 'react-native';
 import * as React from 'react';
 import {useRef, useState} from 'react';
 import ScreenWrapper from '../../hocs/screenWrapperWithoutBackButton';
-import {deleteAccount, logout} from 'services';
+import {deleteAccount, deleteInvestor, logout} from 'services';
 import {
   Heading,
   TextButton,
@@ -63,6 +63,7 @@ export default function () {
 
   const handleDeleteAccount = async () => {
     try {
+      await deleteInvestor();
       const deleteAccountResponse = await deleteAccount();
       console.log('deleteAccountResponse', deleteAccountResponse);
       clearStoreForDeleteAccount();

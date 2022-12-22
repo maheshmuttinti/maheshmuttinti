@@ -19,11 +19,16 @@ const SCREEN_BACKGROUND_COLOR = 'white';
 const ICON_HEIGHT = 16;
 const ICON_WIDTH = 16;
 
-export default function ({navigation}) {
+export default function ({
+  navigation,
+  incrementCurrentStep,
+  currentStep,
+  steps,
+}) {
   const theme = useTheme();
 
-  const {incrementCurrentStep, decrementCurrentStep, currentStep, steps} =
-    useStepper();
+  // const {incrementCurrentStep, decrementCurrentStep, currentStep, steps} =
+  //   useStepper();
   const backArrowIconWrapperStyle = {
     paddingTop: 48,
   };
