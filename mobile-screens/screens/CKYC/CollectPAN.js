@@ -24,7 +24,7 @@ import useBetaForm from '@reusejs/react-form-hook';
 
 export default function ({navigation}) {
   const theme = useTheme();
-  const [pan, setPAN] = useState('ENBPM4556D');
+  const [pan, setPAN] = useState('');
   const [basicValidationError, setBasicValidationError] = useState('');
   const [showGreenCircleIcon, setShowGreenCircleIcon] = useState(false);
   const [loading, setLoading] = useState(null);
