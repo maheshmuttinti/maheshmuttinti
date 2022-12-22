@@ -7,12 +7,7 @@ import {useTheme} from 'theme';
 import {WarningIcon1, TickCircle, PentagonDangerIcon} from 'assets';
 import useBetaForm from '@reusejs/react-form-hook';
 import {useFocusEffect} from '@react-navigation/native';
-import {
-  EMAIL_REGEX,
-  NUMBER_MATCH_REGEX,
-  INDIA_ISD_NUMBER_REGEX,
-  // showNativeAlert,
-} from 'utils';
+import {EMAIL_REGEX, NUMBER_MATCH_REGEX, INDIA_ISD_NUMBER_REGEX} from 'utils';
 import {useHandleCASFetching} from '../../../../../reusables/CASFetching/useHandleCASFetching';
 import Config from 'react-native-config';
 
@@ -23,23 +18,16 @@ export const CollectMobileAndEmail = ({
   onSkip = () => {},
   onSubmit = () => {},
   onLoading = () => {},
-  errorMsg,
+  onError = () => {},
 }) => {
-  console.log('errorMsg----CAMS: ', errorMsg);
   const theme = useTheme();
   const [showGreenCircleIconForMobile, setShowGreenCircleIconForMobile] =
     useState(false);
   const [showGreenCircleIconForEmail, setShowGreenCircleIconForEmail] =
     useState(false);
-  const [errorMessage, setErrorMessage] = useState(errorMsg);
+  const [errorMessage, setErrorMessage] = useState(null);
   const limit10Digit = useRef(() => {});
   console.log('errorMessage: ', errorMessage);
-
-  useEffect(() => {
-    if (errorMsg) {
-      setErrorMessage(errorMsg);
-    }
-  }, [errorMsg]);
 
   const initiateCAMSCASForm = useBetaForm({
     credentials: 'custom',
@@ -188,8 +176,16 @@ export const CollectMobileAndEmail = ({
       }
     } catch (error) {
       onLoading(false);
-      console.log('handleInitiateCASRequestForRedirection-error', error);
-      // showNativeAlert(`${error?.message?.message}`);
+      console.log(
+        'handleInitiateCASRequestForRedirection-error',
+        error,
+        error?.response?.status,
+      );
+      if (error?.response?.status === 422) {
+        // Todo: Set the Form Errors
+      } else {
+        onError(error);
+      }
     }
   };
 

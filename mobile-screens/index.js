@@ -34,12 +34,8 @@ import {linking} from './deepLinkConfigs';
 import withAuth from './hocs/withAuth';
 import FetchCAS from './stacks/FetchCAS';
 
-// Sentry.init({
-//   dsn: Config.SENTRY_DSN,
-// });
-
 Sentry.init({
-  dsn: 'https://46dc0a69bc474e73a0e00f6eee639b70@o4504345470763008.ingest.sentry.io/4504345475022849',
+  dsn: Config.SENTRY_DSN,
 });
 
 const Stack = createStackNavigator();
@@ -77,7 +73,6 @@ const App = () => {
       if (tokenFromStorage !== null) {
         dispatch(setTokens(JSON.parse(tokenFromStorage)));
         let userProfile = await getUser();
-        console.log('userProfile: ', prettifyJSON(userProfile));
         if (userProfile) {
           dispatch(setUser(userProfile));
           setLoading(false);
@@ -95,28 +90,14 @@ const App = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    var start = new Date().getTime();
     init();
     const unsubscribe = NetInfo.addEventListener(state => {
       dispatch(setNetworkStatus(state.isConnected ? 'online' : 'offline'));
     });
-    var end = new Date().getTime();
-    console.log(
-      `${Device} Mobile screen Index useEffect load time:**************** ${
-        (end - start) / 1000
-      }`,
-    );
-    Sentry.captureMessage(
-      `${Device} Mobile screen Index useEffect load time: ${
-        (end - start) / 1000
-      }sec`,
-    );
     return () => {
       unsubscribe();
     };
   }, [init, dispatch]);
-
-  console.log('****Loading***', loading);
 
   const {accessToken} = useSelector(
     ({auth}) => ({

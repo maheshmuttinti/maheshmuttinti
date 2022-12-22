@@ -18,22 +18,16 @@ export const CollectMobileAndEmail = ({
   onLoading = () => {},
   onSubmit = () => {},
   onSkip = () => {},
-  errorMsg,
+  onError = () => {},
 }) => {
   const theme = useTheme();
   const [showGreenCircleIconForMobile, setShowGreenCircleIconForMobile] =
     useState(false);
   const [showGreenCircleIconForEmail, setShowGreenCircleIconForEmail] =
     useState(false);
-  const [errorMessage, setErrorMessage] = useState(errorMsg);
+  const [errorMessage, setErrorMessage] = useState(null);
   const limit10Digit = useRef(() => {});
   console.log('errorMessage: ', errorMessage);
-
-  useEffect(() => {
-    if (errorMsg) {
-      setErrorMessage(errorMsg);
-    }
-  }, [errorMsg]);
 
   const initiateKarvyCASForm = useBetaForm({
     credentials: 'custom',
@@ -183,6 +177,16 @@ export const CollectMobileAndEmail = ({
     } catch (error) {
       console.log('handleInitiateCASRequestForRedirection-error', error);
       onLoading(false);
+      console.log(
+        'handleInitiateCASRequestForRedirection-error',
+        error,
+        error?.response?.status,
+      );
+      if (error?.response?.status === 422) {
+        // Todo: Set the Form Errors
+      } else {
+        onError(error);
+      }
     }
   };
 

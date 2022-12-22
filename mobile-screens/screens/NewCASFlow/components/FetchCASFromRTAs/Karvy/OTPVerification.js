@@ -13,6 +13,7 @@ export const OTPVerification = ({
   payload,
   onSubmit = () => {},
   onRequestResendOTP = () => {},
+  onError = () => {},
 }) => {
   const theme = useTheme();
   const [isSubmittingCASRequest, setIsSubmittingCASRequest] = useState(false);
@@ -43,26 +44,26 @@ export const OTPVerification = ({
             'handleSubmitRequestCASOTPVerificationResponse: ',
             handleSubmitRequestCASOTPVerificationResponse,
           );
-          if (
-            handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
-              'Invalid OTP' ||
-            handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
-              'Invalid OTP attempt maximum reached.' ||
-            handleSubmitRequestCASOTPVerificationResponse?.otp?.[0] ===
-              'Authentication Failed'
-          ) {
-            submitCASRequestOTPForm.setErrors({
-              otp: handleSubmitRequestCASOTPVerificationResponse?.otp?.[0],
-            });
-            onSubmit(null);
-            setIsSubmittingCASRequest(false);
-          } else {
-            onSubmit(handleSubmitRequestCASOTPVerificationResponse);
-            setIsSubmittingCASRequest(false);
-          }
+
+          onSubmit(handleSubmitRequestCASOTPVerificationResponse);
+          setIsSubmittingCASRequest(false);
         } catch (error) {
-          submitCASRequestOTPForm.setErrors(error);
-          throw error;
+          setIsSubmittingCASRequest(false);
+          console.log(
+            'handleInitiateCASRequestForRedirection-error',
+            error,
+            error?.response?.status,
+          );
+          if (error?.response?.status === 422) {
+            // Todo: Set the Form Errors - Done
+            setIsSubmittingCASRequest(false);
+            submitCASRequestOTPForm.setErrors(error?.response?.data?.errors);
+            Sentry.captureException(error);
+            throw error;
+          } else {
+            onError(error);
+            throw error;
+          }
         }
       })();
     }
@@ -91,6 +92,7 @@ export const OTPVerification = ({
         error,
       );
       Sentry.captureException(error);
+      submitCASRequestOTPForm.setErrors(error);
       throw error;
     }
   };
@@ -101,6 +103,11 @@ export const OTPVerification = ({
       submitCASRequestOTPForm.setField('otp', text);
     }
   };
+
+  console.log(
+    "submitCASRequestOTPForm.errors.get('otp')----karvy",
+    submitCASRequestOTPForm.errors.get('otp'),
+  );
 
   return (
     <>

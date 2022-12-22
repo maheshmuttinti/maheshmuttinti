@@ -5,9 +5,37 @@ import {useTheme} from 'theme';
 import {Heading, BaseButton, Card} from 'uin';
 import {View, Text} from 'react-native';
 import {InfoIcon, RecheckPortfolio} from 'assets';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {getLinkedPAN} from 'services';
 
 const UpdatePortfolio = ({navigation}) => {
   const theme = useTheme();
+
+  const handleRedirect = async () => {
+    try {
+      let tokenFromStorage = await AsyncStorage.getItem('@access_token');
+
+      if (tokenFromStorage !== null) {
+        const panResponse = await getLinkedPAN();
+
+        const isPANLinked = panResponse?.pan && panResponse?.name;
+
+        if (isPANLinked) {
+          navigation.navigate('FetchCAS', {screen: 'FetchCASFromRTAs'});
+        } else {
+          navigation.replace('PANSetup');
+        }
+      }
+    } catch (err) {
+      if (err?.error === 'PAN not linked') {
+        navigation.replace('PANSetup');
+      } else {
+        navigation.replace('PANSetup');
+      }
+      throw err;
+    }
+  };
+
   return (
     <ScreenWrapper>
       <View style={{paddingHorizontal: 24, paddingTop: 40}}>
@@ -84,7 +112,9 @@ const UpdatePortfolio = ({navigation}) => {
 
         <View style={{paddingTop: 24, paddingBottom: 56}}>
           <BaseButton
-            onPress={() => {}}
+            onPress={() => {
+              handleRedirect();
+            }}
             gradientColors={[
               theme.colors.primaryOrange800,
               theme.colors.primaryOrange,

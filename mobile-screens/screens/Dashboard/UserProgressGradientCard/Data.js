@@ -114,7 +114,7 @@ export default function ({
                         ?.total_pre_approved_loan_amount
                     ) {
                       navigation.navigate('Protected', {
-                        screen: 'UploadCAS',
+                        screen: 'UpdatePortfolio',
                       });
                     } else {
                       showModal(true);

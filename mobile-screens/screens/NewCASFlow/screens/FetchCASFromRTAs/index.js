@@ -21,8 +21,6 @@ import {useEffect} from 'react';
 import {useState} from 'react';
 import useBetaForm from '@reusejs/react-form-hook';
 import Config from 'react-native-config';
-import {WebViewComponent} from '../../../../reusables/WebView_new';
-import {Loader} from '../../../../reusables/TermsAndConditionsModal';
 
 const SCREEN_BACKGROUND_COLOR = 'white';
 const ICON_HEIGHT = 16;
@@ -44,16 +42,23 @@ const showStepCount = (provider = 'cams') => {
   }
 };
 
+
 export default function ({navigation, route}) {
   const theme = useTheme();
   const defaultSelectedStep = route?.params?.dataProvider || 'cams';
 
   const [initialStep] = useState(showStepCount(defaultSelectedStep));
-  const {incrementCurrentStep, currentStep, setActiveStep, steps, clearSteps} =
-    useStepper();
+  const {incrementCurrentStep, currentStep, setActiveStep, steps} = useStepper(
+    0,
+    [
+      {id: 'first', name: 'CAMS'},
+      {id: 'second', name: 'KARVY'},
+    ],
+    [],
+  );
   const [completedSteps, setCompletedSteps] = useState([]);
   const [skippedSteps, setSkippedSteps] = useState([]);
-  const [nextStep, setNextStep] = useState(null);
+  const [action, setAction] = useState(null);
   const [loadingText, setLoadingText] = useState(null);
 
   const initiateCAMSCASForm = useBetaForm({
@@ -83,20 +88,16 @@ export default function ({navigation, route}) {
           setLoadingText(CAMS_REQUEST_TEXT);
           const handleInitiateCASRequestResponse =
             await handleInitiateCASRequest(initiateCAMSCASForm?.value, 'cams');
-          console.log(
-            'handleInitiateCASRequestResponse in email and phone----CAMS: ',
-            prettifyJSON(handleInitiateCASRequestResponse),
-          );
+
           setLoadingText(null);
-          setNextStep(handleInitiateCASRequestResponse);
+          setAction(handleInitiateCASRequestResponse);
         }
       } catch (error) {
-        console.log('error: ', error?.message?.errors?.error);
         initiateCAMSCASForm.setErrors({
           error: [`${error?.message?.errors?.error}`],
         });
         setLoadingText(null);
-        setNextStep('request_using_custom');
+        setAction('request_using_custom');
         throw error;
       }
     })();
@@ -111,7 +112,6 @@ export default function ({navigation, route}) {
     (async () => {
       try {
         if (currentStep === 1) {
-          console.log('if condition nextStep: ', nextStep);
           setLoadingText(KARVY_REQUEST_TEXT);
           const handleInitiateCASRequestResponse =
             await handleInitiateCASRequest(
@@ -124,31 +124,18 @@ export default function ({navigation, route}) {
             prettifyJSON(handleInitiateCASRequestResponse),
           );
           setLoadingText(null);
-          setNextStep(handleInitiateCASRequestResponse);
+          setAction(handleInitiateCASRequestResponse);
         }
       } catch (error) {
-        console.log('error: ', error?.message?.errors?.error);
         initiateKarvyCASForm.setErrors({
           error: [`${error?.message?.errors?.error}`],
         });
-        setNextStep('request_using_custom');
+        setAction('request_using_custom');
         setLoadingText(null);
         throw error;
       }
     })();
   }, [initiateKarvyCASForm?.value, currentStep]);
-
-  useEffect(() => {
-    return () => {
-      console.log('Unmounting called');
-      clearSteps();
-    };
-  }, []);
-
-  console.log('currentStep: ', currentStep);
-  console.log('loadingText-------', loadingText);
-
-  console.log('nextStep in index file: ', nextStep);
 
   return (
     <ScreenWrapper style={{backgroundColor: SCREEN_BACKGROUND_COLOR}}>
@@ -163,6 +150,7 @@ export default function ({navigation, route}) {
             </TouchableOpacity>
           </View>
         ) : null}
+
         <View style={{marginTop: 16}}>
           <Stepper
             iconHeight={ICON_HEIGHT}
@@ -180,12 +168,12 @@ export default function ({navigation, route}) {
             skippedSteps={skippedSteps}
             completedSteps={completedSteps}
             capitalizeLabel={true}
-            labelTopSpace={10}>
-            <Stepper.Steps>
-              <Stepper.Step id="first" name="CAMS" />
-              <Stepper.Step id="second" name="KARVY" />
-            </Stepper.Steps>
-          </Stepper>
+            labelTopSpace={10}
+            incrementCurrentStep={incrementCurrentStep}
+            setActiveStep={setActiveStep}
+            currentStep={currentStep}
+            steps={steps}
+          />
         </View>
 
         <View style={{marginTop: 64, flex: 1}}>
@@ -199,15 +187,15 @@ export default function ({navigation, route}) {
             }}>
             {`VERIFICATION ${currentStep + 1} of ${steps?.length}`}
           </Text>
-          {nextStep?.message?.includes('html') ? (
+          {/* {action?.message?.includes('html') ? (
             <WebViewComponent
-              html={nextStep?.message}
+              html={action?.message}
               containerStyle={{height: '100%', marginTop: 24}}
               loaderComponent={() => <Loader />}
             />
-          ) : null}
+          ) : null} */}
 
-          {currentStep === 0 && nextStep === 'request_using_custom' ? (
+          {currentStep === 0 && action === 'request_using_custom' ? (
             <CollectMobileAndEmailForCAMS
               onLoading={status => {
                 if (status === true) {
@@ -216,39 +204,47 @@ export default function ({navigation, route}) {
                   setLoadingText(null);
                 }
               }}
-              errorMsg={initiateCAMSCASForm.errors.get('error')[0]}
-              onSubmit={step => {
-                console.log('step: ', step);
-                if (step === 'ask_for_otp') {
-                  setNextStep(step);
-                } else {
-                  incrementCurrentStep();
-                  setNextStep('skip_cams');
+              errorMsg={initiateCAMSCASForm.errors.get('error')?.[0]}
+              onSubmit={nextAction => {
+                if (nextAction === 'ask_for_otp') {
+                  setAction(nextAction);
+                } else if (nextAction === 'skip') {
+                  setAction('skip_cams');
                   setSkippedSteps(prevStep => [...prevStep, 0]);
+                  setLoadingText(KARVY_REQUEST_TEXT);
+                  incrementCurrentStep();
                 }
               }}
+              onError={nextAction => {
+                setLoadingText(KARVY_REQUEST_TEXT);
+                incrementCurrentStep();
+                setAction('skip_cams');
+                setSkippedSteps(prevStep => [...prevStep, 0]);
+              }}
               onSkip={() => {
-                console.log('onSkip called in CAMS 1st screen: ');
-                setNextStep('skip_cams');
+                setAction('skip_cams');
                 setSkippedSteps(prevStep => [...prevStep, 0]);
               }}
             />
-          ) : currentStep === 0 && nextStep === 'ask_for_otp' ? (
+          ) : currentStep === 0 && action === 'ask_for_otp' ? (
             <CAMSOTPVerification
-              onSubmit={step => {
-                if (!step) {
-                  console.log('CAMSOTPVerification->!step: ', step);
+              onSubmit={nextAction => {
+                if (!nextAction) {
                   setLoadingText(null);
                 } else {
-                  console.log('CAMSOTPVerification->step', step);
-                  setNextStep('karvy_auto_check');
+                  setAction('karvy_auto_check');
+                  setLoadingText(KARVY_REQUEST_TEXT);
                   setCompletedSteps(prevStep => [...prevStep, 0]);
-                  setLoadingText(null);
                 }
+              }}
+              onError={nextAction => {
+                incrementCurrentStep();
+                setAction('karvy_auto_check');
+                setLoadingText(KARVY_REQUEST_TEXT);
+                setSkippedSteps(prevStep => [...prevStep, 0]);
               }}
               payload={initiateCAMSCASForm?.value}
               onRequestResendOTP={status => {
-                console.log('onRequestResendOTP->status: ', status);
                 if (status === true) {
                   setLoadingText(CAMS_REQUEST_TEXT);
                 } else {
@@ -258,7 +254,7 @@ export default function ({navigation, route}) {
             />
           ) : null}
 
-          {currentStep === 1 && nextStep === 'request_using_custom' ? (
+          {currentStep === 1 && action === 'request_using_custom' ? (
             <CollectMobileAndEmailForKarvy
               onLoading={status => {
                 console.log(
@@ -271,43 +267,58 @@ export default function ({navigation, route}) {
                   setLoadingText(null);
                 }
               }}
-              errorMsg={initiateKarvyCASForm.errors.get('error')[0]}
-              onSubmit={step => {
-                console.log('step: ', step);
-                if (step === 'ask_for_otp') {
-                  setNextStep(step);
+              errorMsg={initiateKarvyCASForm.errors.get('error')?.[0]}
+              onSubmit={nextAction => {
+                if (nextAction === 'ask_for_otp') {
+                  setAction(nextAction);
                   setLoadingText(null);
-                } else {
+                } else if (nextAction === 'skip') {
                   setLoadingText(null);
                   incrementCurrentStep();
-                  setNextStep('skip_karvy');
+                  setAction('skip_karvy');
                   setSkippedSteps(prevStep => [...prevStep, 1]);
                   navigation.replace('Protected');
                 }
               }}
+              onError={nextAction => {
+                setLoadingText(null);
+                incrementCurrentStep();
+                setSkippedSteps(prevStep => [...prevStep, 1]);
+                setAction('skip_karvy');
+                navigation.replace('Protected');
+              }}
               onSkip={() => {
                 setSkippedSteps(prevStep => [...prevStep, 1]);
                 setLoadingText(null);
+                setAction('skip_karvy');
                 navigation.replace('Protected');
               }}
             />
-          ) : currentStep === 1 && nextStep === 'ask_for_otp' ? (
+          ) : currentStep === 1 && action === 'ask_for_otp' ? (
             <KarvyOTPVerification
-              onSubmit={step => {
-                setNextStep(null);
-                if (!step) {
-                  console.log('KarvyOTPVerification->!step: ', step);
+              onSubmit={nextAction => {
+                setAction(null);
+                if (!nextAction) {
+                  console.log(
+                    'KarvyOTPVerification->!nextAction: ',
+                    nextAction,
+                  );
                   setLoadingText(null);
                 } else {
-                  console.log('KarvyOTPVerification->step', step);
                   setCompletedSteps(prevStep => [...prevStep, 1]);
                   setLoadingText(null);
                   navigation.replace('Protected');
                 }
               }}
+              onError={nextAction => {
+                incrementCurrentStep();
+                setAction(null);
+                setLoadingText(null);
+                setSkippedSteps(prevStep => [...prevStep, 1]);
+                navigation.replace('Protected');
+              }}
               payload={initiateKarvyCASForm?.value}
               onRequestResendOTP={status => {
-                console.log('onRequestResendOTP->status: ', status);
                 if (status === true) {
                   setLoadingText(KARVY_REQUEST_TEXT);
                 } else {

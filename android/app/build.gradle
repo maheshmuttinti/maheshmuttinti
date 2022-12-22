@@ -138,8 +138,8 @@ android {
         applicationId "com.finezzyvtwo"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 188
-        versionName "0.17.5"
+        versionCode 190
+        versionName "0.17.7"
     }
     splits {
         abi {

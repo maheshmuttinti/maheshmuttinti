@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useEffect} from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import {GrayBodyText, AuthHeading, CustomOtpInput, useStepper} from 'uin';
+import {GrayBodyText, AuthHeading, CustomOtpInput} from 'uin';
 import useBetaForm from '@reusejs/react-form-hook';
 import BackgroundTimer from '../../../../../reusables/BackgroundTimer';
 import {useTheme} from 'theme';
@@ -14,6 +14,7 @@ export const OTPVerification = ({
   payload,
   onSubmit = () => {},
   onRequestResendOTP = () => {},
+  onError = () => {},
 }) => {
   const theme = useTheme();
   const [isSubmittingCASRequest, setIsSubmittingCASRequest] = useState(false);
@@ -43,9 +44,22 @@ export const OTPVerification = ({
           onSubmit(handleSubmitRequestCASOTPVerificationResponse);
           setIsSubmittingCASRequest(false);
         } catch (error) {
-          submitCASRequestOTPForm.setErrors(error);
-          Sentry.captureException(error);
-          throw error;
+          setIsSubmittingCASRequest(false);
+          console.log(
+            'handleInitiateCASRequestForRedirection-error',
+            error,
+            error?.response?.status,
+          );
+          if (error?.response?.status === 422) {
+            // Todo: Set the Form Errors - Done
+            setIsSubmittingCASRequest(false);
+            submitCASRequestOTPForm.setErrors(error?.response?.data?.errors);
+            Sentry.captureException(error);
+            throw error;
+          } else {
+            onError(error);
+            throw error;
+          }
         }
       })();
     }
@@ -74,6 +88,7 @@ export const OTPVerification = ({
         error,
       );
       Sentry.captureException(error);
+      submitCASRequestOTPForm.setErrors(error);
       throw error;
     }
   };
@@ -84,6 +99,11 @@ export const OTPVerification = ({
       submitCASRequestOTPForm.setField('otp', text);
     }
   };
+
+  console.log(
+    "submitCASRequestOTPForm.errors.get('otp')-----cams",
+    submitCASRequestOTPForm.errors.get('otp'),
+  );
 
   return (
     <>

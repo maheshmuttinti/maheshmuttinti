@@ -543,7 +543,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 183;
+				CURRENT_PROJECT_VERSION = 185;
 				DEVELOPMENT_TEAM = YH4535UQCR;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = mobile/Info.plist;
@@ -557,7 +557,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.radicaladvisors.finezzy;
+				PRODUCT_BUNDLE_IDENTIFIER = com.finezzy.finezzyvtwo;
 				PRODUCT_NAME = mobile;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -574,7 +574,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 184;
+				CURRENT_PROJECT_VERSION = 186;
 				DEVELOPMENT_TEAM = YH4535UQCR;
 				INFOPLIST_FILE = mobile/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = FinEzzy;
@@ -587,9 +587,9 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.radicaladvisors.finezzy;
+				PRODUCT_BUNDLE_IDENTIFIER = com.finezzy.finezzyvtwo;
 				PRODUCT_NAME = mobile;
-				PROVISIONING_PROFILE_SPECIFIER = Finezzy;
+				PROVISIONING_PROFILE_SPECIFIER = FinezzyVtwo;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};

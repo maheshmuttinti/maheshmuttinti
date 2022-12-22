@@ -6,7 +6,7 @@ import ChooseNBFC from '../screens/LAMF/ChooseNBFC';
 import CompareNBFC from '../screens/LAMF/CompareNBFCs';
 import SelectSchemes from '../screens/LAMF/SelectSchemes';
 import LienMarking from '../screens/LAMF/LienMarking';
-import UpdatePortfolio from '../screens/LAMF/UpdatePortfolio';
+import UpdatePortfolio from '../screens/NewCASFlow/screens/UpdatePortfolio';
 import CamsSuccess from '../screens/LAMF/CAMSSuccess';
 import LoanApplication from '../screens/LAMF/LoanApplication';
 import NextSteps from '../screens/LAMF/NextSteps';
