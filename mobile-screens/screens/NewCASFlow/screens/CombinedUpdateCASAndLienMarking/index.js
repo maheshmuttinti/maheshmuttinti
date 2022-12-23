@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import {Pressable, View, Text} from 'react-native';
-import React, {useMemo} from 'react';
-import {Stepper, useStepper} from 'uin';
+import React from 'react';
+import {Stepper} from 'uin';
 import {
   BlueDotCircle,
   GreyCircle,
@@ -14,34 +14,33 @@ import {OTPVerification as UpdateCASCAMSOTPVerification} from '../../components/
 import {OTPVerification as UpdateCASKarvyOTPVerification} from '../../components/UpdateCASFromRTAs/Karvy/OTPVerification';
 import {OTPVerification as CAMSRTALienMarkingOTPVerification} from '../../components/RTAsLienMarking/CAMS/OTPVerification';
 import {OTPVerification as KarvyRTALienMarkingOTPVerification} from '../../components/RTAsLienMarking/Karvy/OTPVerification';
+import {useLienMarkingRedirections} from './hooks/useLienMarkingRedirections';
 
 const SCREEN_BACKGROUND_COLOR = 'white';
 const ICON_HEIGHT = 16;
 const ICON_WIDTH = 16;
 
-export default function ({
-  navigation,
-  incrementCurrentStep,
-  decrementCurrentStep,
-  currentStep,
-  steps,
-}) {
+export default function ({navigation, route}) {
+  const refreshableCASDataProvidersForNBFC =
+    route?.params?.refreshableCASDataProvidersForNBFC;
   const theme = useTheme();
-
-  // const {incrementCurrentStep, decrementCurrentStep, currentStep, steps} =
-  //   useStepper();
+  const {
+    incrementCurrentStep,
+    completedSteps,
+    steps,
+    skippedSteps,
+    currentStep,
+    setActiveStep,
+    failedSteps,
+    setCompletedSteps,
+  } = useLienMarkingRedirections(refreshableCASDataProvidersForNBFC);
   const backArrowIconWrapperStyle = {
-    paddingTop: 48,
+    paddingTop: 32,
   };
 
   const handleGoBack = () => {
     navigation.pop();
   };
-
-  const currentStepToShow = useMemo(
-    () => (currentStep + 1 > steps?.length ? steps.length : currentStep + 1),
-    [currentStep, steps],
-  );
 
   return (
     <ScreenWrapper style={{backgroundColor: SCREEN_BACKGROUND_COLOR}}>
@@ -56,6 +55,7 @@ export default function ({
             <BackArrow />
           </Pressable>
         </View>
+
         <View style={{marginTop: 16}}>
           <Stepper
             iconHeight={ICON_HEIGHT}
@@ -64,21 +64,25 @@ export default function ({
             notSelectedComponent={() => <GreyCircle />}
             checkedComponent={() => <GreenTickCircleSmall />}
             selectedComponent={() => <BlueDotCircle />}
+            failedComponent={() => (
+              <GreenTickCircleSmall fill={theme.colors.error} />
+            )}
             activeLineColor="blue"
             checkedLabelColor={theme.colors.primaryBlue}
             selectedLabelColor="black"
             notSelectedLabelColor="grey"
             hideDefaultHeader={true}
-            activeStep={0}
+            activeStep={currentStep}
+            skippedSteps={skippedSteps}
+            completedSteps={completedSteps}
+            failedSteps={failedSteps}
             capitalizeLabel={true}
-            labelTopSpace={10}>
-            <Stepper.Steps>
-              <Stepper.Step id="first" name="Holdings- Cams" />
-              <Stepper.Step id="second" name="Holdings- Karvy" />
-              <Stepper.Step id="third" name="LIEN MARK- CAMS" />
-              <Stepper.Step id="four" name="LIEN MARK- Karvy" />
-            </Stepper.Steps>
-          </Stepper>
+            labelTopSpace={10}
+            incrementCurrentStep={incrementCurrentStep}
+            setActiveStep={setActiveStep}
+            currentStep={currentStep}
+            steps={steps}
+          />
         </View>
         <View style={{marginTop: 64, flex: 1}}>
           <Text
@@ -89,36 +93,40 @@ export default function ({
               fontFamily: theme.fonts.regular,
               paddingBottom: 8,
             }}>
-            {`VERIFICATION ${currentStepToShow} of ${steps?.length}`}
+            {`VERIFICATION ${currentStep + 1} of ${steps?.length}`}
           </Text>
-          {currentStepToShow === 1 && (
+          {currentStep === 0 ? (
             <UpdateCASCAMSOTPVerification
               onSubmit={() => {
                 incrementCurrentStep();
+                setCompletedSteps(prevStep => [...prevStep, 0]);
               }}
             />
-          )}
-          {currentStepToShow === 2 && (
+          ) : null}
+          {currentStep === 1 ? (
             <UpdateCASKarvyOTPVerification
               onSubmit={() => {
                 incrementCurrentStep();
+                setCompletedSteps(prevStep => [...prevStep, 1]);
               }}
             />
-          )}
-          {currentStepToShow === 3 && (
+          ) : null}
+          {currentStep === 2 ? (
             <CAMSRTALienMarkingOTPVerification
               onSubmit={() => {
                 incrementCurrentStep();
+                setCompletedSteps(prevStep => [...prevStep, 2]);
               }}
             />
-          )}
-          {currentStepToShow === 4 && (
+          ) : null}
+          {currentStep === 3 ? (
             <KarvyRTALienMarkingOTPVerification
               onSubmit={() => {
                 incrementCurrentStep();
+                setCompletedSteps(prevStep => [...prevStep, 3]);
               }}
             />
-          )}
+          ) : null}
         </View>
       </View>
     </ScreenWrapper>

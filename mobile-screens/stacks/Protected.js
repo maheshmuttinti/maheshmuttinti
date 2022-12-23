@@ -19,6 +19,7 @@ import UploadPortfolio from '../screens/UploadCAS/UploadPortfolio';
 import FAQ from '../screens/UploadCAS/FAQ';
 import DigioSDK from '../reusables/digioSDK';
 import WebBrowser from '../reusables/WebBrowser';
+import CombinedUpdateCASAndLienMarking from '../screens/NewCASFlow/screens/CombinedUpdateCASAndLienMarking';
 
 const Protected = () => {
   const Stack = createStackNavigator();
@@ -77,6 +78,11 @@ const Protected = () => {
         name="SelectSchemes"
         options={{headerShown: false}}
         component={SelectSchemes}
+      />
+      <Stack.Screen
+        name="CombinedUpdateCASAndLienMarking"
+        options={{headerShown: false}}
+        component={CombinedUpdateCASAndLienMarking}
       />
       <Stack.Screen
         name="LienMarking"
