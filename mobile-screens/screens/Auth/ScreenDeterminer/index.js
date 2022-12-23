@@ -20,7 +20,6 @@ export default function ({navigation, route}) {
   const theme = useTheme();
   const dispatch = useDispatch();
   const accessToken = route?.params?.access_token;
-  console.log('accessToken in screen Determiner: ', accessToken);
   const handleExpiredSession = useRef(() => {});
   const handleRedirections = useRef(() => {});
   const redirectToNoInternetScreen = useRef(() => {});
@@ -58,10 +57,6 @@ export default function ({navigation, route}) {
     const isMobileNumberVerifiedOnUserSessionExpire = JSON.parse(
       await AsyncStorage.getItem('@is_mobile_number_verified'),
     );
-    console.log(
-      'isMobileNumberVerifiedOnUserSessionExpire: ',
-      isMobileNumberVerifiedOnUserSessionExpire,
-    );
     if (isMobileNumberVerifiedOnUserSessionExpire !== null) {
       if (isMobileNumberVerifiedOnUserSessionExpire === true) {
         navigation.replace('Auth', {screen: 'SigninHome'});
@@ -88,16 +83,11 @@ export default function ({navigation, route}) {
 
   const handleRedirectionUntilDashboard = async user => {
     const mpinStatus = getMPINStatus(user, isUserLoggedInWithMPIN);
-    console.log('handleRedirectionUntilDashboard->mpinStatus: ', mpinStatus);
 
     const isUserRegisteredWithMobileNumber = user?.attributes
       ?.map(item => item.type)
       ?.includes('mobile_number');
 
-    console.log(
-      'isUserRegisteredWithMobileNumber: ',
-      isUserRegisteredWithMobileNumber,
-    );
     if (!isUserRegisteredWithMobileNumber) {
       navigation.replace('Auth', {screen: 'EnterPhoneNumber'});
     } else if (
@@ -119,9 +109,6 @@ export default function ({navigation, route}) {
 
   handleRedirections.current = async () => {
     try {
-      console.log(
-        'redirection started in screen determiner----------------------'.toUpperCase(),
-      );
       const tokenFromStorage = await AsyncStorage.getItem('@access_token');
 
       const showAppPromo = JSON.parse(
@@ -152,12 +139,7 @@ export default function ({navigation, route}) {
         await redirectBasedOnMobileNumberVerification();
         hideSplashScreen();
       }
-
-      console.log(
-        'redirection done in screen determiner----------------------'.toUpperCase(),
-      );
     } catch (error) {
-      console.log('error in screen determiner--------------: ', error);
       handleExpiredSession.current();
       hideSplashScreen();
       Sentry.captureException(error);
@@ -167,7 +149,6 @@ export default function ({navigation, route}) {
   useFocusEffect(
     useCallback(() => {
       handleRedirections.current();
-      // handleExpiredSession.current();
     }, []),
   );
 

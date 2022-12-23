@@ -57,7 +57,7 @@ const useOnboardingHandleRedirection = () => {
       } else {
         navigation.replace('PANSetup');
       }
-      return err;
+      throw err;
     }
   };
   return {handleRedirection, handleUpdateOnboardingStep};

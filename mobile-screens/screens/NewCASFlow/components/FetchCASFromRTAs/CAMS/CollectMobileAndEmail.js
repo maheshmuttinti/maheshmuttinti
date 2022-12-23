@@ -37,8 +37,7 @@ export const CollectMobileAndEmail = ({
     fi_code: `${Config.FI_CODE}`,
   });
 
-  const {handleInitiateCASRequest, handleSkipInitiateCASRequest} =
-    useHandleCASFetching(incrementCurrentStep);
+  const {handleInitiateCASRequest} = useHandleCASFetching();
 
   const form = useBetaForm({
     type: '',
@@ -294,9 +293,7 @@ export const CollectMobileAndEmail = ({
             paddingTop: 16,
           }}>
           <TextButton
-            // disable={processing}
             onPress={() => {
-              handleSkipInitiateCASRequest('cams');
               onSkip();
             }}>
             Skip CAMS verification

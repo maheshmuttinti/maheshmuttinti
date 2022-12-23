@@ -1,17 +1,16 @@
 /* eslint-disable react-native/no-inline-styles */
 import * as React from 'react';
 import {useEffect, useState} from 'react';
-import {LogBox, Platform, View} from 'react-native';
+import {LogBox, View} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {themes, ThemeProvider, useTheme} from 'theme';
 import Config from 'react-native-config';
-import {prettifyJSON, RootNavigation} from 'utils';
+import {RootNavigation} from 'utils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {setTokens, setUser} from 'store';
 import {getUser} from 'services';
 import {useDispatch} from 'react-redux';
-import Toast from 'react-native-toast-message';
 import {AnimatedEllipsis} from 'uin';
 import Auth from './stacks/Auth';
 import Protected from './stacks/Protected';
@@ -26,10 +25,6 @@ import PINSetup from './stacks/PINSetup';
 import AppPromo from './screens/AppPromo';
 import {useClearAsyncStorageKeys} from './reusables/useClearAsyncStorageKeys';
 import General from './stacks/General';
-import {
-  SchemeWarningComponent,
-  SelectSchemeWarningComponent,
-} from './screens/Toasts';
 import {linking} from './deepLinkConfigs';
 import withAuth from './hocs/withAuth';
 import FetchCAS from './stacks/FetchCAS';
@@ -40,8 +35,6 @@ Sentry.init({
 
 const Stack = createStackNavigator();
 
-console.log('Config.API_URL', Config.API_URL);
-
 LogBox.ignoreLogs([
   'VirtualizedLists should never be nested',
   'EventEmitter.removeListener',
@@ -50,13 +43,6 @@ LogBox.ignoreLogs([
   'Please report: Excessive number of pending callbacks: 501. Some pending callbacks that might have leaked by never being called from native code',
   'Task orphaned for request',
 ]);
-
-const Device = `${Platform.OS.toUpperCase()} Device: `;
-
-const toastConfig = {
-  schemeWarning: () => <SchemeWarningComponent />,
-  selectSchemeWarning: () => <SelectSchemeWarningComponent />,
-};
 
 const App = () => {
   const theme = useTheme();
@@ -203,7 +189,6 @@ const App = () => {
           </Stack.Navigator>
         </NavigationContainer>
       </ThemeProvider>
-      {/* <Toast config={toastConfig} /> */}
     </>
   );
 };

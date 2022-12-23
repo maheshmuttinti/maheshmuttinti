@@ -15,7 +15,6 @@ export const OTPVerification = ({
   onSubmit = () => {},
   onRequestResendOTP = () => {},
   onError = () => {},
-  incrementCurrentStep,
 }) => {
   const theme = useTheme();
   const [isSubmittingCASRequest, setIsSubmittingCASRequest] = useState(false);
@@ -25,7 +24,7 @@ export const OTPVerification = ({
     fi_code: `${Config.FI_CODE}`,
   });
   const {handleSubmitRequestCASOTPVerification, handleInitiateCASRequest} =
-    useHandleCASFetching(incrementCurrentStep);
+    useHandleCASFetching();
 
   useEffect(() => {
     if (submitCASRequestOTPForm?.value?.otp?.length === 5) {
@@ -52,7 +51,6 @@ export const OTPVerification = ({
             error?.response?.status,
           );
           if (error?.response?.status === 422) {
-            // Todo: Set the Form Errors - Done
             setIsSubmittingCASRequest(false);
             submitCASRequestOTPForm.setErrors(error?.response?.data?.errors);
             Sentry.captureException(error);
@@ -100,11 +98,6 @@ export const OTPVerification = ({
       submitCASRequestOTPForm.setField('otp', text);
     }
   };
-
-  console.log(
-    "submitCASRequestOTPForm.errors.get('otp')-----cams",
-    submitCASRequestOTPForm.errors.get('otp'),
-  );
 
   return (
     <>

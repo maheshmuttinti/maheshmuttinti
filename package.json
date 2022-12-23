@@ -1,6 +1,6 @@
 {
   "name": "mobile",
-  "version": "0.17.8",
+  "version": "0.17.9",
   "private": true,
   "scripts": {
     "android": "react-native run-android",

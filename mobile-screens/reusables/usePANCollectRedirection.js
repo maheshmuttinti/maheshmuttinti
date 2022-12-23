@@ -18,7 +18,7 @@ export const usePANCollectRedirection = (pan, name, form, navigation) => {
       }
     } catch (error) {
       form.setErrors(error);
-      return error;
+      throw error;
     }
   };
   return handleRedirection;

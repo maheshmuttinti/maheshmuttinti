@@ -1,6 +1,12 @@
 import * as Sentry from '@sentry/react-native';
-import {prettifyJSON, sleep} from 'utils';
 import {initialCASRequest, submitCASRequest} from 'services';
+import axios from 'axios';
+const source = axios.CancelToken.source();
+const timeout = setTimeout(() => {
+  console.log('Cancelling Request....');
+  source.cancel();
+  console.log('Cancelled Request.');
+}, 1000);
 
 export const useCASFetchAPIs = () => {
   const handleInitiateRequestCAS = async initialCASRequestPayload => {
@@ -12,14 +18,9 @@ export const useCASFetchAPIs = () => {
       const responseOfInitiateCASFromCAMS = await initialCASRequest(
         initialCASRequestPayload,
       );
-      console.log(
-        'handleInitiateRequestCAS Response-------------: ',
-        prettifyJSON(responseOfInitiateCASFromCAMS),
-      );
 
       return responseOfInitiateCASFromCAMS?.next_step;
     } catch (error) {
-      console.log('handleInitiateRequestCAS------------->error: ', error);
       Sentry.captureException(error);
       throw error;
     }
@@ -29,20 +30,15 @@ export const useCASFetchAPIs = () => {
       if (!submitCASRequestPayload) {
         return null;
       }
-      console.log(
-        'Awaiting 10 seconds to Submit the RTA CAS Request OTP for Verification...',
-      );
-      console.log('Calling the Submit RTA CAS Request OTP API...');
+      submitCASRequest;
+
       const submitCASRequestResponse = await submitCASRequest(
         submitCASRequestPayload,
-      );
-      console.log(
-        'submitCASRequestResponse---------------: ',
-        submitCASRequestResponse,
+        {cancelToken: source.token},
+        timeout,
       );
       return submitCASRequestResponse;
     } catch (error) {
-      console.log('handleInitiateRequestCAS---------->error: ', error);
       Sentry.captureException(error);
       throw error;
     }

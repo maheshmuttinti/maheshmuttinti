@@ -100,7 +100,7 @@ export default function ({navigation}) {
         }
       }
       Sentry.captureException(err);
-      return err;
+      throw err;
     }
   }, [pan]);
 
@@ -118,12 +118,12 @@ export default function ({navigation}) {
     } catch (err) {
       setLoading(false);
       console.log('error', err);
+      throw err;
     }
   };
 
   const handleSkip = () => {
     navigation.replace('Protected');
-    // navigation.replace('FetchCAS', {screen: 'FetchCASFromRTAs'});
   };
 
   return (
