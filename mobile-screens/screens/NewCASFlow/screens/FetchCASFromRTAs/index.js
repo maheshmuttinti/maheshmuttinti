@@ -40,6 +40,8 @@ export default function ({navigation, route}) {
     setLoadingText,
     setAction,
     setSkippedSteps,
+    setFailedSteps,
+    failedSteps,
     initiateCAMSCASForm,
     initiateKarvyCASForm,
   } = useAutoFlowRTACASFetchingRedirections(refreshableCASDataProvidersForNBFC);
@@ -69,6 +71,9 @@ export default function ({navigation, route}) {
                 notSelectedComponent={() => <GreyCircle />}
                 checkedComponent={() => <GreenTickCircleSmall />}
                 selectedComponent={() => <BlueDotCircle />}
+                failedComponent={() => (
+                  <GreenTickCircleSmall fill={theme.colors.error} />
+                )}
                 activeLineColor="blue"
                 checkedLabelColor={theme.colors.primaryBlue}
                 selectedLabelColor="black"
@@ -77,6 +82,7 @@ export default function ({navigation, route}) {
                 activeStep={currentStep}
                 skippedSteps={skippedSteps}
                 completedSteps={completedSteps}
+                failedSteps={failedSteps}
                 capitalizeLabel={true}
                 labelTopSpace={10}
                 incrementCurrentStep={incrementCurrentStep}
@@ -96,13 +102,6 @@ export default function ({navigation, route}) {
                 }}>
                 {`VERIFICATION ${currentStep + 1} of ${steps?.length}`}
               </Text>
-              {/* {action?.message?.includes('html') ? (
-            <WebViewComponent
-              html={action?.message}
-              containerStyle={{height: '100%', marginTop: 24}}
-              loaderComponent={() => <Loader />}
-            />
-          ) : null} */}
               {refreshableCASDataProvidersForNBFC?.includes('cams') &&
               currentStep === 0 &&
               action === 'request_using_custom' ? (
@@ -129,7 +128,7 @@ export default function ({navigation, route}) {
                     incrementCurrentStep();
                     setLoadingText(KARVY_REQUEST_TEXT);
                     setAction('skip_cams');
-                    setSkippedSteps(prevStep => [...prevStep, 0]);
+                    setFailedSteps(prevStep => [...prevStep, 0]);
                   }}
                   onSkip={() => {
                     incrementCurrentStep();
@@ -156,7 +155,7 @@ export default function ({navigation, route}) {
                   onError={() => {
                     incrementCurrentStep();
                     setAction('karvy_auto_check');
-                    setSkippedSteps(prevStep => [...prevStep, 0]);
+                    setFailedSteps(prevStep => [...prevStep, 0]);
                     setLoadingText(KARVY_REQUEST_TEXT);
                   }}
                   onRequestResendOTP={status => {
@@ -195,7 +194,7 @@ export default function ({navigation, route}) {
                   onError={() => {
                     setLoadingText(null);
                     setAction(null);
-                    setSkippedSteps(prevStep => [...prevStep, 1]);
+                    setFailedSteps(prevStep => [...prevStep, 1]);
                     navigation.replace('Protected');
                   }}
                   onSkip={() => {
@@ -224,7 +223,7 @@ export default function ({navigation, route}) {
                   onError={() => {
                     setAction(null);
                     setLoadingText(null);
-                    setSkippedSteps(prevStep => [...prevStep, 1]);
+                    setFailedSteps(prevStep => [...prevStep, 1]);
                     navigation.replace('Protected');
                   }}
                   onRequestResendOTP={status => {
@@ -256,17 +255,17 @@ export default function ({navigation, route}) {
                   if (nextAction === 'ask_for_otp') {
                     setAction(nextAction);
                   } else if (nextAction === 'skip') {
+                    setSkippedSteps(prevStep => [...prevStep, 0]);
                     navigation.replace('Protected');
-                    setCompletedSteps(prevStep => [...prevStep, 0]);
                   }
                 }}
                 onError={() => {
                   navigation.replace('Protected');
-                  setCompletedSteps(prevStep => [...prevStep, 0]);
+                  setFailedSteps(prevStep => [...prevStep, 0]);
                 }}
                 onSkip={() => {
                   navigation.replace('Protected');
-                  setCompletedSteps(prevStep => [...prevStep, 0]);
+                  setSkippedSteps(prevStep => [...prevStep, 0]);
                 }}
               />
             ) : refreshableCASDataProvidersForNBFC?.includes('cams') &&
@@ -278,13 +277,13 @@ export default function ({navigation, route}) {
                   if (!nextAction) {
                     setLoadingText(null);
                   } else {
-                    navigation.replace('Protected');
                     setCompletedSteps(prevStep => [...prevStep, 0]);
+                    navigation.replace('Protected');
                   }
                 }}
                 onError={() => {
                   navigation.replace('Protected');
-                  setCompletedSteps(prevStep => [...prevStep, 0]);
+                  setFailedSteps(prevStep => [...prevStep, 0]);
                 }}
                 onRequestResendOTP={status => {
                   if (status === true) {
@@ -320,7 +319,7 @@ export default function ({navigation, route}) {
                 }}
                 onError={() => {
                   setLoadingText(null);
-                  setSkippedSteps(prevStep => [...prevStep, 1]);
+                  setFailedSteps(prevStep => [...prevStep, 1]);
                   navigation.replace('Protected');
                 }}
                 onSkip={() => {
@@ -348,7 +347,7 @@ export default function ({navigation, route}) {
                 onError={() => {
                   setAction(null);
                   setLoadingText(null);
-                  setSkippedSteps(prevStep => [...prevStep, 1]);
+                  setFailedSteps(prevStep => [...prevStep, 1]);
                   navigation.replace('Protected');
                 }}
                 onRequestResendOTP={status => {

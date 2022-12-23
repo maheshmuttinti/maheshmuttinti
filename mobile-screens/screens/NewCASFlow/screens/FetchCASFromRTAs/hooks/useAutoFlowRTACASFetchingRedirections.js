@@ -44,6 +44,7 @@ export const useAutoFlowRTACASFetchingRedirections =
       );
     const [completedSteps, setCompletedSteps] = useState([]);
     const [skippedSteps, setSkippedSteps] = useState([]);
+    const [failedSteps, setFailedSteps] = useState([]);
     const [action, setAction] = useState(null);
     const [loadingText, setLoadingText] = useState(null);
 
@@ -132,5 +133,7 @@ export const useAutoFlowRTACASFetchingRedirections =
       setSkippedSteps,
       initiateCAMSCASForm,
       initiateKarvyCASForm,
+      failedSteps,
+      setFailedSteps,
     };
   };
