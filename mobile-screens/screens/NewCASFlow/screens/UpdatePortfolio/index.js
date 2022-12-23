@@ -8,8 +8,13 @@ import {InfoIcon, RecheckPortfolio} from 'assets';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {getLinkedPAN} from 'services';
 
-const UpdatePortfolio = ({navigation}) => {
+const UpdatePortfolio = ({navigation, route}) => {
   const theme = useTheme();
+  const refreshableCASDataProvidersForNBFC = route?.params?.providers;
+  console.log(
+    'refreshableCASDataProvidersForNBFC in update portfolio screen: ',
+    refreshableCASDataProvidersForNBFC,
+  );
 
   const handleRedirect = async () => {
     try {
@@ -21,7 +26,12 @@ const UpdatePortfolio = ({navigation}) => {
         const isPANLinked = panResponse?.pan && panResponse?.name;
 
         if (isPANLinked) {
-          navigation.navigate('FetchCAS', {screen: 'FetchCASFromRTAs'});
+          navigation.navigate('FetchCAS', {
+            screen: 'FetchCASFromRTAs',
+            params: {
+              refreshableCASDataProvidersForNBFC,
+            },
+          });
         } else {
           navigation.navigate('PANSetup');
         }

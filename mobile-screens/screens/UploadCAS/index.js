@@ -80,7 +80,9 @@ export default function ({navigation}) {
             onPress={() => {
               navigation.navigate('FetchCAS', {
                 screen: 'FetchCASFromRTAs',
-                // params: {currentStep: 'karvy'},
+                params: {
+                  refreshableCASDataProvidersForNBFC: ['cams', 'karvy'],
+                },
               });
             }}
             gradientReverse={true}

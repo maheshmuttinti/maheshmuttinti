@@ -7,7 +7,12 @@ import {useTheme} from 'theme';
 import {WarningIcon1, TickCircle, PentagonDangerIcon} from 'assets';
 import useBetaForm from '@reusejs/react-form-hook';
 import {useFocusEffect} from '@react-navigation/native';
-import {EMAIL_REGEX, NUMBER_MATCH_REGEX, INDIA_ISD_NUMBER_REGEX} from 'utils';
+import {
+  EMAIL_REGEX,
+  NUMBER_MATCH_REGEX,
+  INDIA_ISD_NUMBER_REGEX,
+  debugLog,
+} from 'utils';
 import {useHandleCASFetching} from '../../../../../reusables/CASFetching/useHandleCASFetching';
 import Config from 'react-native-config';
 
@@ -34,7 +39,7 @@ export const CollectMobileAndEmail = ({
     data_fetching_provider: 'cams',
     email: '',
     mobile: '',
-    fi_code: `${Config.FI_CODE}`,
+    fi_code: `${Config.DEFAULT_NBFC_CODE}`,
   });
 
   const {handleInitiateCASRequest} = useHandleCASFetching();
@@ -156,7 +161,7 @@ export const CollectMobileAndEmail = ({
           mobile: form.value.value,
         };
 
-        console.log(
+        debugLog(
           'payload-112233 for CAMS Custom Flow------------------',
           payload,
         );
@@ -164,9 +169,8 @@ export const CollectMobileAndEmail = ({
 
         const handleInitiateCASRequestResponse = await handleInitiateCASRequest(
           payload,
-          'cams',
         );
-        console.log(
+        debugLog(
           'handleInitiateCASRequestResponse in email and phone-------CAMS: ',
           handleInitiateCASRequestResponse,
         );
@@ -175,7 +179,7 @@ export const CollectMobileAndEmail = ({
       }
     } catch (error) {
       onLoading(false);
-      console.log(
+      debugLog(
         'handleInitiateCASRequestForRedirection-error',
         error,
         error?.response?.status,

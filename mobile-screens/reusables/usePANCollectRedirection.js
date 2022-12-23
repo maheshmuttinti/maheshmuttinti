@@ -13,7 +13,12 @@ export const usePANCollectRedirection = (pan, name, form, navigation) => {
         };
         const response = await linkPAN(payload);
         if (response?.pan && response?.name) {
-          navigation.replace('FetchCAS', {screen: 'FetchCASFromRTAs'});
+          navigation.replace('FetchCAS', {
+            screen: 'FetchCASFromRTAs',
+            params: {
+              refreshableCASDataProvidersForNBFC: ['cams', 'karvy'],
+            },
+          });
         }
       }
     } catch (error) {

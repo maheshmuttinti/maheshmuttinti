@@ -9,6 +9,7 @@ import * as Sentry from '@sentry/react-native';
 import {useHandleCASFetching} from '../../../../../reusables/CASFetching/useHandleCASFetching';
 import {useState} from 'react';
 import Config from 'react-native-config';
+import {debugLog} from 'utils';
 
 export const OTPVerification = ({
   payload,
@@ -21,9 +22,9 @@ export const OTPVerification = ({
   const submitCASRequestOTPForm = useBetaForm({
     data_fetching_provider: 'cams',
     otp: '',
-    fi_code: `${Config.FI_CODE}`,
+    fi_code: `${Config.DEFAULT_NBFC_CODE}`,
   });
-  const {handleSubmitRequestCASOTPVerification, handleInitiateCASRequest} =
+  const {handleSubmitCASRequest, handleInitiateCASRequest} =
     useHandleCASFetching();
 
   useEffect(() => {
@@ -31,21 +32,19 @@ export const OTPVerification = ({
       (async () => {
         try {
           setIsSubmittingCASRequest(true);
-          const handleSubmitRequestCASOTPVerificationResponse =
-            await handleSubmitRequestCASOTPVerification(
-              submitCASRequestOTPForm?.value,
-              'cams',
-            );
-          console.log(
-            'handleSubmitRequestCASOTPVerificationResponse: ',
-            handleSubmitRequestCASOTPVerificationResponse,
+          const handleSubmitCASRequestResponse = await handleSubmitCASRequest(
+            submitCASRequestOTPForm?.value,
+          );
+          debugLog(
+            'handleSubmitCASRequestResponse: ',
+            handleSubmitCASRequestResponse,
           );
 
-          onSubmit(handleSubmitRequestCASOTPVerificationResponse);
+          onSubmit(handleSubmitCASRequestResponse);
           setIsSubmittingCASRequest(false);
         } catch (error) {
           setIsSubmittingCASRequest(false);
-          console.log(
+          debugLog(
             'handleInitiateCASRequestForRedirection-error',
             error,
             error?.response?.status,
@@ -72,20 +71,18 @@ export const OTPVerification = ({
         submitCASRequestOTPForm.setField('otp', '');
         submitCASRequestOTPForm.setErrors({});
         onRequestResendOTP(true);
-        const handleSubmitRequestCASOTPVerificationResponse =
-          await handleInitiateCASRequest(payload, 'cams');
-        console.log(
-          'handleSubmitRequestCASOTPVerificationResponse: ',
-          handleSubmitRequestCASOTPVerificationResponse,
+        const handleSubmitCASRequestResponse = await handleInitiateCASRequest(
+          payload,
         );
-        onRequestResendOTP(handleSubmitRequestCASOTPVerificationResponse);
+        debugLog(
+          'handleSubmitCASRequestResponse: ',
+          handleSubmitCASRequestResponse,
+        );
+        onRequestResendOTP(handleSubmitCASRequestResponse);
         return true;
       }
     } catch (error) {
-      console.log(
-        'handleResendOTP->handleSubmitRequestCASOTPVerification->error: ',
-        error,
-      );
+      debugLog('handleResendOTP->handleSubmitCASRequest->error: ', error);
       Sentry.captureException(error);
       submitCASRequestOTPForm.setErrors(error);
       throw error;

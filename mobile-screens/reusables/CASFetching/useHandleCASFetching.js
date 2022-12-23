@@ -1,43 +1,39 @@
-import {useCASFetchAPIs} from './useCASFetchAPIs';
+import * as Sentry from '@sentry/react-native';
+import {initialCASRequest, submitCASRequest} from 'services';
 
 export const useHandleCASFetching = () => {
-  const {handleInitiateRequestCAS, handleSubmitCASRequest} = useCASFetchAPIs();
-
-  const handleInitiateCASRequest = async (initiateCASRequestPayload, rta) => {
+  const handleInitiateCASRequest = async initialCASRequestPayload => {
     try {
-      const handleInitiateCASRequestResponse = await handleInitiateRequestCAS(
-        initiateCASRequestPayload,
+      if (!initialCASRequestPayload) {
+        return null;
+      }
+
+      const responseOfInitiateCASFromCAMS = await initialCASRequest(
+        initialCASRequestPayload,
       );
-      if (rta === 'cams') {
-        return handleInitiateCASRequestResponse;
-      }
-      if (rta === 'karvy') {
-        return handleInitiateCASRequestResponse;
-      }
+      return responseOfInitiateCASFromCAMS?.next_step;
     } catch (error) {
+      Sentry.captureException(error);
       throw error;
     }
   };
-
-  const handleSubmitRequestCASOTPVerification = async (
-    submitCASRequestPayload,
-    rta,
-  ) => {
+  const handleSubmitCASRequest = async submitCASRequestPayload => {
     try {
-      const handleSubmitRequestCASOTPVerificationResponse =
-        await handleSubmitCASRequest(submitCASRequestPayload);
-      if (rta === 'cams') {
-        return handleSubmitRequestCASOTPVerificationResponse;
-      } else if (rta === 'karvy') {
-        return handleSubmitRequestCASOTPVerificationResponse;
+      if (!submitCASRequestPayload) {
+        return null;
       }
+      const submitCASRequestResponse = await submitCASRequest(
+        submitCASRequestPayload,
+      );
+      return submitCASRequestResponse;
     } catch (error) {
+      Sentry.captureException(error);
       throw error;
     }
   };
 
   return {
     handleInitiateCASRequest,
-    handleSubmitRequestCASOTPVerification,
+    handleSubmitCASRequest,
   };
 };

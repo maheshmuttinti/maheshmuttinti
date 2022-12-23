@@ -5,7 +5,11 @@ import {View} from 'react-native';
 import ScreenWrapper from '../../hocs/screenWrapperWithoutBackButton';
 import HomeTabs from '../../TabNavigator';
 import {useTheme} from 'theme';
-import {getDashboardPreApprovedLoanAmount, getUserStage} from 'services';
+import {
+  getDashboardPreApprovedLoanAmount,
+  getLatestCASStatusOfNBFC,
+  getUserStage,
+} from 'services';
 import DashboardHeader from '../../reusables/dashboardHeader';
 import LoanApplicationModal from './LoanApplicationModal';
 import UserProgressGradientCard from './UserProgressGradientCard';
@@ -22,94 +26,166 @@ import UpcomingPayments from './UpcomingPayments';
 import {useFocusEffect} from '@react-navigation/native';
 import {useSelector, shallowEqual} from 'react-redux';
 import Config from 'react-native-config';
+import {BaseButton} from 'uin';
 
 const Dashboard = ({navigation, route}) => {
   const theme = useTheme();
   const showLoanApplicationModal = route?.params?.showLoanApplicationModal;
-  const [visible, setVisible] = useState(showLoanApplicationModal);
-  const [showBannerSpace, setShowBannerSpace] = useState(true);
-  const [dashboardLoanAmount, setDashboardLoanAmount] = useState(null);
-  const getDashboardPreApprovedLoanAmountFnRef = useRef(() => {});
-  const [userStage, setUserStage] = useState(null);
-  const [refreshOnScreenFocus, setRefreshOnScreenFocus] = useState(null);
+  // const [visible, setVisible] = useState(showLoanApplicationModal);
+  // const [showBannerSpace, setShowBannerSpace] = useState(true);
+  // const [dashboardLoanAmount, setDashboardLoanAmount] = useState(null);
+  // const getDashboardPreApprovedLoanAmountFnRef = useRef(() => {});
+  // const [userStage, setUserStage] = useState(null);
+  // const [refreshOnScreenFocus, setRefreshOnScreenFocus] = useState(null);
 
-  const noLoanAmountLimits =
-    Config.MOCK_ENVIRONMENT === 'STAGING' ? 'true' : '';
+  // const noLoanAmountLimits =
+  //   Config.MOCK_ENVIRONMENT === 'STAGING' ? 'true' : '';
 
-  const {select_pan} = useSelector(
-    ({lamf}) => ({
-      select_pan: lamf.select_pan,
-    }),
-    shallowEqual,
-  );
+  // const {select_pan} = useSelector(
+  //   ({lamf}) => ({
+  //     select_pan: lamf.select_pan,
+  //   }),
+  //   shallowEqual,
+  // );
 
-  getDashboardPreApprovedLoanAmountFnRef.current = async () => {
+  // getDashboardPreApprovedLoanAmountFnRef.current = async () => {
+  //   try {
+  //     const dashboardLoanAmountResponse =
+  //       await getDashboardPreApprovedLoanAmount(noLoanAmountLimits);
+
+  //     if (dashboardLoanAmountResponse?.message) {
+  //       setDashboardLoanAmount(dashboardLoanAmountResponse);
+  //     } else {
+  //       setDashboardLoanAmount(
+  //         dashboardLoanAmountResponse?.total_pre_approved_loan_amount,
+  //       );
+  //     }
+  //   } catch (error) {
+  //     return error;
+  //   }
+  // };
+
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     (async () => {
+  //       try {
+  //         setRefreshOnScreenFocus(true);
+  //         if (showBannerSpace) {
+  //           const userStageResponse = await getUserStage(noLoanAmountLimits);
+  //           setUserStage(userStageResponse);
+  //         }
+  //       } catch (error) {
+  //         return error;
+  //       }
+  //     })();
+  //     return () => {
+  //       setRefreshOnScreenFocus(false);
+  //     };
+  //   }, [showBannerSpace]),
+  // );
+
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     if (select_pan) {
+  //       setVisible(true);
+  //     }
+  //     return () => {
+  //       setVisible(false);
+  //     };
+  //   }, [select_pan]),
+  // );
+
+  // useEffect(() => {
+  //   getDashboardPreApprovedLoanAmountFnRef.current();
+  // }, []);
+
+  const handleApplyNow = async () => {
     try {
-      const dashboardLoanAmountResponse =
-        await getDashboardPreApprovedLoanAmount(noLoanAmountLimits);
+      // const nbfcCode = Config.DEFAULT_NBFC_CODE;
+      // const casRefreshResponse = await getLatestCASStatusOfNBFC(nbfcCode);
 
-      if (dashboardLoanAmountResponse?.message) {
-        setDashboardLoanAmount(dashboardLoanAmountResponse);
-      } else {
-        setDashboardLoanAmount(
-          dashboardLoanAmountResponse?.total_pre_approved_loan_amount,
+      const casRefreshResponse = {
+        cas_requests: {
+          cams: {
+            needs_refresh: true,
+          },
+          karvy: {
+            needs_refresh: true,
+          },
+        },
+      };
+      console.log('casRefreshResponse: ', casRefreshResponse);
+
+      const refreshableCASDataProvidersForNBFC = Object.entries(
+        casRefreshResponse?.cas_requests,
+      )
+        ?.filter(([key, value]) => value?.needs_refresh === true)
+        ?.map(item => item[0]);
+
+      if (refreshableCASDataProvidersForNBFC?.length > 0) {
+        console.log(
+          'refreshableCASDataProvidersForNBFC: ',
+          refreshableCASDataProvidersForNBFC,
         );
+        navigation.navigate('Protected', {
+          screen: 'UpdatePortfolio',
+          params: {
+            providers: refreshableCASDataProvidersForNBFC,
+          },
+        });
+      } else {
+        console.log('Nothing need to be refreshed....');
+        navigation.navigate('Protected', {
+          screen: 'LoanDashboard',
+        });
       }
     } catch (error) {
-      return error;
+      throw error;
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      (async () => {
-        try {
-          setRefreshOnScreenFocus(true);
-          if (showBannerSpace) {
-            const userStageResponse = await getUserStage(noLoanAmountLimits);
-            setUserStage(userStageResponse);
-          }
-        } catch (error) {
-          return error;
-        }
-      })();
-      return () => {
-        setRefreshOnScreenFocus(false);
-      };
-    }, [showBannerSpace]),
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      if (select_pan) {
-        setVisible(true);
-      }
-      return () => {
-        setVisible(false);
-      };
-    }, [select_pan]),
-  );
-
-  useEffect(() => {
-    getDashboardPreApprovedLoanAmountFnRef.current();
-  }, []);
-
   return (
     <ScreenWrapper backgroundColor={theme.colors.backgroundBlue}>
-      <LoanApplicationModal
+      {/* <LoanApplicationModal
         visible={visible}
         setVisible={setVisible}
         dashboardLoanAmount={dashboardLoanAmount}
         navigation={navigation}
-      />
+      /> */}
       <View style={{paddingHorizontal: 17, paddingTop: 24}}>
         <DashboardHeader onNavIconClick={() => navigation.openDrawer()} />
 
-        <WelcomeHeader
+        {/* <WelcomeHeader
           refreshOnScreenFocus={refreshOnScreenFocus}
           wrapperStyles={{paddingTop: 36.5}}
-        />
-        {showBannerSpace && (
+        /> */}
+        <View
+          style={{
+            paddingHorizontal: 0,
+            paddingTop: 42,
+            paddingVertical: 2,
+          }}>
+          <BaseButton
+            extraStyles={{
+              paddingVertical: 4,
+              backgroundColor: theme.colors.primaryBlue800,
+              paddingHorizontal: 1,
+            }}
+            onPress={async () => {
+              await handleApplyNow();
+            }}
+            // style={{borderWidth: 2}}
+            outlineColor={theme.colors.primary}
+            textColor={theme.colors.primary}
+            textStyles={{
+              color: theme.colors.primary,
+              fontWeight: theme.fontWeights.veryBold,
+              ...theme.fontSizes.small,
+            }}>
+            Apply Now
+          </BaseButton>
+        </View>
+        {/* {showBannerSpace && (
           <UserProgressGradientCard
             setShowBannerSpace={setShowBannerSpace}
             showBannerSpace={showBannerSpace}
@@ -123,9 +199,9 @@ const Dashboard = ({navigation, route}) => {
           refreshOnScreenFocus={refreshOnScreenFocus}
           wrapperStyles={{paddingTop: 34}}
         />
-        <Calculators wrapperStyles={{paddingTop: 24}} />
+        <Calculators wrapperStyles={{paddingTop: 24}} /> */}
       </View>
-      <InvestingSection wrapperStyles={{paddingTop: 32}} />
+      {/* <InvestingSection wrapperStyles={{paddingTop: 32}} />
       <View style={{paddingHorizontal: 17, paddingTop: 24}}>
         <MoreFunds />
         <Goals wrapperStyles={{paddingTop: 24}} />
@@ -134,7 +210,7 @@ const Dashboard = ({navigation, route}) => {
         <NewsAndArticles wrapperStyles={{paddingTop: 24}} />
       </View>
 
-      <ExploreMoreReportsBanner wrapperStyles={{paddingTop: 40}} />
+      <ExploreMoreReportsBanner wrapperStyles={{paddingTop: 40}} /> */}
 
       <View style={{paddingHorizontal: 17, marginBottom: 120}} />
     </ScreenWrapper>
