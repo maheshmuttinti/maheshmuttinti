@@ -1,14 +1,12 @@
 import * as React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import DevelopmentList from '../screens/Development';
-import FetchCASFromRTAsForm from '../screens/Development/NewCASFlow/screens/FetchCASFromRTAs';
-import CombinedUpdateCASAndLienMarking from '../screens/Development/NewCASFlow/screens/CombinedUpdateCASAndLienMarking';
-import UpdatePortfolio from '../screens/Development/NewCASFlow/screens/UpdatePortfolio';
-import CollectPAN from '../screens/Development/NewCASFlow/screens/CollectPAN';
-import {useTheme} from 'theme';
+import LoanAmountSelection from '../screens/Development/LoanAmountSelection/screen';
+// import ChooseNBFCSingle from '../screens/Development/NBFCs/screens/SingleNBFC';
+// import ChooseNBFCHorizontal from '../screens/Development/NBFCs/screens/SingleNBFC';
+// import ChooseNBFCVertical from '../screens/Development/NBFCs/screens/SingleNBFC';
 
 const Development = () => {
-  const theme = useTheme();
   const Stack = createStackNavigator();
 
   return (
@@ -19,38 +17,9 @@ const Development = () => {
         component={DevelopmentList}
       />
       <Stack.Screen
-        name="CollectPAN"
+        name="LoanAmountSelection"
         options={{headerShown: false}}
-        component={CollectPAN}
-      />
-      <Stack.Screen
-        name="FetchCASFromRTAsForm"
-        options={{headerShown: false}}
-        component={FetchCASFromRTAsForm}
-      />
-
-      <Stack.Screen
-        name="CombinedUpdateCASAndLienMarking"
-        options={{headerShown: false}}
-        component={CombinedUpdateCASAndLienMarking}
-      />
-      <Stack.Screen
-        name="UpdatePortfolio"
-        options={{
-          title: 'Loans Against Mutual Funds',
-          headerStyle: {
-            backgroundColor: theme.colors.primary,
-            shadowColor: 'transparent',
-            elevation: 0,
-          },
-          headerTintColor: theme.colors.text,
-          headerTitleStyle: {
-            fontWeight: 'bold',
-            fontFamily: theme.fonts.regular,
-            ...theme.fontSizes.large,
-          },
-        }}
-        component={UpdatePortfolio}
+        component={LoanAmountSelection}
       />
     </Stack.Navigator>
   );

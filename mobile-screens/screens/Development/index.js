@@ -1,23 +1,18 @@
 /* eslint-disable react-native/no-inline-styles */
-import {Pressable, Text} from 'react-native';
+import {TouchableOpacity, Text} from 'react-native';
 import React from 'react';
 import {useTheme} from 'theme';
 
-const screens = [
-  'FetchCASFromRTAsForm',
-  'CombinedUpdateCASAndLienMarking',
-  'UpdatePortfolio',
-  'CollectPAN',
-];
+const screens = ['LoanAmountSelection'];
 
 export default function ({navigation}) {
   const theme = useTheme();
   return (
     <>
       {screens.map((screen, index) => (
-        <Pressable
+        <TouchableOpacity
           onPress={() => {
-            navigation.navigate('PANSetup', {screen: screen});
+            navigation.navigate('Development', {screen: screen});
           }}
           key={`screen-${index}`}
           style={{
@@ -26,7 +21,7 @@ export default function ({navigation}) {
             borderBottomWidth: 2,
           }}>
           <Text style={{...theme.fontSizes.heading5}}>{screen}</Text>
-        </Pressable>
+        </TouchableOpacity>
       ))}
     </>
   );

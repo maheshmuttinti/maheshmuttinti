@@ -28,6 +28,8 @@ import General from './stacks/General';
 import {linking} from './deepLinkConfigs';
 import withAuth from './hocs/withAuth';
 import FetchCAS from './stacks/FetchCAS';
+import Development from './stacks/Development';
+import {useHideSplashScreen} from './reusables/useHideSplashScreen';
 
 Sentry.init({
   dsn: Config.SENTRY_DSN,
@@ -42,78 +44,84 @@ LogBox.ignoreLogs([
   'Sending `onAnimatedValueUpdate` with no listeners registered.',
   'Please report: Excessive number of pending callbacks: 501. Some pending callbacks that might have leaked by never being called from native code',
   'Task orphaned for request',
+  "ViewPropTypes will be removed from React Native. Migrate to ViewPropTypes exported from 'deprecated-react-native-prop-types'.",
 ]);
 
 const App = () => {
   const theme = useTheme();
-  const dispatch = useDispatch();
-  const [loading, setLoading] = useState(null);
-  const {clearStoreForLogout} = useClearAsyncStorageKeys();
-  const handleExpiredSession = React.useRef(() => {});
-
-  const init = React.useCallback(async () => {
-    try {
-      setLoading(true);
-      let tokenFromStorage = await AsyncStorage.getItem('@access_token');
-
-      if (tokenFromStorage !== null) {
-        dispatch(setTokens(JSON.parse(tokenFromStorage)));
-        let userProfile = await getUser();
-        if (userProfile) {
-          dispatch(setUser(userProfile));
-          setLoading(false);
-        } else {
-          setLoading(false);
-        }
-      } else {
-        setLoading(false);
-      }
-    } catch (error) {
-      setLoading(false);
-      handleExpiredSession.current();
-      Sentry.captureException(error);
-    }
-  }, [dispatch]);
+  // const dispatch = useDispatch();
+  // const [loading, setLoading] = useState(null);
+  // const {clearStoreForLogout} = useClearAsyncStorageKeys();
+  // const handleExpiredSession = React.useRef(() => {});
+  const {hideSplashScreen} = useHideSplashScreen();
 
   useEffect(() => {
-    init();
-    const unsubscribe = NetInfo.addEventListener(state => {
-      dispatch(setNetworkStatus(state.isConnected ? 'online' : 'offline'));
-    });
-    return () => {
-      unsubscribe();
-    };
-  }, [init, dispatch]);
+    hideSplashScreen();
+  }, []);
 
-  const {accessToken} = useSelector(
-    ({auth}) => ({
-      accessToken: auth.accessToken,
-    }),
-    shallowEqual,
-  );
+  // const init = React.useCallback(async () => {
+  //   try {
+  //     setLoading(true);
+  //     let tokenFromStorage = await AsyncStorage.getItem('@access_token');
 
-  const {isUserLoggedInWithMPIN} = useSelector(
-    ({auth}) => ({
-      isUserLoggedInWithMPIN: auth.isUserLoggedInWithMPIN,
-    }),
-    shallowEqual,
-  );
-  const {isSessionExpired} = useSelector(
-    ({auth}) => ({
-      isSessionExpired: auth.isSessionExpired,
-    }),
-    shallowEqual,
-  );
+  //     if (tokenFromStorage !== null) {
+  //       dispatch(setTokens(JSON.parse(tokenFromStorage)));
+  //       let userProfile = await getUser();
+  //       if (userProfile) {
+  //         dispatch(setUser(userProfile));
+  //         setLoading(false);
+  //       } else {
+  //         setLoading(false);
+  //       }
+  //     } else {
+  //       setLoading(false);
+  //     }
+  //   } catch (error) {
+  //     setLoading(false);
+  //     handleExpiredSession.current();
+  //     Sentry.captureException(error);
+  //   }
+  // }, [dispatch]);
 
-  handleExpiredSession.current = async () => {
-    if (isSessionExpired === true) {
-      await clearStoreForLogout();
-    }
-  };
+  // useEffect(() => {
+  //   init();
+  //   const unsubscribe = NetInfo.addEventListener(state => {
+  //     dispatch(setNetworkStatus(state.isConnected ? 'online' : 'offline'));
+  //   });
+  //   return () => {
+  //     unsubscribe();
+  //   };
+  // }, [init, dispatch]);
 
-  if (loading) {
-    return <Loader />;
-  }
+  // const {accessToken} = useSelector(
+  //   ({auth}) => ({
+  //     accessToken: auth.accessToken,
+  //   }),
+  //   shallowEqual,
+  // );
+
+  // const {isUserLoggedInWithMPIN} = useSelector(
+  //   ({auth}) => ({
+  //     isUserLoggedInWithMPIN: auth.isUserLoggedInWithMPIN,
+  //   }),
+  //   shallowEqual,
+  // );
+  // const {isSessionExpired} = useSelector(
+  //   ({auth}) => ({
+  //     isSessionExpired: auth.isSessionExpired,
+  //   }),
+  //   shallowEqual,
+  // );
+
+  // handleExpiredSession.current = async () => {
+  //   if (isSessionExpired === true) {
+  //     await clearStoreForLogout();
+  //   }
+  // };
+
+  // if (loading) {
+  //   return <Loader />;
+  // }
   return (
     <>
       <ThemeProvider theme={themes[theme]}>
@@ -121,7 +129,7 @@ const App = () => {
           linking={linking}
           ref={RootNavigation.navigationRef}>
           <Stack.Navigator>
-            <Stack.Screen
+            {/* <Stack.Screen
               name="General"
               options={{
                 headerShown: false,
@@ -185,6 +193,14 @@ const App = () => {
                 headerShown: false,
               }}
               component={EmptyStates}
+            /> */}
+
+            <Stack.Screen
+              name="Development"
+              options={{
+                headerShown: false,
+              }}
+              component={Development}
             />
           </Stack.Navigator>
         </NavigationContainer>
