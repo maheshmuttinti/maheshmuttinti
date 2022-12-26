@@ -5,7 +5,7 @@ import ScreenWrapper from '../../../../hocs/screenWrapperWithoutBackButton';
 import {useTheme} from 'theme';
 import _ from 'lodash';
 import {Heading, BaseTextInput, BaseButton} from 'uin';
-import {BackArrow} from 'assets';
+import {ApplicantAvatar, BackArrow} from 'assets';
 import {useEffect} from 'react';
 import {debugLog, isNumber, prettifyJSON} from 'utils';
 import useLayoutBackButtonAction from '../../../../reusables/useLayoutBackButtonAction';
@@ -237,14 +237,17 @@ export default function ({route, navigation}) {
 
       const handleGetNBFCsResponse = await handleGetNBFCs(payload);
       debugLog('handleGetNBFCsResponse: ', handleGetNBFCsResponse);
-      if (handleGetNBFCsResponse?.nbfcs?.length === 1) {
+      let nbfcs = handleGetNBFCsResponse?.nbfcs;
+
+      console.log('nbfcs after adding other--------: ', prettifyJSON(nbfcs));
+      if (nbfcs?.length === 1) {
         navigation.navigate('LAMFV2', {screen: 'ChooseNBFCSingle'});
-      } else if (
-        handleGetNBFCsResponse?.nbfcs?.length === 2 ||
-        handleGetNBFCsResponse?.nbfcs?.length === 3
-      ) {
-        navigation.navigate('LAMFV2', {screen: 'ChooseNBFCHorizontal'});
-      } else if (handleGetNBFCsResponse?.nbfcs?.length > 3) {
+      } else if (nbfcs?.length === 2 || nbfcs?.length === 3) {
+        navigation.navigate('LAMFV2', {
+          screen: 'ChooseNBFCHorizontal',
+          nbfcs: nbfcs,
+        });
+      } else if (nbfcs?.length > 3) {
         navigation.navigate('LAMFV2', {screen: 'ChooseNBFCVertical'});
       }
     } catch (error) {
@@ -282,15 +285,21 @@ export default function ({route, navigation}) {
               style={{width: 50, marginLeft: 16}}>
               <BackArrow fill={theme.colors.primary} />
             </Pressable>
-            <Heading
-              style={{
-                fontWeight: 'bold',
-                fontFamily: theme.fonts.regular,
-                marginLeft: 16,
-                ...theme.fontSizes.large,
-              }}>
-              Loans Against Mutual Funds
-            </Heading>
+            <View style={{flex: 1, alignItems: 'center'}}>
+              <Heading
+                style={{
+                  fontWeight: 'bold',
+                  fontFamily: theme.fonts.regular,
+                  ...theme.fontSizes.large,
+                }}>
+                Loans Against Mutual Funds
+              </Heading>
+            </View>
+            <View style={{flex: 1 / 3, alignItems: 'center'}}>
+              <View style={{height: 24, width: 24}}>
+                <ApplicantAvatar />
+              </View>
+            </View>
           </View>
 
           <View

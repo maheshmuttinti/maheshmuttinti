@@ -193,11 +193,10 @@ const Dashboard = ({navigation, route}) => {
           'refreshableCASDataProvidersForNBFC: ',
           refreshableCASDataProvidersForNBFC,
         );
-        navigation.navigate('FetchCAS', {
-          screen: 'FetchCASFromRTAs',
+        navigation.navigate('Protected', {
+          screen: 'UpdatePortfolio',
           params: {
-            refreshableCASDataProvidersForNBFC,
-            waitForResponse: true,
+            providers: refreshableCASDataProvidersForNBFC,
           },
         });
       } else {

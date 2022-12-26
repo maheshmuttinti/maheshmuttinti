@@ -151,7 +151,7 @@ export default function ({navigation, route}) {
                       top: 0,
                       alignItems: 'flex-start',
                     }}>
-                    {item?.fi_name}
+                    {`${item?.fi_name || item?.nbfc_code}`}
                   </Text>
                 </View>
                 <View
@@ -172,7 +172,7 @@ export default function ({navigation, route}) {
                       textAlign: 'center',
                     }}
                     title="Amount"
-                    value={`₹${item?.fi_master_data?.max_amount}`}
+                    value={`₹${item?.eligible_max_loan}`}
                   />
                   <LabelValue
                     style={{paddingTop: 8}}
@@ -188,7 +188,7 @@ export default function ({navigation, route}) {
                       textAlign: 'center',
                     }}
                     title="ROI"
-                    value={`${item?.fi_master_data?.roi}%`}
+                    value={`${item?.nbfc_roi}%`}
                   />
                   <LabelValue
                     style={{paddingTop: 8}}
@@ -204,7 +204,11 @@ export default function ({navigation, route}) {
                       textAlign: 'center',
                     }}
                     title="Tenure"
-                    value={`${item?.fi_master_data?.max_tenure}`}
+                    value={`${
+                      JSON.parse(item?.eligible_tenures)[
+                        JSON.parse(item?.eligible_tenures)?.length - 1
+                      ]
+                    }`}
                   />
                   <LabelValue
                     style={{paddingTop: 8}}
@@ -236,7 +240,7 @@ export default function ({navigation, route}) {
                       textAlign: 'center',
                     }}
                     title="Processing Fee"
-                    value={`₹ ${item?.fi_master_data?.processing_fee}`}
+                    value={`₹ ${item?.processing_fee}`}
                   />
                   <View style={{width: '100%', marginTop: 63}}>
                     <SmallOutlinedButton
