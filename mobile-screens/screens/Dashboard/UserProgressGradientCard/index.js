@@ -14,6 +14,7 @@ export default function ({
   wrapperStyles = {},
   setShowBannerSpace,
   userStage,
+  onUploadNow = () => {},
 }) {
   const orchestratorRef = useRef(null);
 
@@ -56,6 +57,7 @@ export default function ({
               navigation={navigation}
               setShowBannerSpace={setShowBannerSpace}
               userStage={userStage}
+              onUploadNow={onUploadNow}
               ref={ref}
               {...props}
             />

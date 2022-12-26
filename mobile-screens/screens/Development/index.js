@@ -3,7 +3,13 @@ import {TouchableOpacity, Text} from 'react-native';
 import React from 'react';
 import {useTheme} from 'theme';
 
-const screens = ['LoanAmountSelection'];
+const screens = [
+  'LoanAmountSelection',
+  'ChooseNBFCSingle',
+  'ChooseNBFCHorizontal',
+  'ChooseNBFCVertical',
+  'CompareNBFCs',
+];
 
 export default function ({navigation}) {
   const theme = useTheme();

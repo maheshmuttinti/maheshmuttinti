@@ -16,6 +16,7 @@ export const OTPVerification = ({
   onSubmit = () => {},
   onRequestResendOTP = () => {},
   onError = () => {},
+  waitForResponse = false,
 }) => {
   const theme = useTheme();
   const [isSubmittingCASRequest, setIsSubmittingCASRequest] = useState(false);
@@ -34,6 +35,7 @@ export const OTPVerification = ({
           setIsSubmittingCASRequest(true);
           const handleSubmitCASRequestResponse = await handleSubmitCASRequest(
             submitCASRequestOTPForm?.value,
+            waitForResponse,
           );
           debugLog(
             'handleSubmitCASRequestResponse: ',

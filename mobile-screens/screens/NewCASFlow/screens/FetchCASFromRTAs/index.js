@@ -25,6 +25,7 @@ const ICON_WIDTH = 16;
 export default function ({navigation, route}) {
   const refreshableCASDataProvidersForNBFC =
     route?.params?.refreshableCASDataProvidersForNBFC;
+  const waitForResponse = route?.params?.waitForResponse || false;
   const {CAMS_REQUEST_TEXT, KARVY_REQUEST_TEXT} = RTA_LOADING_MESSAGES;
   const theme = useTheme();
   const {
@@ -165,6 +166,7 @@ export default function ({navigation, route}) {
                       setLoadingText(null);
                     }
                   }}
+                  waitForResponse={waitForResponse}
                 />
               ) : null}
 
@@ -233,6 +235,7 @@ export default function ({navigation, route}) {
                       setLoadingText(null);
                     }
                   }}
+                  waitForResponse={waitForResponse}
                 />
               ) : null}
             </View>
@@ -292,6 +295,7 @@ export default function ({navigation, route}) {
                     setLoadingText(null);
                   }
                 }}
+                waitForResponse={waitForResponse}
               />
             ) : null}
 
@@ -357,6 +361,7 @@ export default function ({navigation, route}) {
                     setLoadingText(null);
                   }
                 }}
+                waitForResponse={waitForResponse}
               />
             ) : null}
           </View>

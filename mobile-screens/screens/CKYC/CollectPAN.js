@@ -31,6 +31,7 @@ export default function ({navigation}) {
   const [message, setMessage] = useState(null);
   const [validUser, setValidUser] = useState(null);
   const [isFetchingPANDetails, setIsFetchingPANDetails] = useState(false);
+  const [keyboardType, setKeyboardType] = useState('default');
   const form = useBetaForm({
     error: '',
   });
@@ -57,6 +58,13 @@ export default function ({navigation}) {
     setMessage(null);
     form.setErrors({});
     if (text.length <= 10) {
+      if (text.length < 5) {
+        setKeyboardType('default');
+      } else if (text.length === 5 || text.length <= 8) {
+        setKeyboardType('numeric');
+      } else if (text.length === 9 && text.length <= 10) {
+        setKeyboardType('default');
+      }
       showGreenTickCircleIcon.current(text);
       setPAN(text);
     }
@@ -175,6 +183,7 @@ export default function ({navigation}) {
               placeholder="Enter PAN Card Number"
               onChangeText={text => handleChangeText(text)}
               value={pan}
+              keyboardType={keyboardType}
               editable={!isFetchingPANDetails}
               overlappingIcon={() =>
                 isFetchingPANDetails && (
@@ -183,7 +192,9 @@ export default function ({navigation}) {
                   </View>
                 )
               }
-              autoCapitalize={'characters'}
+              autoCapitalize={
+                keyboardType === 'default' ? 'characters' : 'none'
+              }
             />
           </View>
 

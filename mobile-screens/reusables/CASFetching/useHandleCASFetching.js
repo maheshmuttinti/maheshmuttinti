@@ -17,13 +17,17 @@ export const useHandleCASFetching = () => {
       throw error;
     }
   };
-  const handleSubmitCASRequest = async submitCASRequestPayload => {
+  const handleSubmitCASRequest = async (
+    submitCASRequestPayload,
+    waitForResponse = false,
+  ) => {
     try {
       if (!submitCASRequestPayload) {
         return null;
       }
       const submitCASRequestResponse = await submitCASRequest(
         submitCASRequestPayload,
+        waitForResponse,
       );
       return submitCASRequestResponse;
     } catch (error) {

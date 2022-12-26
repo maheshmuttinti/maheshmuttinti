@@ -17,6 +17,7 @@ export const usePANCollectRedirection = (pan, name, form, navigation) => {
             screen: 'FetchCASFromRTAs',
             params: {
               refreshableCASDataProvidersForNBFC: ['cams', 'karvy'],
+              waitForResponse: false,
             },
           });
         }

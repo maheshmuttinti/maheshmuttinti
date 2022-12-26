@@ -11,6 +11,7 @@ export default function ({
   showModal,
   setShowBannerSpace,
   userStage,
+  onUploadNow = () => {},
   ...props
 }) {
   const theme = useTheme();
@@ -113,9 +114,7 @@ export default function ({
                       !userStage?.meta?.pre_approved_loan_amount
                         ?.total_pre_approved_loan_amount
                     ) {
-                      navigation.navigate('Protected', {
-                        screen: 'UpdatePortfolio',
-                      });
+                      onUploadNow();
                     } else {
                       showModal(true);
                     }

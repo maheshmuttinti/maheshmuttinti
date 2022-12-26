@@ -9,15 +9,18 @@ import {Provider} from 'react-redux';
 import {mobileStore} from 'store';
 import React from 'react';
 import * as Sentry from '@sentry/react-native';
-// import {StepperProvider} from 'uin';
+import Config from 'react-native-config';
 
 const MobileApp = () => {
+  if (Config.DEBUG_MODE === 'true') {
+    <Provider store={mobileStore}>
+      <App />
+    </Provider>;
+  }
   return (
     <Sentry.TouchEventBoundary>
       <Provider store={mobileStore}>
-        {/* <StepperProvider> */}
-          <App />
-        {/* </StepperProvider> */}
+        <App />
       </Provider>
     </Sentry.TouchEventBoundary>
   );

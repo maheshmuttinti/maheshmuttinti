@@ -145,6 +145,41 @@ const Dashboard = ({navigation, route}) => {
     }
   };
 
+  const handleUploadNow = async () => {
+    try {
+      const nbfcCode = Config.DEFAULT_NBFC_CODE;
+      const casRefreshResponse = await getLatestCASStatusOfNBFC(nbfcCode);
+      debugLog('casRefreshResponse: ', casRefreshResponse);
+
+      const refreshableCASDataProvidersForNBFC = Object.entries(
+        casRefreshResponse?.cas_requests,
+      )
+        ?.filter(([key, value]) => value?.needs_refresh === true)
+        ?.map(item => item[0]);
+
+      if (refreshableCASDataProvidersForNBFC?.length > 0) {
+        debugLog(
+          'refreshableCASDataProvidersForNBFC: ',
+          refreshableCASDataProvidersForNBFC,
+        );
+        navigation.navigate('FetchCAS', {
+          screen: 'FetchCASFromRTAs',
+          params: {
+            refreshableCASDataProvidersForNBFC,
+            waitForResponse: true,
+          },
+        });
+      } else {
+        debugLog('Nothing need to be refreshed....');
+        navigation.navigate('LAMFV2', {
+          screen: 'LoanAmountSelection',
+        });
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
+
   return (
     <ScreenWrapper backgroundColor={theme.colors.backgroundBlue}>
       <LoanApplicationModal
@@ -193,6 +228,7 @@ const Dashboard = ({navigation, route}) => {
             navigation={navigation}
             wrapperStyles={{paddingTop: 16}}
             userStage={userStage}
+            onUploadNow={handleUploadNow}
           />
         )}
         <ProfileCard

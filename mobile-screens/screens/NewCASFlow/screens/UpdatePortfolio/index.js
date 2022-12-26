@@ -30,6 +30,7 @@ const UpdatePortfolio = ({navigation, route}) => {
             screen: 'FetchCASFromRTAs',
             params: {
               refreshableCASDataProvidersForNBFC,
+              waitForResponse: true,
             },
           });
         } else {

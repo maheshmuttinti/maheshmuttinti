@@ -13,7 +13,7 @@ import {getUser} from 'services';
 import {useDispatch} from 'react-redux';
 import {AnimatedEllipsis} from 'uin';
 import Auth from './stacks/Auth';
-import Protected from './stacks/Protected';
+import ProtectedV2 from './stacks/ProtectedV2';
 import EmptyStates from './stacks/EmptyStates';
 import NetInfo from '@react-native-community/netinfo';
 import {setNetworkStatus} from 'store';
@@ -28,7 +28,6 @@ import General from './stacks/General';
 import {linking} from './deepLinkConfigs';
 import withAuth from './hocs/withAuth';
 import FetchCAS from './stacks/FetchCAS';
-import Development from './stacks/Development';
 import {useHideSplashScreen} from './reusables/useHideSplashScreen';
 
 Sentry.init({
@@ -49,79 +48,79 @@ LogBox.ignoreLogs([
 
 const App = () => {
   const theme = useTheme();
-  // const dispatch = useDispatch();
-  // const [loading, setLoading] = useState(null);
-  // const {clearStoreForLogout} = useClearAsyncStorageKeys();
-  // const handleExpiredSession = React.useRef(() => {});
+  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(null);
+  const {clearStoreForLogout} = useClearAsyncStorageKeys();
+  const handleExpiredSession = React.useRef(() => {});
   const {hideSplashScreen} = useHideSplashScreen();
 
   useEffect(() => {
     hideSplashScreen();
   }, []);
 
-  // const init = React.useCallback(async () => {
-  //   try {
-  //     setLoading(true);
-  //     let tokenFromStorage = await AsyncStorage.getItem('@access_token');
+  const init = React.useCallback(async () => {
+    try {
+      setLoading(true);
+      let tokenFromStorage = await AsyncStorage.getItem('@access_token');
 
-  //     if (tokenFromStorage !== null) {
-  //       dispatch(setTokens(JSON.parse(tokenFromStorage)));
-  //       let userProfile = await getUser();
-  //       if (userProfile) {
-  //         dispatch(setUser(userProfile));
-  //         setLoading(false);
-  //       } else {
-  //         setLoading(false);
-  //       }
-  //     } else {
-  //       setLoading(false);
-  //     }
-  //   } catch (error) {
-  //     setLoading(false);
-  //     handleExpiredSession.current();
-  //     Sentry.captureException(error);
-  //   }
-  // }, [dispatch]);
+      if (tokenFromStorage !== null) {
+        dispatch(setTokens(JSON.parse(tokenFromStorage)));
+        let userProfile = await getUser();
+        if (userProfile) {
+          dispatch(setUser(userProfile));
+          setLoading(false);
+        } else {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
+    } catch (error) {
+      setLoading(false);
+      handleExpiredSession.current();
+      Sentry.captureException(error);
+    }
+  }, [dispatch]);
 
-  // useEffect(() => {
-  //   init();
-  //   const unsubscribe = NetInfo.addEventListener(state => {
-  //     dispatch(setNetworkStatus(state.isConnected ? 'online' : 'offline'));
-  //   });
-  //   return () => {
-  //     unsubscribe();
-  //   };
-  // }, [init, dispatch]);
+  useEffect(() => {
+    init();
+    const unsubscribe = NetInfo.addEventListener(state => {
+      dispatch(setNetworkStatus(state.isConnected ? 'online' : 'offline'));
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, [init, dispatch]);
 
-  // const {accessToken} = useSelector(
-  //   ({auth}) => ({
-  //     accessToken: auth.accessToken,
-  //   }),
-  //   shallowEqual,
-  // );
+  const {accessToken} = useSelector(
+    ({auth}) => ({
+      accessToken: auth.accessToken,
+    }),
+    shallowEqual,
+  );
 
-  // const {isUserLoggedInWithMPIN} = useSelector(
-  //   ({auth}) => ({
-  //     isUserLoggedInWithMPIN: auth.isUserLoggedInWithMPIN,
-  //   }),
-  //   shallowEqual,
-  // );
-  // const {isSessionExpired} = useSelector(
-  //   ({auth}) => ({
-  //     isSessionExpired: auth.isSessionExpired,
-  //   }),
-  //   shallowEqual,
-  // );
+  const {isUserLoggedInWithMPIN} = useSelector(
+    ({auth}) => ({
+      isUserLoggedInWithMPIN: auth.isUserLoggedInWithMPIN,
+    }),
+    shallowEqual,
+  );
+  const {isSessionExpired} = useSelector(
+    ({auth}) => ({
+      isSessionExpired: auth.isSessionExpired,
+    }),
+    shallowEqual,
+  );
 
-  // handleExpiredSession.current = async () => {
-  //   if (isSessionExpired === true) {
-  //     await clearStoreForLogout();
-  //   }
-  // };
+  handleExpiredSession.current = async () => {
+    if (isSessionExpired === true) {
+      await clearStoreForLogout();
+    }
+  };
 
-  // if (loading) {
-  //   return <Loader />;
-  // }
+  if (loading) {
+    return <Loader />;
+  }
   return (
     <>
       <ThemeProvider theme={themes[theme]}>
@@ -129,7 +128,7 @@ const App = () => {
           linking={linking}
           ref={RootNavigation.navigationRef}>
           <Stack.Navigator>
-            {/* <Stack.Screen
+            <Stack.Screen
               name="General"
               options={{
                 headerShown: false,
@@ -163,7 +162,7 @@ const App = () => {
                 options={{
                   headerShown: false,
                 }}
-                component={withAuth(Protected)}
+                component={withAuth(ProtectedV2)}
               />
             )}
             <Stack.Screen
@@ -193,14 +192,6 @@ const App = () => {
                 headerShown: false,
               }}
               component={EmptyStates}
-            /> */}
-
-            <Stack.Screen
-              name="Development"
-              options={{
-                headerShown: false,
-              }}
-              component={Development}
             />
           </Stack.Navigator>
         </NavigationContainer>

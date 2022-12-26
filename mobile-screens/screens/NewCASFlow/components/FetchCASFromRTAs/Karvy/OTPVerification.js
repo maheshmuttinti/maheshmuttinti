@@ -15,6 +15,7 @@ export const OTPVerification = ({
   onSubmit = () => {},
   onRequestResendOTP = () => {},
   onError = () => {},
+  waitForResponse = false,
 }) => {
   const theme = useTheme();
   const [isSubmittingCASRequest, setIsSubmittingCASRequest] = useState(false);
@@ -32,12 +33,10 @@ export const OTPVerification = ({
       (async () => {
         try {
           setIsSubmittingCASRequest(true);
-          // Todo: Wait for 3 seconds and navigate
-          // Todo: If it's been 3 seconds, assume it's
-          // Todo: If u get response within 3 seconds, if it is failure, show error
-          // Todo: If it is success, navigate
+
           const handleSubmitCASRequestResponse = await handleSubmitCASRequest(
             submitCASRequestOTPForm?.value,
+            waitForResponse,
           );
           debugLog(
             'handleSubmitCASRequestResponse: ',

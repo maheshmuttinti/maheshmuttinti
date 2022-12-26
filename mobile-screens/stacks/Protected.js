@@ -13,10 +13,6 @@ import NextSteps from '../screens/LAMF/NextSteps';
 import LoanSuccess from '../screens/LAMF/LoanApplication/Steps/Success';
 import LoanDashboard from '../screens/LAMF/LoanDashboard';
 import LoanApplicationInfo from '../screens/LAMF/LoanApplicationInfo';
-import UploadCAS from '../screens/UploadCAS';
-import ImportPortfolio from '../screens/UploadCAS/ImportPortfolio';
-import UploadPortfolio from '../screens/UploadCAS/UploadPortfolio';
-import FAQ from '../screens/UploadCAS/FAQ';
 import DigioSDK from '../reusables/digioSDK';
 import WebBrowser from '../reusables/WebBrowser';
 import CombinedUpdateCASAndLienMarking from '../screens/NewCASFlow/screens/CombinedUpdateCASAndLienMarking';
@@ -228,34 +224,7 @@ const Protected = () => {
         }}
         component={LoanApplicationInfo}
       />
-      <Stack.Screen
-        name="UploadCAS"
-        options={{
-          headerShown: false,
-        }}
-        component={UploadCAS}
-      />
-      <Stack.Screen
-        name="ImportPortfolio"
-        options={{
-          headerShown: false,
-        }}
-        component={ImportPortfolio}
-      />
-      <Stack.Screen
-        name="UploadPortfolio"
-        options={{
-          headerShown: false,
-        }}
-        component={UploadPortfolio}
-      />
-      <Stack.Screen
-        name="FAQ"
-        options={{
-          headerShown: false,
-        }}
-        component={FAQ}
-      />
+
       <Stack.Screen
         name="WebBrowser"
         options={{headerShown: false}}
