@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState} from 'react';
+import React, {useState, useMemo, useCallback} from 'react';
 import {View, ScrollView, Platform, Pressable} from 'react-native';
 import ScreenWrapper from '../../../../hocs/screenWrapperWithoutBackButton';
 import {useTheme} from 'theme';
@@ -7,28 +7,76 @@ import _ from 'lodash';
 import {Heading, BaseTextInput, BaseButton} from 'uin';
 import {BackArrow} from 'assets';
 import {useEffect} from 'react';
-import {debugLog, isNumber} from 'utils';
+import {debugLog, isNumber, prettifyJSON} from 'utils';
 import useLayoutBackButtonAction from '../../../../reusables/useLayoutBackButtonAction';
 import {SliderWithLabels} from '../components/SliderWithLabels';
 import {SelectTenure} from '../components/SelectTenure';
-import {MonthlyPaymentPlans} from '../components/MonthlyPaymentPlans';
+import {SelectInstallmentType} from '../components/SelectInstallmentType';
+import useBetaForm from '@reusejs/react-form-hook';
+import {getNBFCs} from 'services';
 
 export default function ({route, navigation}) {
   const theme = useTheme();
+  useLayoutBackButtonAction(theme.colors.background);
 
-  const [loanAmount, setLoanAmount] = useState(null);
-  const [minLoanAmount, setMinLoanAmount] = useState(0);
-  const [maxLoanAmount, setMaxLoanAmount] = useState(10000);
-  const [emiTenures, setEMITenures] = useState([]);
-  const [allEMITenures, setAllEMITenures] = useState([
-    {label: '24 Months', value: '24 Months'},
-    {label: '21 Months', value: '21 Months'},
-    {label: '18 Months', value: '18 Months'},
-    {label: '15 Months', value: '15 Months'},
-    {label: '12 Months', value: '12 Months'},
-    {label: '9 Months', value: '9 Months'},
-    {label: '6 Months', value: '6 Months'},
-  ]);
+  const {
+    loanAmount: loanAmountFromRouteParams,
+    minLoanAmount: minLoanAmountFromRouteParams,
+    maxLoanAmount: maxLoanAmountFromRouteParams,
+    availableFilterOptions: {tenures, installment_types},
+  } = route?.params;
+
+  const memoizedAllMappedEMITenures = useMemo(
+    () =>
+      tenures?.map(tenure => ({
+        label: tenure,
+        value: tenure?.includes(' Months')
+          ? tenure?.slice(0, tenure?.indexOf(' Months'))
+          : tenure,
+      })),
+    [tenures],
+  );
+  const initialMemoizedEMITenures = useMemo(() => {
+    const _memoizedAllMappedEMITenures = [...memoizedAllMappedEMITenures];
+    console.log(
+      'useMemo->_memoizedAllMappedEMITenures: ',
+      _memoizedAllMappedEMITenures,
+    );
+    if (_memoizedAllMappedEMITenures?.length > 6) {
+      const _6EMITenures = _memoizedAllMappedEMITenures.slice(0, 6);
+      return _6EMITenures;
+    } else {
+      return _memoizedAllMappedEMITenures;
+    }
+  }, [memoizedAllMappedEMITenures]);
+
+  const [allMappedEMITenures, setAllMappedEMITenures] = useState(
+    memoizedAllMappedEMITenures,
+  );
+
+  const memoizedDefaultEMITenure = useMemo(
+    () => memoizedAllMappedEMITenures?.[0],
+    [memoizedAllMappedEMITenures],
+  );
+  const [defaultEMITenure, setDefaultEMITenure] = useState(
+    memoizedDefaultEMITenure,
+  );
+  const defaultInstallmentType =
+    useMemo(
+      () => memoizedAllMappedEMITenures?.[0],
+      [memoizedAllMappedEMITenures],
+    ) || 'emi';
+
+  const minLoanAmount = useMemo(
+    () => minLoanAmountFromRouteParams,
+    [minLoanAmountFromRouteParams],
+  );
+  const maxLoanAmount = useMemo(
+    () => maxLoanAmountFromRouteParams,
+    [maxLoanAmountFromRouteParams],
+  );
+  const [emiTenures, setEMITenures] = useState(initialMemoizedEMITenures);
+
   const [ballonAndEMIDecider, setBallonAndEMIDecider] = useState({
     type: 'balloonAndEMI',
     recommended: 'balloon',
@@ -44,49 +92,164 @@ export default function ({route, navigation}) {
     ],
   });
 
-  useLayoutBackButtonAction(theme.colors.background);
+  const nbfcsFilterForm = useBetaForm({
+    amount: loanAmountFromRouteParams,
+    filters: {
+      tenure: defaultEMITenure,
+      installment_type: defaultInstallmentType,
+    },
+  });
 
-  useEffect(() => {
-    setLoanAmount(10000);
+  const handleGetNBFCs = async payload => {
+    try {
+      const getNBFCsResponse = await getNBFCs(payload);
+      debugLog('getNBFCsResponse: ', prettifyJSON(getNBFCsResponse));
+
+      return getNBFCsResponse;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const handleSetFilters = useCallback(async payload => {
+    try {
+      const nbfcs = await handleGetNBFCs(payload);
+      const availableFilterOptions = nbfcs?.available_filter_options;
+      const allEMITenures = availableFilterOptions?.tenures;
+      const mappedAllEMITenures = allEMITenures?.map(tenure => ({
+        label: tenure,
+        value: tenure?.includes(' Months')
+          ? tenure?.slice(0, tenure?.indexOf(' Months'))
+          : tenure,
+      }));
+      const defaultEMITenureOnChangeSlider = mappedAllEMITenures?.[0];
+      console.log(
+        'defaultEMITenureOnChangeSlider: ',
+        defaultEMITenureOnChangeSlider,
+      );
+      setAllMappedEMITenures(mappedAllEMITenures);
+      setDefaultEMITenure(defaultEMITenureOnChangeSlider);
+    } catch (error) {
+      throw error;
+    }
   }, []);
 
-  useEffect(() => {
-    if (allEMITenures?.length > 6) {
-      const _allEMITenures = [...allEMITenures];
-      const _6EMITenures = _allEMITenures.slice(0, 6);
-      setEMITenures(_6EMITenures);
-    } else {
-      setEMITenures(allEMITenures);
-    }
-  }, [allEMITenures]);
-
-  const handleChangeLoanAmountOnTextInput = value => {
-    const numericValue = value?.startsWith('₹') ? value.slice(1) : value;
-    const finalLoanAmount = isNumber(numericValue)
-      ? numericValue
-      : numericValue;
-    setLoanAmount(finalLoanAmount);
-  };
-
-  const handleSubmit = () => {
-    debugLog('submit');
-  };
-
-  const handleOnToggleSeeMore = () => {
-    const _allEMITenures = [...allEMITenures];
-
-    if (_allEMITenures?.length > 6) {
-      if (emiTenures?.length === allEMITenures?.length) {
-        const _6EMITenures = _allEMITenures.slice(0, 6);
-        setEMITenures(_6EMITenures);
-      } else {
-        setEMITenures(_allEMITenures);
+  const handleChangeLoanAmountOnTextInput = useCallback(
+    async value => {
+      try {
+        const numericValue = value?.startsWith('₹') ? value.slice(1) : value;
+        let finalLoanAmount = isNumber(numericValue)
+          ? numericValue
+          : numericValue;
+        if (finalLoanAmount < minLoanAmount) {
+          finalLoanAmount = minLoanAmount;
+          nbfcsFilterForm?.setField('amount', +finalLoanAmount);
+        } else {
+          finalLoanAmount = minLoanAmount;
+          nbfcsFilterForm?.setField('amount', +finalLoanAmount);
+        }
+        const payload = {
+          amount: +finalLoanAmount,
+        };
+        console.log(
+          'handleChangeLoanAmountOnTextInput->payload for handleGetNBFCs: ',
+          prettifyJSON(payload),
+        );
+        await handleSetFilters(payload);
+      } catch (error) {
+        throw error;
       }
-    }
-  };
+    },
+    [handleSetFilters, nbfcsFilterForm?.value],
+  );
 
-  const handleChangeSlider = value => {
-    setLoanAmount(value);
+  const handleChangeSlider = useCallback(
+    async value => {
+      try {
+        nbfcsFilterForm?.setField('amount', +value);
+        const payload = {
+          amount: +value,
+        };
+        console.log(
+          'handleChangeSlider->payload for handleGetNBFCs: ',
+          prettifyJSON(payload),
+        );
+        await handleSetFilters(payload);
+      } catch (error) {
+        throw error;
+      }
+    },
+    [handleSetFilters, nbfcsFilterForm?.value],
+  );
+
+  const handleOnToggleSeeMore = useCallback(
+    _emiTenures => {
+      console.log('handleOnToggleSeeMore->_emiTenures: ', _emiTenures);
+      const _allMappedEMITenures = [...allMappedEMITenures];
+      console.log(
+        'handleOnToggleSeeMore->_allMappedEMITenures: ',
+        _allMappedEMITenures,
+      );
+      if (_allMappedEMITenures?.length > 6) {
+        if (_emiTenures?.length === allMappedEMITenures?.length) {
+          const _6EMITenures = _allMappedEMITenures.slice(0, 6);
+          setEMITenures(_6EMITenures);
+          nbfcsFilterForm?.setField('filters.tenure', _6EMITenures?.[0]);
+        } else {
+          setEMITenures(_allMappedEMITenures);
+          nbfcsFilterForm?.setField(
+            'filters.tenure',
+            _allMappedEMITenures?.[0],
+          );
+        }
+      }
+    },
+    [allMappedEMITenures, nbfcsFilterForm?.value],
+  );
+
+  const handleSelectTenure = useCallback(
+    tenure => {
+      debugLog('tenure: ', tenure);
+      nbfcsFilterForm?.setField('filters.tenure', tenure);
+    },
+    [nbfcsFilterForm?.value],
+  );
+
+  const handleOnSelectMonthlyPlan = useCallback(
+    installmentType => {
+      debugLog('installmentType: ', installmentType);
+      nbfcsFilterForm?.setField('filters.installment_type', installmentType);
+    },
+    [nbfcsFilterForm?.value],
+  );
+
+  const handleSubmit = async () => {
+    try {
+      const payload = {
+        ...nbfcsFilterForm?.value,
+        filters: {
+          tenure: nbfcsFilterForm?.value?.filters?.tenure?.value,
+          installment_type:
+            nbfcsFilterForm?.value?.filters?.installment_type?.value,
+        },
+      };
+      debugLog('payload on submit', prettifyJSON(payload));
+
+      const handleGetNBFCsResponse = await handleGetNBFCs(payload);
+      debugLog('handleGetNBFCsResponse: ', handleGetNBFCsResponse);
+      if (handleGetNBFCsResponse?.nbfcs?.length === 1) {
+        navigation.navigate('LAMFV2', {screen: 'ChooseNBFCSingle'});
+      } else if (
+        handleGetNBFCsResponse?.nbfcs?.length === 2 ||
+        handleGetNBFCsResponse?.nbfcs?.length === 3
+      ) {
+        navigation.navigate('LAMFV2', {screen: 'ChooseNBFCHorizontal'});
+      } else if (handleGetNBFCsResponse?.nbfcs?.length > 3) {
+        navigation.navigate('LAMFV2', {screen: 'ChooseNBFCVertical'});
+      }
+    } catch (error) {
+      throw error;
+    }
   };
 
   return (
@@ -196,7 +359,7 @@ export default function ({route, navigation}) {
                     keyboardType="numeric"
                     prefixValue={'₹'}
                     onChangeText={handleChangeLoanAmountOnTextInput}
-                    value={`${loanAmount}`}
+                    value={`${nbfcsFilterForm?.value?.amount}`}
                     extraTextStyles={{
                       color: theme.colors.primaryBlue,
                       fontWeight: theme.fontWeights.Bold,
@@ -207,34 +370,35 @@ export default function ({route, navigation}) {
                   />
                 </View>
               </View>
-              <SliderWithLabels
-                loanAmount={+loanAmount}
-                minLoanAmount={minLoanAmount}
-                maxLoanAmount={maxLoanAmount}
-                onSliderChange={handleChangeSlider}
-              />
+              {nbfcsFilterForm?.value?.amount &&
+              minLoanAmount &&
+              maxLoanAmount ? (
+                <SliderWithLabels
+                  loanAmount={+nbfcsFilterForm?.value?.amount}
+                  minLoanAmount={+minLoanAmount}
+                  maxLoanAmount={+maxLoanAmount}
+                  onSliderChange={handleChangeSlider}
+                />
+              ) : null}
 
-              {emiTenures?.length > 0 ? (
+              {emiTenures?.length > 0 && allMappedEMITenures?.length > 0 ? (
                 <SelectTenure
-                  onSelect={tenure => {
-                    debugLog('tenure: ', tenure);
-                  }}
+                  onSelect={handleSelectTenure}
                   emiTenures={emiTenures}
-                  allEMITenures={allEMITenures}
-                  defaultEMITenure={{label: '24 Months', value: '24 Months'}}
+                  allEMITenures={allMappedEMITenures}
+                  defaultEMITenure={nbfcsFilterForm?.value?.filters?.tenure}
                   style={{paddingTop: 24}}
                   labelStyle={{}}
                   columnCount={3}
                   textStyles={{textAlign: 'left'}}
-                  onToggleSeeMore={() => {
-                    handleOnToggleSeeMore();
-                  }}
+                  onToggleSeeMore={() => handleOnToggleSeeMore(emiTenures)}
                 />
               ) : null}
 
-              <MonthlyPaymentPlans
+              <SelectInstallmentType
                 style={{paddingTop: 16}}
                 renderUI={ballonAndEMIDecider}
+                onSelectedInstallmentType={handleOnSelectMonthlyPlan}
               />
 
               <View style={{paddingTop: 24, paddingBottom: 60}}>

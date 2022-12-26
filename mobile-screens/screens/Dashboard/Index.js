@@ -6,8 +6,11 @@ import ScreenWrapper from '../../hocs/screenWrapperWithoutBackButton';
 import HomeTabs from '../../TabNavigator';
 import {useTheme} from 'theme';
 import {
+  generateUserPortfolio,
   getDashboardPreApprovedLoanAmount,
   getLatestCASStatusOfNBFC,
+  getNBFCs,
+  getUserPreApprovedLoanAmount,
   getUserStage,
 } from 'services';
 import DashboardHeader from '../../reusables/dashboardHeader';
@@ -26,8 +29,7 @@ import UpcomingPayments from './UpcomingPayments';
 import {useFocusEffect} from '@react-navigation/native';
 import {useSelector, shallowEqual} from 'react-redux';
 import Config from 'react-native-config';
-import {BaseButton} from 'uin';
-import {debugLog} from 'utils';
+import {debugLog, prettifyJSON} from 'utils';
 
 const Dashboard = ({navigation, route}) => {
   const theme = useTheme();
@@ -105,16 +107,6 @@ const Dashboard = ({navigation, route}) => {
       const nbfcCode = Config.DEFAULT_NBFC_CODE;
       const casRefreshResponse = await getLatestCASStatusOfNBFC(nbfcCode);
 
-      // const casRefreshResponse = {
-      //   cas_requests: {
-      //     cams: {
-      //       needs_refresh: true,
-      //     },
-      //     karvy: {
-      //       needs_refresh: true,
-      //     },
-      //   },
-      // };
       debugLog('casRefreshResponse: ', casRefreshResponse);
 
       const refreshableCASDataProvidersForNBFC = Object.entries(
@@ -136,10 +128,49 @@ const Dashboard = ({navigation, route}) => {
         });
       } else {
         debugLog('Nothing need to be refreshed....');
-        navigation.navigate('Protected', {
-          screen: 'LoanDashboard',
+        navigation.navigate('LAMFV2', {
+          screen: 'LoanAmountSelection',
         });
       }
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const handleGeneratePortfolio = async () => {
+    try {
+      const generateUserPortfolioResponse = await generateUserPortfolio();
+      debugLog(
+        'generateUserPortfolioResponse: ',
+        prettifyJSON(generateUserPortfolioResponse),
+      );
+
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const handleGetUserPreApprovedLoanAmount = async () => {
+    try {
+      const getUserPreApprovedLoanAmountResponse =
+        await getUserPreApprovedLoanAmount();
+      debugLog(
+        'getUserPreApprovedLoanAmountResponse: ',
+        prettifyJSON(getUserPreApprovedLoanAmountResponse),
+      );
+
+      return getUserPreApprovedLoanAmountResponse;
+    } catch (error) {
+      throw error;
+    }
+  };
+  const handleGetNBFCs = async () => {
+    try {
+      const getNBFCsResponse = await getNBFCs();
+      debugLog('getNBFCsResponse: ', prettifyJSON(getNBFCsResponse));
+
+      return getNBFCsResponse;
     } catch (error) {
       throw error;
     }
@@ -170,9 +201,23 @@ const Dashboard = ({navigation, route}) => {
           },
         });
       } else {
-        debugLog('Nothing need to be refreshed....');
+        await handleGeneratePortfolio();
+        const minMaxPreApprovedLoanAmount =
+          await handleGetUserPreApprovedLoanAmount();
+        const nbfcs = await handleGetNBFCs();
+        console.log('handleGetNBFCs->nbfcs: ', nbfcs);
+        console.log(
+          'minMaxPreApprovedLoanAmount----------: ',
+          minMaxPreApprovedLoanAmount,
+        );
         navigation.navigate('LAMFV2', {
           screen: 'LoanAmountSelection',
+          params: {
+            loanAmount: minMaxPreApprovedLoanAmount?.max_eligible_loan,
+            minLoanAmount: minMaxPreApprovedLoanAmount?.min_eligible_loan,
+            maxLoanAmount: minMaxPreApprovedLoanAmount?.max_eligible_loan,
+            availableFilterOptions: nbfcs?.available_filter_options,
+          },
         });
       }
     } catch (error) {
@@ -195,31 +240,7 @@ const Dashboard = ({navigation, route}) => {
           refreshOnScreenFocus={refreshOnScreenFocus}
           wrapperStyles={{paddingTop: 36.5}}
         />
-        <View
-          style={{
-            paddingHorizontal: 0,
-            paddingTop: 24,
-            paddingVertical: 2,
-          }}>
-          <BaseButton
-            extraStyles={{
-              paddingVertical: 12,
-              backgroundColor: theme.colors.primaryBlue800,
-              paddingHorizontal: 1,
-            }}
-            onPress={async () => {
-              await handleApplyNow();
-            }}
-            outlineColor={theme.colors.primary}
-            textColor={theme.colors.primary}
-            textStyles={{
-              color: theme.colors.primary,
-              fontWeight: theme.fontWeights.veryBold,
-              ...theme.fontSizes.medium,
-            }}>
-            Apply Now
-          </BaseButton>
-        </View>
+
         {showBannerSpace && (
           <UserProgressGradientCard
             setShowBannerSpace={setShowBannerSpace}

@@ -5,15 +5,16 @@ import {TouchableOpacity, View} from 'react-native';
 import {useTheme} from 'theme';
 import {Card, Heading, RadioButton, SubText} from 'uin';
 
-export const MonthlyPaymentPlans = ({
+export const SelectInstallmentType = ({
   style = {},
   labelStyle = {},
   optionLabelStyle = {},
   optionSubLabelStyle = {},
   renderUI,
+  onSelectedInstallmentType = () => {},
 }) => {
   const theme = useTheme();
-  const [selectedMonthlyPlan, setSelectedMonthlyPlan] =
+  const [selectedInstallmentType, setSelectedInstallmentType] =
     React.useState('balloon');
   return (
     <View style={{...style}}>
@@ -37,7 +38,7 @@ export const MonthlyPaymentPlans = ({
       {renderUI?.type === 'balloonAndEMI' ? (
         <View style={{}}>
           <RadioButton
-            selectedOption={selectedMonthlyPlan}
+            selectedOption={selectedInstallmentType}
             iconWidth={26}
             iconHeight={26}
             options={[
@@ -130,8 +131,9 @@ export const MonthlyPaymentPlans = ({
                 value: 'emi',
               },
             ]}
-            onChange={emiPlanValue => {
-              setSelectedMonthlyPlan(emiPlanValue);
+            onChange={installmentType => {
+              setSelectedInstallmentType(installmentType);
+              onSelectedInstallmentType(installmentType);
             }}
             onSelect={() => {}}
             selectedRadioComponent={

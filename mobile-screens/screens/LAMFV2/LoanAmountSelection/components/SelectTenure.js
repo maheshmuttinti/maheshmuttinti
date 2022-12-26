@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import {TickCircleMedium} from 'assets';
 import * as React from 'react';
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useMemo} from 'react';
 import {TouchableOpacity, View} from 'react-native';
 import {useTheme} from 'theme';
 import {Heading, RadioInputNew} from 'uin';
@@ -19,8 +19,9 @@ export const SelectTenure = ({
 }) => {
   const [defaultSelected, setDefaultSelected] = useState();
   const [refreshEMITenures, setRefreshEMITenures] = useState([]);
-  const [showSeeMore, setShowSeeMore] = useState(
-    allEMITenures?.length > 6 ? true : false,
+  const showSeeMore = useMemo(
+    () => (allEMITenures?.length > 6 ? true : false),
+    [allEMITenures?.length],
   );
 
   useEffect(() => {
