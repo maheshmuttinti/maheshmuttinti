@@ -171,6 +171,7 @@ export const useAutoFlowRTACASFetchingRedirections = (
       if (flowFromOnboarding === true) {
         navigation.replace('Protected');
       } else {
+        setLoadingText('Please wait, Redirecting to the next screen...');
         await handleGeneratePortfolio();
         const minMaxPreApprovedLoanAmount =
           await handleGetUserPreApprovedLoanAmount();
@@ -180,7 +181,7 @@ export const useAutoFlowRTACASFetchingRedirections = (
           'minMaxPreApprovedLoanAmount----------: ',
           minMaxPreApprovedLoanAmount,
         );
-        navigation.navigate('LAMFV2', {
+        navigation.replace('LAMFV2', {
           screen: 'LoanAmountSelection',
           params: {
             loanAmount: minMaxPreApprovedLoanAmount?.max_eligible_loan,
@@ -189,8 +190,10 @@ export const useAutoFlowRTACASFetchingRedirections = (
             availableFilterOptions: nbfcs?.available_filter_options,
           },
         });
+        setLoadingText(null);
       }
     } catch (error) {
+      setLoadingText(null);
       console.log('handleNextAfterCompleteCASFetch->error: ', error);
       if (error?.response?.data?.errorCode === 'INVESTOR_NOT_FOUND') {
         navigation.navigate('PANSetup', {
@@ -198,6 +201,7 @@ export const useAutoFlowRTACASFetchingRedirections = (
         });
         throw error;
       }
+      throw error;
     }
   };
 
