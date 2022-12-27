@@ -186,15 +186,30 @@ const Dashboard = ({navigation, route}) => {
       if (isPANLinked) {
         return true;
       } else {
-        navigation.navigate('PANSetup');
+        navigation.navigate('PANSetup', {
+          screen: 'CollectPAN',
+          params: {
+            waitForResponse: true,
+          },
+        });
       }
     } catch (error) {
       debugLog('checkForPANLinkStatus->error: ', error);
       if (error?.error === 'PAN not linked') {
-        navigation.navigate('PANSetup');
+        navigation.navigate('PANSetup', {
+          screen: 'CollectPAN',
+          params: {
+            waitForResponse: true,
+          },
+        });
         throw error;
       } else {
-        navigation.navigate('PANSetup');
+        navigation.navigate('PANSetup', {
+          screen: 'CollectPAN',
+          params: {
+            waitForResponse: true,
+          },
+        });
         throw error;
       }
     }
@@ -224,6 +239,7 @@ const Dashboard = ({navigation, route}) => {
             screen: 'UpdatePortfolio',
             params: {
               providers: refreshableCASDataProvidersForNBFC,
+              waitForResponse: true,
             },
           });
         } else {
@@ -256,11 +272,17 @@ const Dashboard = ({navigation, route}) => {
       if (error?.response?.data?.errorCode === 'INVESTOR_NOT_FOUND') {
         navigation.navigate('PANSetup', {
           screen: 'CollectPAN',
+          params: {
+            waitForResponse: true,
+          },
         });
         throw error;
       } else {
         navigation.navigate('PANSetup', {
           screen: 'CollectPAN',
+          params: {
+            waitForResponse: true,
+          },
         });
         throw error;
       }

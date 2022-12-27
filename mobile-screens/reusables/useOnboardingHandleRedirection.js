@@ -48,15 +48,21 @@ const useOnboardingHandleRedirection = () => {
           navigation.replace('Protected');
         } else {
           resetPINSetup();
-          navigation.replace('PANSetup');
+          navigation.replace('PANSetup', {
+            screen: 'CollectPAN',
+          });
         }
       }
     } catch (err) {
       if (err?.error === 'PAN not linked') {
-        navigation.replace('PANSetup');
+        navigation.replace('PANSetup', {
+          screen: 'CollectPAN',
+        });
         throw err;
       } else {
-        navigation.replace('PANSetup');
+        navigation.replace('PANSetup', {
+          screen: 'CollectPAN',
+        });
         throw err;
       }
     }

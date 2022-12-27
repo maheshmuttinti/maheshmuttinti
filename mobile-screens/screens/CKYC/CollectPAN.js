@@ -21,7 +21,8 @@ import {validatePAN as signzyValidatePAN} from 'services';
 import {InputErrorMessage} from '../../reusables/ErrorMessage';
 import useBetaForm from '@reusejs/react-form-hook';
 
-export default function ({navigation}) {
+export default function ({navigation, route}) {
+  const waitForResponse = route?.params?.waitForResponse || false;
   const theme = useTheme();
   const [basicValidationError, setBasicValidationError] = useState('');
   const [showGreenCircleIcon, setShowGreenCircleIcon] = useState(false);
@@ -40,6 +41,7 @@ export default function ({navigation}) {
     form,
     validUser,
     navigation,
+    waitForResponse,
   );
 
   useExitApp();

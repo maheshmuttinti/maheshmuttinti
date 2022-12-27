@@ -4,7 +4,12 @@ import * as React from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {BackArrow} from 'assets';
 
-export default function (fill, dependencies = [], preventGoBack = false) {
+export default function (
+  fill,
+  dependencies = [],
+  preventGoBack = false,
+  backActionCallback,
+) {
   const navigation = useNavigation();
   React.useLayoutEffect(() => {
     navigation.setOptions({
@@ -15,7 +20,16 @@ export default function (fill, dependencies = [], preventGoBack = false) {
             if (preventGoBack === true) {
               return;
             } else {
-              navigation.canGoBack() && navigation.pop();
+              // Todo: Not Working check it again
+              console.log(
+                'typeof backActionCallback: ',
+                typeof backActionCallback,
+              );
+              if (typeof backActionCallback === 'function') {
+                backActionCallback();
+              } else {
+                navigation.canGoBack() && navigation.pop();
+              }
             }
           }}
           style={{width: 50, marginLeft: 16}}>

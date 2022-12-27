@@ -31,6 +31,7 @@ const ICON_WIDTH = 16;
 export default function ({navigation, route}) {
   const refreshableCASDataProvidersForNBFC =
     route?.params?.refreshableCASDataProvidersForNBFC;
+  const flowFromOnboarding = route?.params?.flowFromOnboarding;
   const waitForResponse = route?.params?.waitForResponse || false;
   const {CAMS_REQUEST_TEXT, KARVY_REQUEST_TEXT} = RTA_LOADING_MESSAGES;
   const theme = useTheme();
@@ -93,24 +94,28 @@ export default function ({navigation, route}) {
   };
   const handleNextAfterCompleteCASFetch = async () => {
     try {
-      await handleGeneratePortfolio();
-      const minMaxPreApprovedLoanAmount =
-        await handleGetUserPreApprovedLoanAmount();
-      const nbfcs = await handleGetNBFCs();
-      debugLog('handleGetNBFCs->nbfcs: ', nbfcs);
-      debugLog(
-        'minMaxPreApprovedLoanAmount----------: ',
-        minMaxPreApprovedLoanAmount,
-      );
-      navigation.navigate('LAMFV2', {
-        screen: 'LoanAmountSelection',
-        params: {
-          loanAmount: minMaxPreApprovedLoanAmount?.max_eligible_loan,
-          minLoanAmount: minMaxPreApprovedLoanAmount?.min_eligible_loan,
-          maxLoanAmount: minMaxPreApprovedLoanAmount?.max_eligible_loan,
-          availableFilterOptions: nbfcs?.available_filter_options,
-        },
-      });
+      if (flowFromOnboarding === true) {
+        navigation.replace('Protected');
+      } else {
+        await handleGeneratePortfolio();
+        const minMaxPreApprovedLoanAmount =
+          await handleGetUserPreApprovedLoanAmount();
+        const nbfcs = await handleGetNBFCs();
+        debugLog('handleGetNBFCs->nbfcs: ', nbfcs);
+        debugLog(
+          'minMaxPreApprovedLoanAmount----------: ',
+          minMaxPreApprovedLoanAmount,
+        );
+        navigation.navigate('LAMFV2', {
+          screen: 'LoanAmountSelection',
+          params: {
+            loanAmount: minMaxPreApprovedLoanAmount?.max_eligible_loan,
+            minLoanAmount: minMaxPreApprovedLoanAmount?.min_eligible_loan,
+            maxLoanAmount: minMaxPreApprovedLoanAmount?.max_eligible_loan,
+            availableFilterOptions: nbfcs?.available_filter_options,
+          },
+        });
+      }
     } catch (error) {
       console.log('handleNextAfterCompleteCASFetch->error: ', error);
       if (error?.response?.data?.errorCode === 'INVESTOR_NOT_FOUND') {

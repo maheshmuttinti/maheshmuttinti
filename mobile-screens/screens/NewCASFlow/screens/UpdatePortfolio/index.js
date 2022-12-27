@@ -34,14 +34,29 @@ const UpdatePortfolio = ({navigation, route}) => {
             },
           });
         } else {
-          navigation.navigate('PANSetup');
+          navigation.navigate('PANSetup', {
+            screen: 'CollectPAN',
+            params: {
+              waitForResponse: true,
+            },
+          });
         }
       }
     } catch (err) {
       if (err?.error === 'PAN not linked') {
-        navigation.navigate('PANSetup');
+        navigation.navigate('PANSetup', {
+          screen: 'CollectPAN',
+          params: {
+            waitForResponse: true,
+          },
+        });
       } else {
-        navigation.navigate('PANSetup');
+        navigation.navigate('PANSetup', {
+          screen: 'CollectPAN',
+          params: {
+            waitForResponse: true,
+          },
+        });
       }
       throw err;
     }

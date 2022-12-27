@@ -168,7 +168,8 @@ export const SelectInstallmentType = ({
                 lineHeight: 24,
                 ...optionLabelStyle,
               }}>
-              Easy Pay Plan - ₹2000 - ₹5000
+              // Todo: make it dynamic
+              {'Easy Pay Plan - ₹2000 - ₹5000'}
             </Heading>
 
             <SubText
@@ -196,7 +197,8 @@ export const SelectInstallmentType = ({
                 lineHeight: 24,
                 ...optionLabelStyle,
               }}>
-              EMI Plan - ₹2000 - ₹5000
+              EMI -{' '}
+              {renderUI?.data[1]?.label ? `${renderUI?.data[1]?.label}` : ''}
             </Heading>
           </Card>
         ) : null}

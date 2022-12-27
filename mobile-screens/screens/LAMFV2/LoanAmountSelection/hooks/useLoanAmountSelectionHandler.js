@@ -1,14 +1,23 @@
-import {useState, useMemo, useCallback} from 'react';
+import {useState, useMemo, useCallback, useEffect} from 'react';
 import {useTheme} from 'theme';
 import {debugLog, isNumber, prettifyJSON} from 'utils';
 import useLayoutBackButtonAction from '../../../../reusables/useLayoutBackButtonAction';
 import useBetaForm from '@reusejs/react-form-hook';
-import {getNBFCs} from 'services';
+import {getNBFCs, getIndicativeEMIsForLoanTenures} from 'services';
+import useHardwareButtonGoBack from '../../../../reusables/useHardwareButtonGoBack';
 
 export const useLoanAmountSelectionHandler = (navigation, route) => {
   const theme = useTheme();
 
-  useLayoutBackButtonAction(theme.colors.background);
+  const handleGoBack = () => {
+    navigation.replace('Protected');
+  };
+
+  useHardwareButtonGoBack(true, handleGoBack);
+
+  useLayoutBackButtonAction(theme.colors.background, [], false, handleGoBack);
+  const [minROI, setMinROI] = useState('10');
+  const [maxROI, setMaxROI] = useState('13.5');
 
   const {
     loanAmount: loanAmountFromRouteParams,
@@ -77,36 +86,7 @@ export const useLoanAmountSelectionHandler = (navigation, route) => {
   );
   const [emiTenures, setEMITenures] = useState(initialMemoizedEMITenures);
 
-  const [installmentTypeDecider, setInstallmentTypeDecider] = useState({
-    type:
-      initialMemoizedInstallmentTypes?.includes('balloon') &&
-      initialMemoizedInstallmentTypes?.includes('emi')
-        ? 'balloonAndEMI'
-        : initialMemoizedInstallmentTypes?.includes('emi')
-        ? 'onlyEMI'
-        : initialMemoizedInstallmentTypes?.includes('balloon')
-        ? 'onlyBalloon'
-        : null,
-    recommended:
-      initialMemoizedInstallmentTypes?.includes('balloon') &&
-      initialMemoizedInstallmentTypes?.includes('emi')
-        ? 'balloon'
-        : initialMemoizedInstallmentTypes?.includes('emi')
-        ? 'emi'
-        : initialMemoizedInstallmentTypes?.includes('balloon')
-        ? 'balloon'
-        : null,
-    data: [
-      {
-        label: '₹2000 - ₹5000',
-        value: '2000-5000',
-      },
-      {
-        label: '₹10,000 - ₹12,000',
-        value: '10,000 - 12,000',
-      },
-    ],
-  });
+  const [installmentTypeDecider, setInstallmentTypeDecider] = useState(null);
 
   debugLog('installmentTypeDecider', installmentTypeDecider);
 
@@ -237,6 +217,108 @@ export const useLoanAmountSelectionHandler = (navigation, route) => {
     },
     [nbfcsFilterForm?.value],
   );
+
+  useEffect(() => {
+    const getIndicativeEMIs = async () => {
+      try {
+        let indicativeEMIPlanValues = '';
+        console.log(
+          'minROI,maxROI,nbfcsFilterForm?.value?.amount,nbfcsFilterForm?.value?.filters?.tenure,emiTenures,',
+          prettifyJSON({
+            minROI,
+            maxROI,
+            principal: nbfcsFilterForm?.value?.amount,
+            tenure: nbfcsFilterForm?.value?.filters?.tenure,
+          }),
+        );
+        const minROIPayload = {
+          interest: minROI,
+          principal: nbfcsFilterForm?.value?.amount,
+          tenures: [nbfcsFilterForm?.value?.filters?.tenure],
+        };
+        const maxROIPayload = {
+          interest: maxROI,
+          principal: nbfcsFilterForm?.value?.amount,
+          tenures: [nbfcsFilterForm?.value?.filters?.tenure],
+        };
+        console.log('minROIPayload of indicative EMI: ', minROIPayload);
+        if (
+          minROIPayload?.interest &&
+          minROIPayload?.principal &&
+          minROIPayload?.tenures
+        ) {
+          const indicativeEMIsResponse = await getIndicativeEMIsForLoanTenures(
+            minROIPayload,
+          );
+          const indicativeEMIAmount =
+            indicativeEMIsResponse?.[0]?.tentative_emi_amount;
+          console.log(
+            'getIndicativeEMIs->indicativeEMIAmount Finall-------: ',
+            indicativeEMIAmount,
+          );
+          indicativeEMIPlanValues += `₹${indicativeEMIAmount}`;
+        }
+        if (
+          maxROIPayload?.interest &&
+          maxROIPayload?.principal &&
+          maxROIPayload?.tenures
+        ) {
+          const indicativeEMIsResponse = await getIndicativeEMIsForLoanTenures(
+            maxROIPayload,
+          );
+          const indicativeEMIAmount =
+            indicativeEMIsResponse?.[0]?.tentative_emi_amount;
+          console.log(
+            'getIndicativeEMIs->indicativeEMIAmount Finall-------: ',
+            indicativeEMIAmount,
+          );
+          indicativeEMIPlanValues += ` - ₹${indicativeEMIAmount}`;
+        }
+        console.log('Final indicativeEMIPlanValues: ', indicativeEMIPlanValues);
+        setInstallmentTypeDecider({
+          type:
+            initialMemoizedInstallmentTypes?.includes('balloon') &&
+            initialMemoizedInstallmentTypes?.includes('emi')
+              ? 'balloonAndEMI'
+              : initialMemoizedInstallmentTypes?.includes('emi')
+              ? 'onlyEMI'
+              : initialMemoizedInstallmentTypes?.includes('balloon')
+              ? 'onlyBalloon'
+              : null,
+          recommended:
+            initialMemoizedInstallmentTypes?.includes('balloon') &&
+            initialMemoizedInstallmentTypes?.includes('emi')
+              ? 'balloon'
+              : initialMemoizedInstallmentTypes?.includes('emi')
+              ? 'emi'
+              : initialMemoizedInstallmentTypes?.includes('balloon')
+              ? 'balloon'
+              : null,
+          data: [
+            // For Balloon
+            {
+              label: '₹10,000 - ₹12,000',
+              value: '10,000 - 12,000',
+            },
+            // For EMI
+            {
+              label: `${indicativeEMIPlanValues}`,
+              value: `${indicativeEMIPlanValues}`,
+            },
+          ],
+        });
+      } catch (error) {
+        throw error;
+      }
+    };
+    getIndicativeEMIs();
+  }, [
+    minROI,
+    maxROI,
+    nbfcsFilterForm?.value?.amount,
+    nbfcsFilterForm?.value?.filters?.tenure,
+    initialMemoizedInstallmentTypes,
+  ]);
 
   const handleSubmit = async () => {
     try {

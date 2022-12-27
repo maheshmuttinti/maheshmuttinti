@@ -1,7 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {linkPAN} from 'services';
 
-export const usePANCollectRedirection = (form, name, navigation) => {
+export const usePANCollectRedirection = (
+  form,
+  name,
+  navigation,
+  waitForResponse,
+) => {
+  console.log('usePANCollectRedirection->waitForResponse: ', waitForResponse);
   const handleRedirection = async () => {
     try {
       let tokenFromStorage = await AsyncStorage.getItem('@access_token');
@@ -17,7 +23,8 @@ export const usePANCollectRedirection = (form, name, navigation) => {
             screen: 'FetchCASFromRTAs',
             params: {
               refreshableCASDataProvidersForNBFC: ['cams', 'karvy'],
-              waitForResponse: false,
+              waitForResponse: waitForResponse,
+              flowFromOnboarding: true,
             },
           });
         }
