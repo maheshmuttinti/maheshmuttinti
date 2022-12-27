@@ -204,8 +204,8 @@ const Dashboard = ({navigation, route}) => {
         const minMaxPreApprovedLoanAmount =
           await handleGetUserPreApprovedLoanAmount();
         const nbfcs = await handleGetNBFCs();
-        console.log('handleGetNBFCs->nbfcs: ', nbfcs);
-        console.log(
+        debugLog('handleGetNBFCs->nbfcs: ', nbfcs);
+        debugLog(
           'minMaxPreApprovedLoanAmount----------: ',
           minMaxPreApprovedLoanAmount,
         );
@@ -220,6 +220,13 @@ const Dashboard = ({navigation, route}) => {
         });
       }
     } catch (error) {
+      debugLog('error in handleUploadNow=-----: ', error?.response?.data);
+      if (error?.response?.data?.errorCode === 'INVESTOR_NOT_FOUND') {
+        navigation.navigate('PANSetup', {
+          screen: 'CollectPAN',
+        });
+        throw error;
+      }
       throw error;
     }
   };

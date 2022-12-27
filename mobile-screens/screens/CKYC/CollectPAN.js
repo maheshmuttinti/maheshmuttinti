@@ -16,32 +16,29 @@ import ScreenWrapper from '../../hocs/screenWrapperWithoutBackButton';
 import {BackArrow, ForwardEmail, TickCircle} from 'assets';
 import useExitApp from '../../reusables/useExitApp';
 import {usePANCollectRedirection} from '../../reusables/usePANCollectRedirection';
-import {prettifyJSON, validatePAN as basicValidatePAN} from 'utils';
+import {validatePAN as basicValidatePAN} from 'utils';
 import {validatePAN as signzyValidatePAN} from 'services';
-import * as Sentry from '@sentry/react-native';
 import {InputErrorMessage} from '../../reusables/ErrorMessage';
 import useBetaForm from '@reusejs/react-form-hook';
 
 export default function ({navigation}) {
   const theme = useTheme();
-  const [pan, setPAN] = useState('');
   const [basicValidationError, setBasicValidationError] = useState('');
   const [showGreenCircleIcon, setShowGreenCircleIcon] = useState(false);
   const [loading, setLoading] = useState(null);
-  const [message, setMessage] = useState(null);
   const [validUser, setValidUser] = useState(null);
   const [isFetchingPANDetails, setIsFetchingPANDetails] = useState(false);
   const [keyboardType, setKeyboardType] = useState('default');
   const form = useBetaForm({
+    pan: '',
     error: '',
   });
 
   const showGreenTickCircleIcon = useRef(() => {});
 
   const handleRedirection = usePANCollectRedirection(
-    pan,
-    validUser,
     form,
+    validUser,
     navigation,
   );
 
@@ -55,18 +52,30 @@ export default function ({navigation}) {
   const handleChangeText = text => {
     setValidUser(null);
     setBasicValidationError(null);
-    setMessage(null);
     form.setErrors({});
     if (text.length <= 10) {
-      if (text.length < 5) {
-        setKeyboardType('default');
-      } else if (text.length === 5 || text.length <= 8) {
-        setKeyboardType('numeric');
-      } else if (text.length === 9 && text.length <= 10) {
-        setKeyboardType('default');
+      if (text.length >= 4) {
+        if (text.charAt(3) !== 'P') {
+          form.setErrors({
+            pan: 'Our services are offered only for Individual PAN holders. Please ensure you provide the correct PAN',
+          });
+          if (text.length < 5) {
+            setKeyboardType('default');
+          } else if (text.length === 5 || text.length <= 8) {
+            setKeyboardType('numeric');
+          } else if (text.length === 9 && text.length <= 10) {
+            setKeyboardType('default');
+          }
+        } else if (text.length < 5) {
+          setKeyboardType('default');
+        } else if (text.length === 5 || text.length <= 8) {
+          setKeyboardType('numeric');
+        } else if (text.length === 9 && text.length <= 10) {
+          setKeyboardType('default');
+        }
       }
       showGreenTickCircleIcon.current(text);
-      setPAN(text);
+      form.setField('pan', text);
     }
     if (text.length === 10) {
       if (basicValidatePAN(text) === false) {
@@ -79,38 +88,30 @@ export default function ({navigation}) {
     try {
       setValidUser(null);
       setBasicValidationError(null);
-      setMessage(null);
+      form.setErrors({});
       setIsFetchingPANDetails(true);
-      const payload = {pan: pan?.toUpperCase()};
-      console.log('payload for validatePAN: ', prettifyJSON(payload));
+      const payload = {pan: form?.value?.pan?.toUpperCase()};
       const panValidationResponse = await signzyValidatePAN(payload);
-      console.log('panValidationResponse: ', panValidationResponse);
       if (panValidationResponse?.pan && panValidationResponse?.name) {
         setValidUser(panValidationResponse?.name);
-        // setValidUser('MUTTINTI MAHESH');
         setIsFetchingPANDetails(false);
       }
     } catch (err) {
       setValidUser(null);
-      form.setErrors({error: err?.message?.errors?.error});
-      if (err?.pan) {
-        setMessage(err?.pan);
+      if (err?.response?.status === 422) {
+        form.setErrors(err?.response?.data?.errors);
+        setIsFetchingPANDetails(false);
+        setValidUser(null);
+      } else if (err?.error) {
+        form.setErrors(err?.error);
         setIsFetchingPANDetails(false);
         setValidUser(null);
       } else {
-        if (err?.error) {
-          setMessage(err?.error);
-          setIsFetchingPANDetails(false);
-          setValidUser(null);
-        } else {
-          setIsFetchingPANDetails(false);
-          setValidUser(null);
-        }
+        setIsFetchingPANDetails(false);
+        setValidUser(null);
       }
-      Sentry.captureException(err);
-      throw err;
     }
-  }, [pan]);
+  }, [form?.value?.pan]);
 
   useEffect(() => {
     if (showGreenCircleIcon) {
@@ -182,7 +183,7 @@ export default function ({navigation}) {
             <BaseTextInput
               placeholder="Enter PAN Card Number"
               onChangeText={text => handleChangeText(text)}
-              value={pan}
+              value={form.value.pan}
               keyboardType={keyboardType}
               editable={!isFetchingPANDetails}
               overlappingIcon={() =>
@@ -224,22 +225,30 @@ export default function ({navigation}) {
             </>
           ) : null}
 
-          {message ? (
+          {form.errors.get('pan') ? (
             <>
-              {Array.isArray(message) && message?.length > 1 ? (
-                message.map((errMsg, index) => (
-                  <InputErrorMessage
-                    key={`error-msg-${index}`}
-                    errorMessage={errMsg}
-                  />
-                ))
-              ) : Array.isArray(message) && message?.length === 0 ? (
+              {Array.isArray(form.errors.get('pan')) &&
+              form.errors.get('pan')?.length > 1 ? (
+                form.errors
+                  .get('pan')
+                  ?.map((errMsg, index) => (
+                    <InputErrorMessage
+                      key={`error-msg-${index}`}
+                      errorMessage={errMsg}
+                    />
+                  ))
+              ) : Array.isArray(form.errors.get('pan')) &&
+                form.errors.get('pan')?.length === 0 ? (
                 <>
-                  <InputErrorMessage errorMessage={`${message?.[0]}`} />
+                  <InputErrorMessage
+                    errorMessage={`${form.errors.get('pan')?.[0]}`}
+                  />
                 </>
               ) : (
                 <>
-                  <InputErrorMessage errorMessage={`${message}`} />
+                  <InputErrorMessage
+                    errorMessage={`${form.errors.get('pan')}`}
+                  />
                 </>
               )}
             </>

@@ -1,14 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {linkPAN} from 'services';
 
-export const usePANCollectRedirection = (pan, name, form, navigation) => {
+export const usePANCollectRedirection = (form, name, navigation) => {
   const handleRedirection = async () => {
     try {
       let tokenFromStorage = await AsyncStorage.getItem('@access_token');
 
       if (tokenFromStorage !== null) {
         const payload = {
-          pan: pan?.toUpperCase(),
+          pan: form?.value?.pan?.toUpperCase(),
           name,
         };
         const response = await linkPAN(payload);
