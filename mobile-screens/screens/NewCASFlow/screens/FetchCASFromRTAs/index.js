@@ -17,6 +17,12 @@ import {OTPVerification as KarvyOTPVerification} from '../../components/FetchCAS
 import OverLayLoader from '../../../../reusables/loader';
 import {useAutoFlowRTACASFetchingRedirections} from './hooks/useAutoFlowRTACASFetchingRedirections';
 import {RTA_LOADING_MESSAGES} from './constants/index';
+import {
+  generateUserPortfolio,
+  getNBFCs,
+  getUserPreApprovedLoanAmount,
+} from 'services';
+import {debugLog, prettifyJSON} from 'utils';
 
 const SCREEN_BACKGROUND_COLOR = 'white';
 const ICON_HEIGHT = 16;
@@ -46,6 +52,75 @@ export default function ({navigation, route}) {
     initiateCAMSCASForm,
     initiateKarvyCASForm,
   } = useAutoFlowRTACASFetchingRedirections(refreshableCASDataProvidersForNBFC);
+
+  const handleGeneratePortfolio = async () => {
+    try {
+      const generateUserPortfolioResponse = await generateUserPortfolio();
+      debugLog(
+        'generateUserPortfolioResponse: ',
+        prettifyJSON(generateUserPortfolioResponse),
+      );
+
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const handleGetUserPreApprovedLoanAmount = async () => {
+    try {
+      const getUserPreApprovedLoanAmountResponse =
+        await getUserPreApprovedLoanAmount();
+      debugLog(
+        'getUserPreApprovedLoanAmountResponse: ',
+        prettifyJSON(getUserPreApprovedLoanAmountResponse),
+      );
+
+      return getUserPreApprovedLoanAmountResponse;
+    } catch (error) {
+      throw error;
+    }
+  };
+  const handleGetNBFCs = async () => {
+    try {
+      const getNBFCsResponse = await getNBFCs();
+      debugLog('getNBFCsResponse: ', prettifyJSON(getNBFCsResponse));
+
+      return getNBFCsResponse;
+    } catch (error) {
+      throw error;
+    }
+  };
+  const handleNextAfterCompleteCASFetch = async () => {
+    try {
+      await handleGeneratePortfolio();
+      const minMaxPreApprovedLoanAmount =
+        await handleGetUserPreApprovedLoanAmount();
+      const nbfcs = await handleGetNBFCs();
+      debugLog('handleGetNBFCs->nbfcs: ', nbfcs);
+      debugLog(
+        'minMaxPreApprovedLoanAmount----------: ',
+        minMaxPreApprovedLoanAmount,
+      );
+      navigation.navigate('LAMFV2', {
+        screen: 'LoanAmountSelection',
+        params: {
+          loanAmount: minMaxPreApprovedLoanAmount?.max_eligible_loan,
+          minLoanAmount: minMaxPreApprovedLoanAmount?.min_eligible_loan,
+          maxLoanAmount: minMaxPreApprovedLoanAmount?.max_eligible_loan,
+          availableFilterOptions: nbfcs?.available_filter_options,
+        },
+      });
+    } catch (error) {
+      console.log('handleNextAfterCompleteCASFetch->error: ', error);
+      if (error?.response?.data?.errorCode === 'INVESTOR_NOT_FOUND') {
+        navigation.navigate('PANSetup', {
+          screen: 'CollectPAN',
+        });
+        throw error;
+      }
+    }
+  };
   return (
     <ScreenWrapper style={{backgroundColor: SCREEN_BACKGROUND_COLOR}}>
       <View style={{paddingHorizontal: 24, paddingTop: 24, flex: 1}}>
@@ -182,7 +257,7 @@ export default function ({navigation, route}) {
                     }
                   }}
                   errorMsg={initiateKarvyCASForm.errors.get('error')?.[0]}
-                  onSubmit={nextAction => {
+                  onSubmit={async nextAction => {
                     if (nextAction === 'ask_for_otp') {
                       setAction(nextAction);
                       setLoadingText(null);
@@ -190,20 +265,20 @@ export default function ({navigation, route}) {
                       setLoadingText(null);
                       setAction(null);
                       setSkippedSteps(prevStep => [...prevStep, 1]);
-                      navigation.replace('Protected');
+                      await handleNextAfterCompleteCASFetch();
                     }
                   }}
-                  onError={() => {
+                  onError={async () => {
                     setLoadingText(null);
                     setAction(null);
                     setFailedSteps(prevStep => [...prevStep, 1]);
-                    navigation.replace('Protected');
+                    await handleNextAfterCompleteCASFetch();
                   }}
-                  onSkip={() => {
+                  onSkip={async () => {
                     setLoadingText(null);
                     setAction(null);
                     setSkippedSteps(prevStep => [...prevStep, 1]);
-                    navigation.replace('Protected');
+                    await handleNextAfterCompleteCASFetch();
                   }}
                 />
               ) : refreshableCASDataProvidersForNBFC?.includes('karvy') &&
@@ -211,22 +286,22 @@ export default function ({navigation, route}) {
                 action === 'ask_for_otp' ? (
                 <KarvyOTPVerification
                   payload={initiateKarvyCASForm?.value}
-                  onSubmit={nextAction => {
+                  onSubmit={async nextAction => {
                     setAction(null);
                     if (!nextAction) {
                       setLoadingText(null);
-                      navigation.replace('Protected');
+                      await handleNextAfterCompleteCASFetch();
                     } else {
                       setLoadingText(null);
                       setCompletedSteps(prevStep => [...prevStep, 1]);
-                      navigation.replace('Protected');
+                      await handleNextAfterCompleteCASFetch();
                     }
                   }}
-                  onError={() => {
+                  onError={async () => {
                     setAction(null);
                     setLoadingText(null);
                     setFailedSteps(prevStep => [...prevStep, 1]);
-                    navigation.replace('Protected');
+                    await handleNextAfterCompleteCASFetch();
                   }}
                   onRequestResendOTP={status => {
                     if (status === true) {
@@ -254,20 +329,20 @@ export default function ({navigation, route}) {
                   }
                 }}
                 errorMsg={initiateCAMSCASForm.errors.get('error')?.[0]}
-                onSubmit={nextAction => {
+                onSubmit={async nextAction => {
                   if (nextAction === 'ask_for_otp') {
                     setAction(nextAction);
                   } else if (nextAction === 'skip') {
                     setSkippedSteps(prevStep => [...prevStep, 0]);
-                    navigation.replace('Protected');
+                    await handleNextAfterCompleteCASFetch();
                   }
                 }}
-                onError={() => {
-                  navigation.replace('Protected');
+                onError={async () => {
+                  await handleNextAfterCompleteCASFetch();
                   setFailedSteps(prevStep => [...prevStep, 0]);
                 }}
-                onSkip={() => {
-                  navigation.replace('Protected');
+                onSkip={async () => {
+                  await handleNextAfterCompleteCASFetch();
                   setSkippedSteps(prevStep => [...prevStep, 0]);
                 }}
               />
@@ -276,16 +351,16 @@ export default function ({navigation, route}) {
               action === 'ask_for_otp' ? (
               <CAMSOTPVerification
                 payload={initiateCAMSCASForm?.value}
-                onSubmit={nextAction => {
+                onSubmit={async nextAction => {
                   if (!nextAction) {
                     setLoadingText(null);
                   } else {
                     setCompletedSteps(prevStep => [...prevStep, 0]);
-                    navigation.replace('Protected');
+                    await handleNextAfterCompleteCASFetch();
                   }
                 }}
-                onError={() => {
-                  navigation.replace('Protected');
+                onError={async () => {
+                  await handleNextAfterCompleteCASFetch();
                   setFailedSteps(prevStep => [...prevStep, 0]);
                 }}
                 onRequestResendOTP={status => {
@@ -311,25 +386,25 @@ export default function ({navigation, route}) {
                   }
                 }}
                 errorMsg={initiateKarvyCASForm.errors.get('error')?.[0]}
-                onSubmit={nextAction => {
+                onSubmit={async nextAction => {
                   if (nextAction === 'ask_for_otp') {
                     setAction(nextAction);
                     setLoadingText(null);
                   } else if (nextAction === 'skip') {
                     setLoadingText(null);
                     setSkippedSteps(prevStep => [...prevStep, 1]);
-                    navigation.replace('Protected');
+                    await handleNextAfterCompleteCASFetch();
                   }
                 }}
-                onError={() => {
+                onError={async () => {
                   setLoadingText(null);
                   setFailedSteps(prevStep => [...prevStep, 1]);
-                  navigation.replace('Protected');
+                  await handleNextAfterCompleteCASFetch();
                 }}
-                onSkip={() => {
+                onSkip={async () => {
                   setLoadingText(null);
                   setSkippedSteps(prevStep => [...prevStep, 1]);
-                  navigation.replace('Protected');
+                  await handleNextAfterCompleteCASFetch();
                 }}
               />
             ) : refreshableCASDataProvidersForNBFC?.includes('karvy') &&
@@ -337,22 +412,22 @@ export default function ({navigation, route}) {
               action === 'ask_for_otp' ? (
               <KarvyOTPVerification
                 payload={initiateKarvyCASForm?.value}
-                onSubmit={nextAction => {
+                onSubmit={async nextAction => {
                   setAction(null);
                   if (!nextAction) {
                     setLoadingText(null);
-                    navigation.replace('Protected');
+                    await handleNextAfterCompleteCASFetch();
                   } else {
                     setLoadingText(null);
                     setCompletedSteps(prevStep => [...prevStep, 1]);
-                    navigation.replace('Protected');
+                    await handleNextAfterCompleteCASFetch();
                   }
                 }}
-                onError={() => {
+                onError={async () => {
                   setAction(null);
                   setLoadingText(null);
                   setFailedSteps(prevStep => [...prevStep, 1]);
-                  navigation.replace('Protected');
+                  await handleNextAfterCompleteCASFetch();
                 }}
                 onRequestResendOTP={status => {
                   if (status === true) {

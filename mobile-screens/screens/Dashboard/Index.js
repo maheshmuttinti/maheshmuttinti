@@ -9,6 +9,7 @@ import {
   generateUserPortfolio,
   getDashboardPreApprovedLoanAmount,
   getLatestCASStatusOfNBFC,
+  getLinkedPAN,
   getNBFCs,
   getUserPreApprovedLoanAmount,
   getUserStage,
@@ -176,48 +177,79 @@ const Dashboard = ({navigation, route}) => {
     }
   };
 
+  const checkForPANLinkStatus = async () => {
+    try {
+      const panResponse = await getLinkedPAN();
+      const isPANLinked = panResponse?.pan && panResponse?.name;
+      debugLog('checkForPANLinkStatus->isPANLinked: ', isPANLinked);
+
+      if (isPANLinked) {
+        return true;
+      } else {
+        navigation.navigate('PANSetup');
+      }
+    } catch (error) {
+      debugLog('checkForPANLinkStatus->error: ', error);
+      if (error?.error === 'PAN not linked') {
+        navigation.navigate('PANSetup');
+        throw error;
+      } else {
+        navigation.navigate('PANSetup');
+        throw error;
+      }
+    }
+  };
+
   const handleUploadNow = async () => {
     try {
-      const nbfcCode = Config.DEFAULT_NBFC_CODE;
-      const casRefreshResponse = await getLatestCASStatusOfNBFC(nbfcCode);
-      debugLog('casRefreshResponse: ', casRefreshResponse);
+      const isUserLinkedPAN = await checkForPANLinkStatus();
+      debugLog('handleUploadNow->isUserLinkedPAN: ', isUserLinkedPAN);
+      if (isUserLinkedPAN === true) {
+        const nbfcCode = Config.DEFAULT_NBFC_CODE;
+        const casRefreshResponse = await getLatestCASStatusOfNBFC(nbfcCode);
+        debugLog('casRefreshResponse: ', casRefreshResponse);
 
-      const refreshableCASDataProvidersForNBFC = Object.entries(
-        casRefreshResponse?.cas_requests,
-      )
-        ?.filter(([key, value]) => value?.needs_refresh === true)
-        ?.map(item => item[0]);
+        const refreshableCASDataProvidersForNBFC = Object.entries(
+          casRefreshResponse?.cas_requests,
+        )
+          ?.filter(([key, value]) => value?.needs_refresh === true)
+          ?.map(item => item[0]);
 
-      if (refreshableCASDataProvidersForNBFC?.length > 0) {
-        debugLog(
-          'refreshableCASDataProvidersForNBFC: ',
-          refreshableCASDataProvidersForNBFC,
-        );
-        navigation.navigate('LAMFV2', {
-          screen: 'UpdatePortfolio',
-          params: {
-            providers: refreshableCASDataProvidersForNBFC,
-          },
-        });
-      } else {
-        await handleGeneratePortfolio();
-        const minMaxPreApprovedLoanAmount =
-          await handleGetUserPreApprovedLoanAmount();
-        const nbfcs = await handleGetNBFCs();
-        debugLog('handleGetNBFCs->nbfcs: ', nbfcs);
-        debugLog(
-          'minMaxPreApprovedLoanAmount----------: ',
-          minMaxPreApprovedLoanAmount,
-        );
-        navigation.navigate('LAMFV2', {
-          screen: 'LoanAmountSelection',
-          params: {
-            loanAmount: minMaxPreApprovedLoanAmount?.max_eligible_loan,
-            minLoanAmount: minMaxPreApprovedLoanAmount?.min_eligible_loan,
-            maxLoanAmount: minMaxPreApprovedLoanAmount?.max_eligible_loan,
-            availableFilterOptions: nbfcs?.available_filter_options,
-          },
-        });
+        if (refreshableCASDataProvidersForNBFC?.length > 0) {
+          debugLog(
+            'refreshableCASDataProvidersForNBFC: ',
+            refreshableCASDataProvidersForNBFC,
+          );
+          navigation.navigate('LAMFV2', {
+            screen: 'UpdatePortfolio',
+            params: {
+              providers: refreshableCASDataProvidersForNBFC,
+            },
+          });
+        } else {
+          await handleGeneratePortfolio();
+          const minMaxPreApprovedLoanAmount =
+            await handleGetUserPreApprovedLoanAmount();
+          const nbfcs = await handleGetNBFCs();
+          debugLog('handleGetNBFCs->nbfcs: ', nbfcs);
+          debugLog(
+            'minMaxPreApprovedLoanAmount----------: ',
+            minMaxPreApprovedLoanAmount,
+          );
+          debugLog(
+            'minMaxPreApprovedLoanAmount----------: ',
+            minMaxPreApprovedLoanAmount,
+          );
+          navigation.navigate('LAMFV2', {
+            screen: 'LoanAmountSelection',
+            params: {
+              loanAmount: minMaxPreApprovedLoanAmount?.max_eligible_loan,
+              minLoanAmount: minMaxPreApprovedLoanAmount?.min_eligible_loan,
+              maxLoanAmount: minMaxPreApprovedLoanAmount?.max_eligible_loan,
+              availableFilterOptions: nbfcs?.available_filter_options,
+            },
+          });
+        }
       }
     } catch (error) {
       debugLog('error in handleUploadNow=-----: ', error?.response?.data);
@@ -226,8 +258,12 @@ const Dashboard = ({navigation, route}) => {
           screen: 'CollectPAN',
         });
         throw error;
+      } else {
+        navigation.navigate('PANSetup', {
+          screen: 'CollectPAN',
+        });
+        throw error;
       }
-      throw error;
     }
   };
 

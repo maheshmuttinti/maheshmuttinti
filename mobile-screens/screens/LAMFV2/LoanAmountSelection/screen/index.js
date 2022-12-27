@@ -127,31 +127,33 @@ export default function ({navigation, route}) {
                 }}>
                 How much loan are you looking for?
               </Heading>
-              <View
-                style={{
-                  paddingTop: 24,
-                  alignItems: 'center',
-                }}>
+              {nbfcsFilterForm?.value?.amount ? (
                 <View
                   style={{
-                    width: '80%',
+                    paddingTop: 24,
                     alignItems: 'center',
                   }}>
-                  <BaseTextInput
-                    keyboardType="numeric"
-                    prefixValue={'₹'}
-                    onChangeText={handleChangeLoanAmountOnTextInput}
-                    value={`${nbfcsFilterForm?.value?.amount}`}
-                    extraTextStyles={{
-                      color: theme.colors.primaryBlue,
-                      fontWeight: theme.fontWeights.Bold,
-                      fontSize: 30,
-                      paddingVertical: 9,
-                      textAlign: 'center',
-                    }}
-                  />
+                  <View
+                    style={{
+                      width: '80%',
+                      alignItems: 'center',
+                    }}>
+                    <BaseTextInput
+                      keyboardType="numeric"
+                      prefixValue={'₹'}
+                      onChangeText={handleChangeLoanAmountOnTextInput}
+                      value={`${nbfcsFilterForm?.value?.amount}`}
+                      extraTextStyles={{
+                        color: theme.colors.primaryBlue,
+                        fontWeight: theme.fontWeights.Bold,
+                        fontSize: 30,
+                        paddingVertical: 9,
+                        textAlign: 'center',
+                      }}
+                    />
+                  </View>
                 </View>
-              </View>
+              ) : null}
               {nbfcsFilterForm?.value?.amount &&
               minLoanAmount &&
               maxLoanAmount ? (
@@ -177,11 +179,13 @@ export default function ({navigation, route}) {
                 />
               ) : null}
 
-              <SelectInstallmentType
-                style={{paddingTop: 16}}
-                renderUI={installmentTypeDecider}
-                onSelectedInstallmentType={handleOnSelectMonthlyPlan}
-              />
+              {installmentTypeDecider ? (
+                <SelectInstallmentType
+                  style={{paddingTop: 16}}
+                  renderUI={installmentTypeDecider}
+                  onSelectedInstallmentType={handleOnSelectMonthlyPlan}
+                />
+              ) : null}
 
               <View style={{paddingTop: 24, paddingBottom: 60}}>
                 <BaseButton

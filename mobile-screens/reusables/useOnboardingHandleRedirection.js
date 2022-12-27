@@ -54,10 +54,11 @@ const useOnboardingHandleRedirection = () => {
     } catch (err) {
       if (err?.error === 'PAN not linked') {
         navigation.replace('PANSetup');
+        throw err;
       } else {
         navigation.replace('PANSetup');
+        throw err;
       }
-      throw err;
     }
   };
   return {handleRedirection, handleUpdateOnboardingStep};
