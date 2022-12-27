@@ -1,177 +1,113 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useEffect, useState, useRef} from 'react';
-import {View, Text, Platform, Pressable} from 'react-native';
+import React, {useState} from 'react';
+import {View, Platform, Pressable} from 'react-native';
 import ScreenWrapper from '../../../../../hocs/screenWrapperWithoutBackButton';
 import {useTheme} from 'theme';
-import {
-  Card,
-  GradientCard,
-  Heading,
-  LabelValue,
-  Select,
-  SmallOutlinedButton,
-} from 'uin';
-import {
-  ArrowRight,
-  BackArrow,
-  NBFCIcon,
-  ReportOne,
-  SortIcon,
-  TickCircleSmall,
-  TickSquare,
-} from 'assets';
-import {
-  getIndicativeEMIsForLoanTenures,
-  getPreApprovedLoanforPan,
-} from 'services';
-import {useSelector, useDispatch} from 'react-redux';
-import {setCompareNBFC, clearNbfc, removeNbfc} from 'store';
+import {Card, Heading} from 'uin';
+import {ApplicantAvatar, BackArrow} from 'assets';
 import {ScrollView} from 'react-native';
-import {TouchableOpacity} from 'react-native-gesture-handler';
 import useLayoutBackButtonAction from '../../../../../reusables/useLayoutBackButtonAction';
 import SkeletonContent from 'react-native-skeleton-content-nonexpo';
-import {placeholderDecider} from 'utils';
+import {SchemesList} from '../../components/ChooseNBFCs/SingleNBFC/SchemesList';
+import {NBFCHeading} from '../../components/ChooseNBFCs/SingleNBFC/NBFCHeading';
+import {ProgressBar} from '../../components/ChooseNBFCs/SingleNBFC/ProgressBar';
+import {SaveButton} from '../../components/ChooseNBFCs/SingleNBFC/SaveButton';
+import {LoanAmountGradientCard} from '../../components/ChooseNBFCs/SingleNBFC/LoanAmountGradientCard';
 
+// Todos: Get the Dynamic Data for Hardcoded data
 export default function ({navigation, route}) {
-  const dispatch = useDispatch();
+  const nbfcName =
+    route?.params?.nbfcName || 'Eclear Leasing & Finance Private Limited';
+  const nbfcCode = route?.params?.nbfcCode || 'LAMF-ECLEAR';
+  const minLoanAmount = route?.params?.minLoanAmount || 100;
+  const maxLoanAmount = route?.params?.maxLoanAmount || 1000000;
+  const approvedLoanAmount = route?.params?.approvedLoanAmount || 1000000;
+
+  const [headerType, setHeaderType] = useState('normal');
+
   const theme = useTheme();
 
-  const [filter, setFilter] = useState('');
-  const [nbfcs, setNbfcs] = useState([]);
-  const nbfcWisePreApprovedLoanFnRef = useRef(() => {});
-  const [loading, setLoading] = useState(false);
   useLayoutBackButtonAction(theme.colors.background);
 
-  const compareNbfc = useSelector(state => {
-    return state.compareNbfc.nbfcData;
-  });
-
-  const filters = [
-    {label: 'Loan Amount', value: 'total_pre_approved_loan_amount'},
-    {label: 'Tenure', value: 'nbfc.tenure'},
-    {label: 'EMI', value: 'emi'},
-    {label: 'ROI', value: 'nbfc.roi'},
-  ];
-
-  nbfcWisePreApprovedLoanFnRef.current = async () => {
-    try {
-      setLoading(true);
-      const data = await getPreApprovedLoanforPan('ENBPM4556D', '', filter);
-
-      const _nbfcs = await Promise.all(
-        data?.map(async nbfc => {
-          const payload = {
-            interest: nbfc?.nbfc?.roi,
-            principal: nbfc?.total_pre_approved_loan_amount,
-            tenures: [
-              {
-                label: `${nbfc?.nbfc?.max_tenure}`,
-                value: `${+nbfc?.nbfc?.max_tenure?.split(' ')[0]}`,
-              },
-            ],
-          };
-          if (payload?.interest && payload?.principal && payload?.tenures) {
-            const indicativeEMIsResponse =
-              await getIndicativeEMIsForLoanTenures(payload);
-            const indicativeEMIAmount =
-              indicativeEMIsResponse?.[0]?.tentative_emi_amount;
-            return {
-              ...nbfc,
-              nbfc: {...nbfc.nbfc, indicative_emi: indicativeEMIAmount},
-            };
-          }
-        }),
-      );
-      setNbfcs(_nbfcs);
-      setLoading(false);
-    } catch (error) {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    nbfcWisePreApprovedLoanFnRef.current();
-  }, [filter]);
-
   return (
-    <ScreenWrapper
-      backgroundColor={theme.colors.primaryOrange}
-      scrollView={false}
-      footer={true}>
-      <View
-        style={{
-          flexDirection: 'row',
-          backgroundColor: theme.colors.primaryBlue,
-          width: '100%',
-          paddingBottom: 13,
-          paddingTop: Platform.OS === 'ios' ? 42 : 24,
-        }}>
-        <Pressable
-          hitSlop={{top: 30, left: 30, right: 30, bottom: 30}}
-          onPress={() => {
-            navigation.canGoBack() && navigation.pop();
-          }}
-          style={{width: 50, marginLeft: 16}}>
-          <BackArrow fill={theme.colors.primary} />
-        </Pressable>
-        <Heading
+    <>
+      {headerType === 'normal' && (
+        <View
           style={{
-            fontWeight: 'bold',
-            fontFamily: theme.fonts.regular,
-            marginLeft: 16,
-            ...theme.fontSizes.large,
+            flexDirection: 'row',
+            backgroundColor: theme.colors.primaryBlue,
+            width: '100%',
+            paddingTop: Platform.OS === 'ios' ? 42 : 24,
           }}>
-          Loans Against Mutual Funds
-        </Heading>
-      </View>
-
-      <ScrollView
-        nestedScrollEnabled={true}
-        contentInsetAdjustmentBehavior="automatic"
-        showsVerticalScrollIndicator={false}
-        style={{
-          backgroundColor: theme.colors.primaryBlue,
-          width: '100%',
-        }}>
-        <View style={{flex: 1, alignItems: 'center', zIndex: 2}}>
-          <View
-            style={{
-              alignItems: 'center',
-              paddingTop: 32,
-              paddingBottom: 16,
-            }}>
+          <Pressable
+            hitSlop={{top: 30, left: 30, right: 30, bottom: 30}}
+            onPress={() => {
+              navigation.canGoBack() && navigation.pop();
+            }}
+            style={{width: 50, marginLeft: 16}}>
+            <BackArrow fill={theme.colors.primary} />
+          </Pressable>
+          <View style={{flex: 1, alignItems: 'center'}}>
             <Heading
               style={{
-                fontSize: theme.fontSizes.heading4.fontSize,
-                lineHeight: 24,
-                fontWeight: theme.fontWeights.veryBold,
+                fontWeight: 'bold',
+                fontFamily: theme.fonts.regular,
+                ...theme.fontSizes.large,
               }}>
-              Mahesh Muttinti
+              Loans Against Mutual Funds{' '}
             </Heading>
-            <View style={{}}>
-              <Heading
-                style={{
-                  ...theme.fontSizes.medium,
-                  fontWeight: theme.fontWeights.veryBold,
-                }}>
-                ENBPM4556D
-              </Heading>
+          </View>
+          <View style={{flex: 1 / 3, alignItems: 'center'}}>
+            <View style={{height: 24, width: 24}}>
+              <ApplicantAvatar />
             </View>
           </View>
         </View>
-        <Card
+      )}
+      {headerType === 'loan' && (
+        <View
           style={{
-            marginTop: 16,
-            paddingTop: 28,
-            paddingBottom: 56,
-            paddingHorizontal: 16,
-            borderTopLeftRadius: 12,
-            borderTopRightRadius: 12,
-            borderBottomLeftRadius: 0,
-            borderBottomRightRadius: 0,
-            flex: 1,
+            backgroundColor: theme.colors.background,
+            paddingBottom: 24,
           }}>
-          <View>
+          <View
+            style={{
+              flexDirection: 'row',
+              backgroundColor: theme.colors.background,
+              width: '100%',
+              paddingTop: Platform.OS === 'ios' ? 42 : 24,
+            }}>
+            <Pressable
+              hitSlop={{top: 30, left: 30, right: 30, bottom: 30}}
+              onPress={() => {
+                navigation.canGoBack() && navigation.pop();
+              }}
+              style={{width: 50, marginLeft: 16}}>
+              <BackArrow fill={theme.colors.text} />
+            </Pressable>
+            <View style={{flex: 1, alignItems: 'center'}}>
+              <Heading
+                style={{
+                  fontWeight: 'bold',
+                  fontFamily: theme.fonts.regular,
+                  ...theme.fontSizes.large,
+                  color: theme.colors.text,
+                }}>
+                Loans Against Mutual Funds{' '}
+              </Heading>
+            </View>
+            <View style={{flex: 1 / 3, alignItems: 'center'}}>
+              <View style={{height: 24, width: 24}}>
+                <ApplicantAvatar />
+              </View>
+            </View>
+          </View>
+          <View
+            style={{
+              width: '100%',
+              paddingTop: 32,
+              paddingHorizontal: 16,
+            }}>
             <View
               style={{
                 flexDirection: 'row',
@@ -187,127 +123,142 @@ export default function ({navigation, route}) {
                 EXPLORE SCHEMES
               </Heading>
             </View>
-            <View
-              style={{
-                paddingTop: 20,
-                marginBottom: 80,
-                backgroundColor: theme.colors.background,
-                zIndex: 0,
-              }}>
-              <View style={{marginTop: 12}}>
-                <Heading
-                  style={{
-                    color: theme.colors.error,
-                    fontWeight: theme.fontWeights.normal,
-                    ...theme.fontSizes.large,
-                    fontFamily: theme.fonts.regular,
-                  }}>
-                  This Screen is in under development. Schemes Will Come Here...
-                </Heading>
-              </View>
+            <View style={{paddingBottom: 19}}>
+              <NBFCHeading nbfcName={nbfcName} />
+            </View>
+            <View>
+              <ProgressBar percentageValue={90} />
             </View>
           </View>
-        </Card>
-      </ScrollView>
-
-      {compareNbfc && compareNbfc?.length > 1 && (
-        <GradientCard
-          gradientColors={[
-            theme.colors.primaryOrange800,
-            theme.colors.primaryOrange,
-          ]}
+        </View>
+      )}
+      <ScreenWrapper
+        backgroundColor={
+          headerType === 'loan'
+            ? theme.colors.background
+            : theme.colors.primaryOrange
+        }
+        scrollView={false}
+        footer={true}>
+        <ScrollView
+          nestedScrollEnabled={true}
+          contentInsetAdjustmentBehavior="automatic"
+          showsVerticalScrollIndicator={false}
+          onScroll={e => {
+            if (e.nativeEvent.contentOffset.y > 235) {
+              setHeaderType('loan');
+            } else {
+              setHeaderType('normal');
+            }
+          }}
           style={{
-            position: 'absolute',
-            flex: 1,
-            bottom: 32,
-            width: '85%',
+            backgroundColor: theme.colors.primaryBlue,
+            width: '100%',
           }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              paddingTop: 10,
-              paddingBottom: 9,
-              paddingHorizontal: 16,
-            }}>
-            <View>
-              <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                <TickCircleSmall fill={theme.colors.background} />
-                <Heading
-                  style={{
-                    ...theme.fontSizes.small,
-                    fontWeight: theme.fontWeights.moreBold,
-                    paddingLeft: 8,
-                  }}>
-                  Added to Compare{` (${compareNbfc.length})`}
-                </Heading>
-              </View>
-              <View style={{flexDirection: 'row', paddingTop: 5}}>
-                {compareNbfc?.map((item, index) => (
-                  <View
-                    key={index}
-                    style={{
-                      marginTop: 5,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                    }}>
-                    <View
-                      style={{
-                        backgroundColor: theme.colors.primary,
-                        width: 40,
-                        height: 40,
-                        borderRadius: 40 / 2,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}>
-                      <NBFCIcon />
-                    </View>
-                    {compareNbfc?.length !== 3 && index === 0 && (
-                      <Heading
-                        style={{
-                          paddingHorizontal: 8,
-                          ...theme.fontSizes.small,
-                        }}>
-                        VS
-                      </Heading>
-                    )}
-                    {compareNbfc?.length === 3 && index !== 2 && (
-                      <Heading
-                        style={{
-                          paddingHorizontal: 8,
-                          ...theme.fontSizes.small,
-                        }}>
-                        VS
-                      </Heading>
-                    )}
-                  </View>
-                ))}
-              </View>
-            </View>
-            <TouchableOpacity
-              onPress={() => {
-                navigation.navigate('CompareNBFC');
-              }}
+          <View style={{flex: 1, alignItems: 'center', zIndex: 2}}>
+            <View
               style={{
-                flexDirection: 'row',
                 alignItems: 'center',
+                paddingTop: 32,
+                paddingBottom: 16,
               }}>
               <Heading
                 style={{
-                  ...theme.fontSizes.largeMedium,
+                  fontSize: theme.fontSizes.heading4.fontSize,
+                  lineHeight: 24,
                   fontWeight: theme.fontWeights.veryBold,
                 }}>
-                Compare
+                Mahesh Muttinti
               </Heading>
-              <View>
-                <ArrowRight />
+              <View style={{}}>
+                <Heading
+                  style={{
+                    ...theme.fontSizes.medium,
+                    fontWeight: theme.fontWeights.veryBold,
+                  }}>
+                  ENBPM4556D
+                </Heading>
               </View>
-            </TouchableOpacity>
+            </View>
           </View>
-        </GradientCard>
-      )}
-    </ScreenWrapper>
+          <Card
+            style={{
+              marginTop: 16,
+              paddingTop: 28,
+              paddingBottom: 56,
+              paddingHorizontal: 16,
+              borderTopLeftRadius: 12,
+              borderTopRightRadius: 12,
+              borderBottomLeftRadius: 0,
+              borderBottomRightRadius: 0,
+              flex: 1,
+            }}>
+            <View>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  zIndex: 10,
+                }}>
+                <Heading
+                  style={{
+                    color: theme.colors.text,
+                    fontWeight: theme.fontWeights.veryBold,
+                  }}>
+                  EXPLORE SCHEMES
+                </Heading>
+              </View>
+              <View style={{paddingBottom: 19}}>
+                <NBFCHeading nbfcName={nbfcName} />
+              </View>
+              <View>
+                <ProgressBar
+                  percentageValue={90}
+                  minLoanAmount={minLoanAmount}
+                  maxLoanAmount={maxLoanAmount}
+                />
+              </View>
+              <View
+                style={{
+                  paddingTop: 24,
+                  marginBottom: 80,
+                  backgroundColor: theme.colors.background,
+                  zIndex: 0,
+                }}>
+                <SchemesList />
+              </View>
+            </View>
+          </Card>
+        </ScrollView>
+      </ScreenWrapper>
+      {/* Todo: Show the SaveButton when user select schemes */}
+      <SaveButton onSave={() => {}} />
+      {/* Todo: Show the LoanAmountGradientCard when user doesn't select or ltv amount is equal to the max loan amount of nbfc? */}
+      <LoanAmountGradientCard
+        selectedSchemes={[1, 2]}
+        approvedLoanAmount={approvedLoanAmount}
+        onNext={() => {
+          const routeParams = {
+            // data: {
+            //   nbfc: {
+            //     ...nbfc,
+            //     tenure: emiPlan?.tenure,
+            //     tentative_emi_amount: emiPlan?.tentative_emi_amount,
+            //   },
+            //   email,
+            //   schemes: showSelectableList ? selectedSchemes : schemes,
+            //   pre_approved_loan_amount: finalLoanAmount,
+            //   user: {
+            //     pan_number: selectedPan.value,
+            //     name: selectedPan.label,
+            //   },
+            // },
+          };
+          navigation.navigate('LienMarking', routeParams);
+        }}
+      />
+    </>
   );
 }
 

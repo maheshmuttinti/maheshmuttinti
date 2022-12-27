@@ -33,6 +33,7 @@ import SkeletonContent from 'react-native-skeleton-content-nonexpo';
 import {placeholderDecider} from 'utils';
 import {nbfcs as nbfcsData} from '../../data/nbfcs';
 
+// Todos: Get the Dynamic Data for Hardcoded data
 export default function ({navigation, route}) {
   const dispatch = useDispatch();
   const theme = useTheme();
@@ -54,46 +55,6 @@ export default function ({navigation, route}) {
     {label: 'EMI', value: 'emi'},
     {label: 'ROI', value: 'nbfc.roi'},
   ];
-
-  // nbfcWisePreApprovedLoanFnRef.current = async () => {
-  //   try {
-  //     setLoading(true);
-  //     const data = await getPreApprovedLoanforPan('ENBPM4556D', '', filter);
-
-  //     const _nbfcs = await Promise.all(
-  //       data?.map(async nbfc => {
-  //         const payload = {
-  //           interest: nbfc?.nbfc?.roi,
-  //           principal: nbfc?.total_pre_approved_loan_amount,
-  //           tenures: [
-  //             {
-  //               label: `${nbfc?.nbfc?.max_tenure}`,
-  //               value: `${+nbfc?.nbfc?.max_tenure?.split(' ')[0]}`,
-  //             },
-  //           ],
-  //         };
-  //         if (payload?.interest && payload?.principal && payload?.tenures) {
-  //           const indicativeEMIsResponse =
-  //             await getIndicativeEMIsForLoanTenures(payload);
-  //           const indicativeEMIAmount =
-  //             indicativeEMIsResponse?.[0]?.tentative_emi_amount;
-  //           return {
-  //             ...nbfc,
-  //             nbfc: {...nbfc.nbfc, indicative_emi: indicativeEMIAmount},
-  //           };
-  //         }
-  //       }),
-  //     );
-  //     setNbfcs(_nbfcs);
-  //     setLoading(false);
-  //   } catch (error) {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   nbfcWisePreApprovedLoanFnRef.current();
-  // }, [filter]);
 
   return (
     <ScreenWrapper

@@ -8,6 +8,7 @@ import {ApplicantAvatar, BackArrow, NBFCIcon} from 'assets';
 import useLayoutBackButtonAction from '../../../../../reusables/useLayoutBackButtonAction';
 import {nbfcs as nbfcsData} from '../../data/nbfcs';
 
+// Todos: Get the Dynamic Data for Hardcoded data
 export default function ({navigation, route}) {
   const nbfcs = route?.params?.nbfcs || nbfcsData;
   const theme = useTheme();
