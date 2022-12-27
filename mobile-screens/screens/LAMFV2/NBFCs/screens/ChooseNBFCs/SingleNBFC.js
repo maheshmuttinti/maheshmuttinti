@@ -255,7 +255,7 @@ export default function ({navigation, route}) {
             //   },
             // },
           };
-          navigation.navigate('LienMarking', routeParams);
+          navigation.navigate('LAMFV2', {screen: 'LoanDetailsForLienMarking'});
         }}
       />
     </>

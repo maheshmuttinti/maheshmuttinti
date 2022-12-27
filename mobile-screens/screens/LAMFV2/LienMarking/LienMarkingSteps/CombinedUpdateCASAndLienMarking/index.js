@@ -9,11 +9,11 @@ import {
   BackArrow,
 } from 'assets';
 import {useTheme} from 'theme';
-import ScreenWrapper from '../../../../hocs/screenWrapperWithoutBackButton';
-import {OTPVerification as UpdateCASCAMSOTPVerification} from '../../components/UpdateCASFromRTAs/CAMS/OTPVerification';
-import {OTPVerification as UpdateCASKarvyOTPVerification} from '../../components/UpdateCASFromRTAs/Karvy/OTPVerification';
-import {OTPVerification as CAMSRTALienMarkingOTPVerification} from '../../components/RTAsLienMarking/CAMS/OTPVerification';
-import {OTPVerification as KarvyRTALienMarkingOTPVerification} from '../../components/RTAsLienMarking/Karvy/OTPVerification';
+import ScreenWrapper from '../../../../../hocs/screenWrapperWithoutBackButton';
+import {OTPVerification as UpdateCASCAMSOTPVerification} from '../components/UpdateCASFromRTAs/CAMS/OTPVerification';
+import {OTPVerification as UpdateCASKarvyOTPVerification} from '../components/UpdateCASFromRTAs/Karvy/OTPVerification';
+import {OTPVerification as CAMSRTALienMarkingOTPVerification} from '../components/RTAsLienMarking/CAMS/OTPVerification';
+import {OTPVerification as KarvyRTALienMarkingOTPVerification} from '../components/RTAsLienMarking/Karvy/OTPVerification';
 import {useLienMarkingRedirections} from './hooks/useLienMarkingRedirections';
 
 const SCREEN_BACKGROUND_COLOR = 'white';

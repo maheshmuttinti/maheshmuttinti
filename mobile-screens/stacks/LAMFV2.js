@@ -8,6 +8,8 @@ import ChooseNBFCVertical from '../screens/LAMFV2/NBFCs/screens/ChooseNBFCs/Vert
 import CompareNBFCs from '../screens/LAMFV2/NBFCs/screens/CompareNBFCs';
 import {useTheme} from 'theme';
 import UpdatePortfolio from '../screens/NewCASFlow/screens/UpdatePortfolio';
+import LoanDetailsForLienMarking from '../screens/LAMFV2/LienMarking/LoanDetails/screen';
+import LienMarkingSteps from '../screens/LAMFV2/LienMarking/LienMarkingSteps/CombinedUpdateCASAndLienMarking';
 
 const LAMFV2 = () => {
   const Stack = createStackNavigator();
@@ -64,6 +66,16 @@ const LAMFV2 = () => {
         name="CompareNBFCs"
         options={{headerShown: false}}
         component={CompareNBFCs}
+      />
+      <Stack.Screen
+        name="LoanDetailsForLienMarking"
+        options={{headerShown: false}}
+        component={LoanDetailsForLienMarking}
+      />
+      <Stack.Screen
+        name="LienMarkingSteps"
+        options={{headerShown: false}}
+        component={LienMarkingSteps}
       />
     </Stack.Navigator>
   );

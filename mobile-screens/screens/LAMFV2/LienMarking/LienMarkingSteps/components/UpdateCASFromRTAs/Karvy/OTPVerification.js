@@ -3,7 +3,7 @@ import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {GrayBodyText, AuthHeading, CustomOtpInput} from 'uin';
 import useBetaForm from '@reusejs/react-form-hook';
-import BackgroundTimer from '../../../../../reusables/BackgroundTimer';
+import BackgroundTimer from '../../../../../../../reusables/BackgroundTimer';
 import {useTheme} from 'theme';
 
 export const OTPVerification = ({route, onSubmit}) => {
