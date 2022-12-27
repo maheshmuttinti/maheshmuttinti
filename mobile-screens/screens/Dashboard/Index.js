@@ -39,7 +39,7 @@ const Dashboard = ({navigation, route}) => {
   const [dashboardLoanAmount, setDashboardLoanAmount] = useState(null);
   const [userStageCardContent, setUserStageCardContent] = useState(null);
   const [refreshOnScreenFocus, setRefreshOnScreenFocus] = useState(null);
-  const [pollsChecking, setPollsChecking] = useState(null);
+  const [pollsChecking, setPollsChecking] = useState(true);
 
   useFocusEffect(
     useCallback(() => {
@@ -78,50 +78,28 @@ const Dashboard = ({navigation, route}) => {
                 percentage: 50,
               });
               setPollsChecking(true);
-              const polledUserStageResponse =
-                await pollTheUserStagesOnProcessing();
-              debugLog(
-                'polledUserStageResponse------: ',
-                polledUserStageResponse,
-              );
-              setPollsChecking(false);
 
               if (
-                (polledUserStageResponse?.user_state
-                  ?.cas_fetching_in_progress === false &&
-                  polledUserStageResponse?.user_state
-                    ?.pre_approved_loan_computation_in_progress === true) ||
-                (polledUserStageResponse?.user_state
-                  ?.cas_fetching_in_progress === true &&
-                  polledUserStageResponse?.user_state
-                    ?.pre_approved_loan_computation_in_progress === false)
+                userStageResponse?.user_state?.cas_fetching_in_progress ===
+                  true &&
+                userStageResponse?.user_state
+                  ?.pre_approved_loan_computation_in_progress === false &&
+                userStageResponse?.loan_details?.status === 'INVALID' &&
+                userStageResponse?.loan_details?.messageCode ===
+                  'OUTDATED_CAS_DATA'
               ) {
                 setUserStageCardContent({
-                  message:
-                    'Your CAS is processing, your dashboard will be ready in a few minutes.',
-                  action: null,
-                  percentage: 50,
+                  message: "Don't miss out on Investment Insights!",
+                  action: 'show_upload_now_button',
+                  percentage: 0,
                 });
+                setPollsChecking(false);
               } else {
-                if (
-                  userStageResponse?.user_state?.cas_fetching_in_progress ===
-                    true &&
-                  userStageResponse?.user_state
-                    ?.pre_approved_loan_computation_in_progress === false &&
-                  userStageResponse?.loan_details?.status === 'INVALID' &&
-                  userStageResponse?.loan_details?.messageCode ===
-                    'OUTDATED_CAS_DATA'
-                ) {
-                  setUserStageCardContent({
-                    message: "Don't miss out on Investment Insights!",
-                    action: 'show_upload_now_button',
-                    percentage: 0,
-                  });
-                } else {
-                  console.log('Generate Portfolio is calling.....');
-                  await handleGeneratePortfolio();
-                  console.log('Generate Portfolio is done.....');
-                }
+                // Todo: status: NOT_GENERATED case will be handled here
+                console.log('Generate Portfolio is calling.....');
+                await handleGeneratePortfolio();
+                console.log('Generate Portfolio is done.....');
+                setPollsChecking(false);
               }
             } else if (
               userStageResponse?.user_state?.cas_fetching_in_progress ===
@@ -139,6 +117,7 @@ const Dashboard = ({navigation, route}) => {
                 preApprovedLoanAmount: 'NA',
                 action: 'show_apply_now_button',
               });
+              setPollsChecking(false);
             }
           } else {
             debugLog('Fourth else condition----');
@@ -148,6 +127,7 @@ const Dashboard = ({navigation, route}) => {
               action: 'show_upload_now_button',
               percentage: 0,
             });
+            setPollsChecking(false);
           }
         } catch (error) {
           console.log('user Stages API error: ', error);
@@ -157,17 +137,33 @@ const Dashboard = ({navigation, route}) => {
               action: 'show_upload_now_button',
               percentage: 0,
             });
+            setPollsChecking(false);
             return;
           }
+          setPollsChecking(false);
           throw error;
         }
       };
       getUserStage();
       return () => {
         setRefreshOnScreenFocus(false);
+        setPollsChecking(false);
       };
     }, [showBannerSpace, pollsChecking]),
   );
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        if (pollsChecking === true) {
+          const polledUserStageResponse = await pollTheUserStagesOnProcessing();
+          debugLog('polledUserStageResponse------: ', polledUserStageResponse);
+        }
+      } catch (error) {
+        throw error;
+      }
+    })();
+  }, [pollsChecking]);
 
   const handleGeneratePortfolio = async () => {
     try {
