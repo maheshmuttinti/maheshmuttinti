@@ -9,13 +9,13 @@ import useHardwareButtonGoBack from '../../../../reusables/useHardwareButtonGoBa
 export const useLoanAmountSelectionHandler = (navigation, route) => {
   const theme = useTheme();
 
-  const handleGoBack = () => {
-    navigation.replace('Protected');
-  };
+  // const handleGoBack = () => {
+  //   navigation.replace('Protected');
+  // };
 
-  useHardwareButtonGoBack(true, handleGoBack);
+  useHardwareButtonGoBack(true);
 
-  useLayoutBackButtonAction(theme.colors.background, [], false, handleGoBack);
+  useLayoutBackButtonAction(theme.colors.background);
   const [minROI, setMinROI] = useState('10');
   const [maxROI, setMaxROI] = useState('13.5');
 

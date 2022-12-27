@@ -1,41 +1,36 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
-import {DataLoadOrchestrator, sleep} from 'utils';
+import {DataLoadOrchestrator, debugLog, prettifyJSON, sleep} from 'utils';
 import SkeletonLoader from './SkeletonLoader';
-import {getDashboardPreApprovedLoanAmount} from 'services';
 import Data from './Data';
 import Empty from './Empty';
 import Error from './Error';
-import Config from 'react-native-config';
 
 export default function ({
   showModal,
   navigation,
   wrapperStyles = {},
   setShowBannerSpace,
-  userStage,
+  userStageCardContent,
   onUploadNow = () => {},
+  onApplyNow = () => {},
 }) {
   const orchestratorRef = useRef(null);
 
-  const noLoanAmountLimits =
-    Config.MOCK_ENVIRONMENT === 'STAGING' ? 'true' : '';
-
   const handler = async () => {
     try {
-      const dashboardLoanAmountResponse =
-        await getDashboardPreApprovedLoanAmount(noLoanAmountLimits);
+      const apiResponse = userStageCardContent;
       await sleep(2000);
-      if (Object.keys(dashboardLoanAmountResponse).length === 0) {
+      if (Object.keys(apiResponse).length === 0) {
         return {
           state: 'empty',
-          data: dashboardLoanAmountResponse,
+          data: apiResponse,
         };
       }
 
       return {
         state: 'data',
-        data: dashboardLoanAmountResponse,
+        data: apiResponse,
       };
     } catch (error) {
       return {
@@ -56,8 +51,9 @@ export default function ({
               showModal={showModal}
               navigation={navigation}
               setShowBannerSpace={setShowBannerSpace}
-              userStage={userStage}
+              userStageCardContent={userStageCardContent}
               onUploadNow={onUploadNow}
+              onApplyNow={onApplyNow}
               ref={ref}
               {...props}
             />

@@ -181,7 +181,7 @@ export const useAutoFlowRTACASFetchingRedirections = (
           'minMaxPreApprovedLoanAmount----------: ',
           minMaxPreApprovedLoanAmount,
         );
-        navigation.replace('LAMFV2', {
+        navigation.navigate('LAMFV2', {
           screen: 'LoanAmountSelection',
           params: {
             loanAmount: minMaxPreApprovedLoanAmount?.max_eligible_loan,

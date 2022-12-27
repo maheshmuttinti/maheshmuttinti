@@ -1,18 +1,17 @@
 /* eslint-disable react-native/no-inline-styles */
 import * as React from 'react';
-import {useState, useEffect, useRef, useCallback} from 'react';
+import {useState, useCallback} from 'react';
 import {View} from 'react-native';
 import ScreenWrapper from '../../hocs/screenWrapperWithoutBackButton';
 import HomeTabs from '../../TabNavigator';
 import {useTheme} from 'theme';
 import {
   generateUserPortfolio,
-  getDashboardPreApprovedLoanAmount,
+  getInvestorUserStage,
   getLatestCASStatusOfNBFC,
   getLinkedPAN,
   getNBFCs,
   getUserPreApprovedLoanAmount,
-  getUserStage,
 } from 'services';
 import DashboardHeader from '../../reusables/dashboardHeader';
 import LoanApplicationModal from './LoanApplicationModal';
@@ -28,7 +27,6 @@ import ExtraAddOns from './ExtraAddons';
 import ExploreMoreReportsBanner from './ExploreMoreReportsBanner';
 import UpcomingPayments from './UpcomingPayments';
 import {useFocusEffect} from '@react-navigation/native';
-import {useSelector, shallowEqual} from 'react-redux';
 import Config from 'react-native-config';
 import {debugLog, prettifyJSON} from 'utils';
 
@@ -37,115 +35,143 @@ const Dashboard = ({navigation, route}) => {
   const showLoanApplicationModal = route?.params?.showLoanApplicationModal;
   const [visible, setVisible] = useState(showLoanApplicationModal);
   const [showBannerSpace, setShowBannerSpace] = useState(true);
+  // Todo: set pre approved loan amount from user-stage API
   const [dashboardLoanAmount, setDashboardLoanAmount] = useState(null);
-  const getDashboardPreApprovedLoanAmountFnRef = useRef(() => {});
-  const [userStage, setUserStage] = useState(null);
+  const [userStageCardContent, setUserStageCardContent] = useState(null);
   const [refreshOnScreenFocus, setRefreshOnScreenFocus] = useState(null);
-
-  const noLoanAmountLimits =
-    Config.MOCK_ENVIRONMENT === 'STAGING' ? 'true' : '';
-
-  const {select_pan} = useSelector(
-    ({lamf}) => ({
-      select_pan: lamf.select_pan,
-    }),
-    shallowEqual,
-  );
-
-  getDashboardPreApprovedLoanAmountFnRef.current = async () => {
-    try {
-      const dashboardLoanAmountResponse =
-        await getDashboardPreApprovedLoanAmount(noLoanAmountLimits);
-
-      if (dashboardLoanAmountResponse?.message) {
-        setDashboardLoanAmount(dashboardLoanAmountResponse);
-      } else {
-        setDashboardLoanAmount(
-          dashboardLoanAmountResponse?.total_pre_approved_loan_amount,
-        );
-      }
-    } catch (error) {
-      return error;
-    }
-  };
+  const [pollsChecking, setPollsChecking] = useState(null);
 
   useFocusEffect(
     useCallback(() => {
-      (async () => {
+      const getUserStage = async () => {
         try {
           setRefreshOnScreenFocus(true);
-          if (showBannerSpace) {
-            const userStageResponse = await getUserStage(noLoanAmountLimits);
-            setUserStage(userStageResponse);
+          if (showBannerSpace === true) {
+            const userStageResponse = await getInvestorUserStage();
+
+            if (
+              userStageResponse?.user_state === null &&
+              userStageResponse?.loan_details === null
+            ) {
+              debugLog('First If condition----');
+
+              setUserStageCardContent({
+                message: "Don't miss out on Investment Insights!",
+                action: 'show_upload_now_button',
+                percentage: 0,
+              });
+            } else if (
+              (userStageResponse?.user_state?.cas_fetching_in_progress ===
+                false &&
+                userStageResponse?.user_state
+                  ?.pre_approved_loan_computation_in_progress === true) ||
+              (userStageResponse?.user_state?.cas_fetching_in_progress ===
+                true &&
+                userStageResponse?.user_state
+                  ?.pre_approved_loan_computation_in_progress === false)
+            ) {
+              debugLog('Second If Condition');
+              setUserStageCardContent({
+                message:
+                  'Your CAS is processing, your dashboard will be ready in a few minutes.',
+                action: null,
+                percentage: 50,
+              });
+              setPollsChecking(true);
+              const polledUserStageResponse =
+                await pollTheUserStagesOnProcessing();
+              debugLog(
+                'polledUserStageResponse------: ',
+                polledUserStageResponse,
+              );
+              setPollsChecking(false);
+
+              if (
+                (polledUserStageResponse?.user_state
+                  ?.cas_fetching_in_progress === false &&
+                  polledUserStageResponse?.user_state
+                    ?.pre_approved_loan_computation_in_progress === true) ||
+                (polledUserStageResponse?.user_state
+                  ?.cas_fetching_in_progress === true &&
+                  polledUserStageResponse?.user_state
+                    ?.pre_approved_loan_computation_in_progress === false)
+              ) {
+                setUserStageCardContent({
+                  message:
+                    'Your CAS is processing, your dashboard will be ready in a few minutes.',
+                  action: null,
+                  percentage: 50,
+                });
+              } else {
+                if (
+                  userStageResponse?.user_state?.cas_fetching_in_progress ===
+                    true &&
+                  userStageResponse?.user_state
+                    ?.pre_approved_loan_computation_in_progress === false &&
+                  userStageResponse?.loan_details?.status === 'INVALID' &&
+                  userStageResponse?.loan_details?.messageCode ===
+                    'OUTDATED_CAS_DATA'
+                ) {
+                  setUserStageCardContent({
+                    message: "Don't miss out on Investment Insights!",
+                    action: 'show_upload_now_button',
+                    percentage: 0,
+                  });
+                } else {
+                  console.log('Generate Portfolio is calling.....');
+                  await handleGeneratePortfolio();
+                  console.log('Generate Portfolio is done.....');
+                }
+              }
+            } else if (
+              userStageResponse?.user_state?.cas_fetching_in_progress ===
+                false &&
+              userStageResponse?.user_state
+                ?.pre_approved_loan_computation_in_progress === false &&
+              userStageResponse?.loan_details?.status === 'COMPUTED' &&
+              userStageResponse?.loan_details?.messageCode ===
+                'PRE_APPROVED_LOAN_AMOUNT_COMPUTED'
+            ) {
+              debugLog('Third If condition----');
+
+              setUserStageCardContent({
+                message: 'You have a Pre Approved loan of',
+                preApprovedLoanAmount: 'NA',
+                action: 'show_apply_now_button',
+              });
+            }
+          } else {
+            debugLog('Fourth else condition----');
+
+            setUserStageCardContent({
+              message: "Don't miss out on Investment Insights!",
+              action: 'show_upload_now_button',
+              percentage: 0,
+            });
           }
         } catch (error) {
-          return error;
+          console.log('user Stages API error: ', error);
+          if (error?.message?.errorCode === 'INVESTOR_NOT_FOUND') {
+            setUserStageCardContent({
+              message: "Don't miss out on Investment Insights!",
+              action: 'show_upload_now_button',
+              percentage: 0,
+            });
+            return;
+          }
+          throw error;
         }
-      })();
+      };
+      getUserStage();
       return () => {
         setRefreshOnScreenFocus(false);
       };
-    }, [showBannerSpace]),
+    }, [showBannerSpace, pollsChecking]),
   );
-
-  useFocusEffect(
-    useCallback(() => {
-      if (select_pan) {
-        setVisible(true);
-      }
-      return () => {
-        setVisible(false);
-      };
-    }, [select_pan]),
-  );
-
-  useEffect(() => {
-    getDashboardPreApprovedLoanAmountFnRef.current();
-  }, []);
-
-  const handleApplyNow = async () => {
-    try {
-      const nbfcCode = Config.DEFAULT_NBFC_CODE;
-      const casRefreshResponse = await getLatestCASStatusOfNBFC(nbfcCode);
-
-      debugLog('casRefreshResponse: ', casRefreshResponse);
-
-      const refreshableCASDataProvidersForNBFC = Object.entries(
-        casRefreshResponse?.cas_requests,
-      )
-        ?.filter(([key, value]) => value?.needs_refresh === true)
-        ?.map(item => item[0]);
-
-      if (refreshableCASDataProvidersForNBFC?.length > 0) {
-        debugLog(
-          'refreshableCASDataProvidersForNBFC: ',
-          refreshableCASDataProvidersForNBFC,
-        );
-        navigation.navigate('Protected', {
-          screen: 'UpdatePortfolio',
-          params: {
-            providers: refreshableCASDataProvidersForNBFC,
-          },
-        });
-      } else {
-        debugLog('Nothing need to be refreshed....');
-        navigation.navigate('LAMFV2', {
-          screen: 'LoanAmountSelection',
-        });
-      }
-    } catch (error) {
-      throw error;
-    }
-  };
 
   const handleGeneratePortfolio = async () => {
     try {
-      const generateUserPortfolioResponse = await generateUserPortfolio();
-      debugLog(
-        'generateUserPortfolioResponse: ',
-        prettifyJSON(generateUserPortfolioResponse),
-      );
-
+      await generateUserPortfolio();
       return true;
     } catch (error) {
       throw error;
@@ -222,7 +248,6 @@ const Dashboard = ({navigation, route}) => {
       if (isUserLinkedPAN === true) {
         const nbfcCode = Config.DEFAULT_NBFC_CODE;
         const casRefreshResponse = await getLatestCASStatusOfNBFC(nbfcCode);
-        debugLog('casRefreshResponse: ', casRefreshResponse);
 
         const refreshableCASDataProvidersForNBFC = Object.entries(
           casRefreshResponse?.cas_requests,
@@ -231,10 +256,51 @@ const Dashboard = ({navigation, route}) => {
           ?.map(item => item[0]);
 
         if (refreshableCASDataProvidersForNBFC?.length > 0) {
-          debugLog(
-            'refreshableCASDataProvidersForNBFC: ',
-            refreshableCASDataProvidersForNBFC,
-          );
+          navigation.navigate('FetchCAS', {
+            screen: 'FetchCASFromRTAs',
+            params: {
+              refreshableCASDataProvidersForNBFC,
+              waitForResponse: true,
+            },
+          });
+        }
+      }
+    } catch (error) {
+      if (error?.response?.data?.errorCode === 'INVESTOR_NOT_FOUND') {
+        navigation.navigate('PANSetup', {
+          screen: 'CollectPAN',
+          params: {
+            waitForResponse: true,
+          },
+        });
+        throw error;
+      } else {
+        navigation.navigate('PANSetup', {
+          screen: 'CollectPAN',
+          params: {
+            waitForResponse: true,
+          },
+        });
+        throw error;
+      }
+    }
+  };
+
+  const handleApplyNow = async () => {
+    try {
+      const isUserLinkedPAN = await checkForPANLinkStatus();
+      debugLog('handleUploadNow->isUserLinkedPAN: ', isUserLinkedPAN);
+      if (isUserLinkedPAN === true) {
+        const nbfcCode = Config.DEFAULT_NBFC_CODE;
+        const casRefreshResponse = await getLatestCASStatusOfNBFC(nbfcCode);
+
+        const refreshableCASDataProvidersForNBFC = Object.entries(
+          casRefreshResponse?.cas_requests,
+        )
+          ?.filter(([key, value]) => value?.needs_refresh === true)
+          ?.map(item => item[0]);
+
+        if (refreshableCASDataProvidersForNBFC?.length > 0) {
           navigation.navigate('LAMFV2', {
             screen: 'UpdatePortfolio',
             params: {
@@ -247,15 +313,6 @@ const Dashboard = ({navigation, route}) => {
           const minMaxPreApprovedLoanAmount =
             await handleGetUserPreApprovedLoanAmount();
           const nbfcs = await handleGetNBFCs();
-          debugLog('handleGetNBFCs->nbfcs: ', nbfcs);
-          debugLog(
-            'minMaxPreApprovedLoanAmount----------: ',
-            minMaxPreApprovedLoanAmount,
-          );
-          debugLog(
-            'minMaxPreApprovedLoanAmount----------: ',
-            minMaxPreApprovedLoanAmount,
-          );
           navigation.navigate('LAMFV2', {
             screen: 'LoanAmountSelection',
             params: {
@@ -305,17 +362,18 @@ const Dashboard = ({navigation, route}) => {
           wrapperStyles={{paddingTop: 36.5}}
         />
 
-        {showBannerSpace && (
+        {showBannerSpace && userStageCardContent ? (
           <UserProgressGradientCard
             setShowBannerSpace={setShowBannerSpace}
             showBannerSpace={showBannerSpace}
             showModal={setVisible}
             navigation={navigation}
             wrapperStyles={{paddingTop: 16}}
-            userStage={userStage}
+            userStageCardContent={userStageCardContent}
             onUploadNow={handleUploadNow}
+            onApplyNow={handleApplyNow}
           />
-        )}
+        ) : null}
         <ProfileCard
           refreshOnScreenFocus={refreshOnScreenFocus}
           wrapperStyles={{paddingTop: 34}}
@@ -341,3 +399,40 @@ const Dashboard = ({navigation, route}) => {
 export default function () {
   return <HomeTabs HomeScreen={Dashboard} />;
 }
+
+const pollTheUserStagesOnProcessing = async () => {
+  debugLog('pollTheUserStagesOnProcessing is called');
+  try {
+    const maxPolls = 3;
+    let pollCount = 0;
+    const poll = setInterval(async () => {
+      try {
+        const userStageResponse = await getInvestorUserStage();
+        console.log('userStageResponse: ', prettifyJSON(userStageResponse));
+        if (userStageResponse) {
+          console.log(
+            'userStageResponse in first if: ',
+            prettifyJSON(userStageResponse),
+          );
+          clearInterval(poll);
+          return userStageResponse;
+        }
+        if (pollCount > maxPolls) {
+          console.log(
+            'userStageResponse in second if maxPolls: ',
+            prettifyJSON(userStageResponse),
+          );
+          clearInterval(poll);
+          return userStageResponse;
+        }
+        pollCount += 1;
+      } catch (error) {
+        debugLog('error inner pole catch: ', error);
+        throw error;
+      }
+    }, 10000);
+  } catch (error) {
+    debugLog('error main pole catch: ', error);
+    throw error;
+  }
+};

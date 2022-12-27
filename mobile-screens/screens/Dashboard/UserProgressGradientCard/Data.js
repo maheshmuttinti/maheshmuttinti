@@ -10,28 +10,15 @@ export default function ({
   navigation,
   showModal,
   setShowBannerSpace,
-  userStage,
+  userStageCardContent,
   onUploadNow = () => {},
+  onApplyNow = () => {},
   ...props
 }) {
   const theme = useTheme();
 
   const renderBannerStageMessage = () => {
-    if (
-      userStage?.meta?.pre_approved_loan_amount?.total_pre_approved_loan_amount
-    ) {
-      return 'You have a Pre Approved loan of';
-    }
-    if (userStage?.stage_data?.stage === 'cas_processing') {
-      return 'Your CAS is processing, your dashboard will be ready in a few minutes.';
-    } else if (
-      userStage?.stage_data?.stage === 'pre_approved_loan_not_available' ||
-      userStage?.stage_data?.stage ===
-        'loan_amount_not_eligible_for_available_nbfcs'
-    ) {
-      return "Sorry, but there are no schemes eligible for a loan at the moment. We will update you as soon as it's available.";
-    }
-    return "Don't miss out on Investment Insights!";
+    return "Sorry, but there are no schemes eligible for a loan at the moment. We will update you as soon as it's available.";
   };
 
   return (
@@ -70,14 +57,13 @@ export default function ({
                     fontFamily: theme.fonts.regular,
                     color: theme.colors.background,
                     fontSize:
-                      renderBannerStageMessage().length > 60 ? 14 : null,
+                      userStageCardContent?.message?.length > 60 ? 14 : null,
                     lineHeight:
-                      renderBannerStageMessage().length > 60 ? 21 : null,
+                      userStageCardContent?.message?.length > 60 ? 21 : null,
                   }}>
-                  {renderBannerStageMessage()}
+                  {`${userStageCardContent?.message}`}
                 </Text>
-                {userStage?.meta?.pre_approved_loan_amount
-                  ?.total_pre_approved_loan_amount && (
+                {userStageCardContent?.action === 'show_apply_now_button' ? (
                   <Heading
                     style={{
                       ...theme.fontSizes.xlarge,
@@ -86,64 +72,66 @@ export default function ({
                     {' '}
                     <Text style={{...theme.fontSizes.large}}>₹</Text>
                     {`${
-                      userStage?.meta?.pre_approved_loan_amount
-                        ?.total_pre_approved_loan_amount
-                        ? userStage?.meta?.pre_approved_loan_amount
-                            ?.total_pre_approved_loan_amount
+                      userStageCardContent?.action === 'show_apply_now_button'
+                        ? userStageCardContent?.preApprovedLoanAmount
                         : 'NA'
                     }*`}
                   </Heading>
-                )}
+                ) : null}
               </Text>
 
-              <View
-                style={{
-                  paddingHorizontal: 0,
-                  paddingTop: 8,
-                  width: 112,
-                  paddingVertical: 2,
-                }}>
-                <OutlinedButton
-                  extraStyles={{
-                    paddingVertical: 4,
-                    backgroundColor: theme.colors.primaryBlue800,
-                    paddingHorizontal: 1,
-                  }}
-                  onPress={() => {
-                    if (
-                      !userStage?.meta?.pre_approved_loan_amount
-                        ?.total_pre_approved_loan_amount
-                    ) {
-                      onUploadNow();
-                    } else {
-                      showModal(true);
-                    }
-                  }}
-                  style={{borderWidth: 2}}
-                  outlineColor={theme.colors.primary}
-                  textColor={theme.colors.primary}
-                  textStyles={{
-                    color: theme.colors.primary,
-                    fontWeight: theme.fontWeights.veryBold,
-                    ...theme.fontSizes.small,
+              {userStageCardContent?.action !== null ? (
+                <View
+                  style={{
+                    paddingHorizontal: 0,
+                    paddingTop: 8,
+                    width: 112,
+                    paddingVertical: 2,
                   }}>
-                  {userStage?.meta?.pre_approved_loan_amount
-                    ?.total_pre_approved_loan_amount
-                    ? 'Apply Now'
-                    : 'Upload Now'}
-                </OutlinedButton>
-              </View>
+                  <OutlinedButton
+                    extraStyles={{
+                      paddingVertical: 4,
+                      backgroundColor: theme.colors.primaryBlue800,
+                      paddingHorizontal: 1,
+                    }}
+                    onPress={() => {
+                      if (
+                        userStageCardContent?.action ===
+                        'show_upload_now_button'
+                      ) {
+                        onUploadNow();
+                      } else if (
+                        userStageCardContent?.action === 'show_apply_now_button'
+                      ) {
+                        onApplyNow();
+                      }
+                    }}
+                    style={{borderWidth: 2}}
+                    outlineColor={theme.colors.primary}
+                    textColor={theme.colors.primary}
+                    textStyles={{
+                      color: theme.colors.primary,
+                      fontWeight: theme.fontWeights.veryBold,
+                      ...theme.fontSizes.small,
+                    }}>
+                    {userStageCardContent?.action === 'show_upload_now_button'
+                      ? 'Upload Now'
+                      : userStageCardContent?.action === 'show_apply_now_button'
+                      ? 'Apply Now'
+                      : 'Upload Now'}
+                  </OutlinedButton>
+                </View>
+              ) : null}
             </View>
           </View>
-          {userStage?.meta?.pre_approved_loan_amount
-            ?.total_pre_approved_loan_amount && (
+          {userStageCardContent?.meta?.pre_approved_loan_amount
+            ?.total_pre_approved_loan_amount ? (
             <View style={{position: 'absolute', bottom: 0, right: 5}}>
               <LoanBanner />
             </View>
-          )}
+          ) : null}
 
-          {!userStage?.meta?.pre_approved_loan_amount
-            ?.total_pre_approved_loan_amount && (
+          {userStageCardContent?.action !== 'show_apply_now_button' ? (
             <View
               style={{
                 flex: 1 / 4,
@@ -152,34 +140,23 @@ export default function ({
                 marginRight: 31.25,
               }}>
               <ProgressCircle
-                percent={userStage?.stage_data?.percentage_completed?.slice(
-                  0,
-                  userStage?.stage_data?.percentage_completed?.indexOf('%'),
-                )}
+                percent={`${userStageCardContent?.percentage}`}
                 radius={34}
                 textFontSize={18}
                 progressRingWidth={6}
-                bgRingWidth={
-                  userStage?.stage_data?.percentage_completed?.slice(
-                    0,
-                    userStage?.stage_data?.percentage_completed?.indexOf('%'),
-                  ) >= 50
-                    ? 3
-                    : 6
-                }
+                bgRingWidth={userStageCardContent?.percentage >= 50 ? 3 : 6}
                 ringColor={theme.colors.primaryYellow}
                 textFontColor={'white'}
                 ringBgColor={'white'}
                 clockwise={false}
               />
             </View>
-          )}
+          ) : null}
           <TouchableOpacity
             onPress={() => setShowBannerSpace(false)}
             hitSlop={{top: 10, left: 10, right: 10, bottom: 10}}
             style={
-              userStage?.meta?.pre_approved_loan_amount ||
-              !props?.response?.data?.message
+              userStageCardContent?.action === 'show_apply_now_button'
                 ? {position: 'absolute', top: 11.25, right: 12.25}
                 : {
                     flex: 0.1,
