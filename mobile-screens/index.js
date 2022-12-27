@@ -28,7 +28,6 @@ import General from './stacks/General';
 import {linking} from './deepLinkConfigs';
 import withAuth from './hocs/withAuth';
 import FetchCAS from './stacks/FetchCAS';
-import {useHideSplashScreen} from './reusables/useHideSplashScreen';
 
 Sentry.init({
   dsn: Config.SENTRY_DSN,
@@ -52,11 +51,6 @@ const App = () => {
   const [loading, setLoading] = useState(null);
   const {clearStoreForLogout} = useClearAsyncStorageKeys();
   const handleExpiredSession = React.useRef(() => {});
-  const {hideSplashScreen} = useHideSplashScreen();
-
-  useEffect(() => {
-    hideSplashScreen();
-  }, []);
 
   const init = React.useCallback(async () => {
     try {
