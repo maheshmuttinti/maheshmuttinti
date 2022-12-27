@@ -193,7 +193,7 @@ const Dashboard = ({navigation, route}) => {
           'refreshableCASDataProvidersForNBFC: ',
           refreshableCASDataProvidersForNBFC,
         );
-        navigation.navigate('Protected', {
+        navigation.navigate('LAMFV2', {
           screen: 'UpdatePortfolio',
           params: {
             providers: refreshableCASDataProvidersForNBFC,
@@ -255,18 +255,18 @@ const Dashboard = ({navigation, route}) => {
           refreshOnScreenFocus={refreshOnScreenFocus}
           wrapperStyles={{paddingTop: 34}}
         />
-        <Calculators wrapperStyles={{paddingTop: 24}} />
+        {/* <Calculators wrapperStyles={{paddingTop: 24}} /> */}
       </View>
-      <InvestingSection wrapperStyles={{paddingTop: 32}} />
-      <View style={{paddingHorizontal: 17, paddingTop: 24}}>
+      {/* <InvestingSection wrapperStyles={{paddingTop: 32}} /> */}
+      {/* <View style={{paddingHorizontal: 17, paddingTop: 24}}>
         <MoreFunds />
         <Goals wrapperStyles={{paddingTop: 24}} />
         <UpcomingPayments wrapperStyles={{paddingTop: 24}} />
         <ExtraAddOns wrapperStyles={{paddingTop: 24}} />
         <NewsAndArticles wrapperStyles={{paddingTop: 24}} />
-      </View>
+      </View> */}
 
-      <ExploreMoreReportsBanner wrapperStyles={{paddingTop: 40}} />
+      {/* <ExploreMoreReportsBanner wrapperStyles={{paddingTop: 40}} /> */}
 
       <View style={{paddingHorizontal: 17, marginBottom: 120}} />
     </ScreenWrapper>

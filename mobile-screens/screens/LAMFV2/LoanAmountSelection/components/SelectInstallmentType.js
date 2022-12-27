@@ -153,52 +153,54 @@ export const SelectInstallmentType = ({
           />
         </View>
       ) : null}
-      {renderUI?.type === 'onlyBalloon' ? (
-        <Card
-          style={{
-            backgroundColor: theme.colors.backgroundYellow,
-            padding: 16,
-          }}>
-          <Heading
+      <View style={{paddingTop: 8}}>
+        {renderUI?.type === 'onlyBalloon' ? (
+          <Card
             style={{
-              color: theme.colors.text,
-              ...theme.fontSizes.medium,
-              fontWeight: theme.fontWeights.veryBold,
-              lineHeight: 24,
-              ...optionLabelStyle,
+              backgroundColor: theme.colors.backgroundYellow,
+              padding: 16,
             }}>
-            Easy Pay Plan - ₹2000 - ₹5000
-          </Heading>
+            <Heading
+              style={{
+                color: theme.colors.text,
+                ...theme.fontSizes.medium,
+                fontWeight: theme.fontWeights.veryBold,
+                lineHeight: 24,
+                ...optionLabelStyle,
+              }}>
+              Easy Pay Plan - ₹2000 - ₹5000
+            </Heading>
 
-          <SubText
+            <SubText
+              style={{
+                color: theme.colors.text,
+                ...theme.fontSizes.xsmall,
+                lineHeight: 24,
+                ...optionSubLabelStyle,
+              }}>
+              Last month's payment will also include the principal amount
+            </SubText>
+          </Card>
+        ) : null}
+        {renderUI?.type === 'onlyEMI' ? (
+          <Card
             style={{
-              color: theme.colors.text,
-              ...theme.fontSizes.xsmall,
-              lineHeight: 24,
-              ...optionSubLabelStyle,
+              backgroundColor: theme.colors.backgroundYellow,
+              padding: 16,
             }}>
-            Last month's payment will also include the principal amount
-          </SubText>
-        </Card>
-      ) : null}
-      {renderUI?.type === 'onlyEMI' ? (
-        <Card
-          style={{
-            backgroundColor: theme.colors.backgroundYellow,
-            padding: 16,
-          }}>
-          <Heading
-            style={{
-              color: theme.colors.text,
-              ...theme.fontSizes.medium,
-              fontWeight: theme.fontWeights.veryBold,
-              lineHeight: 24,
-              ...optionLabelStyle,
-            }}>
-            EMI Plan - ₹2000 - ₹5000
-          </Heading>
-        </Card>
-      ) : null}
+            <Heading
+              style={{
+                color: theme.colors.text,
+                ...theme.fontSizes.medium,
+                fontWeight: theme.fontWeights.veryBold,
+                lineHeight: 24,
+                ...optionLabelStyle,
+              }}>
+              EMI Plan - ₹2000 - ₹5000
+            </Heading>
+          </Card>
+        ) : null}
+      </View>
     </View>
   );
 };

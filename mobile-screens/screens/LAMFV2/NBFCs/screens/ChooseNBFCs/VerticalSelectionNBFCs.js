@@ -31,13 +31,15 @@ import {TouchableOpacity} from 'react-native-gesture-handler';
 import useLayoutBackButtonAction from '../../../../../reusables/useLayoutBackButtonAction';
 import SkeletonContent from 'react-native-skeleton-content-nonexpo';
 import {placeholderDecider} from 'utils';
+import {nbfcs as nbfcsData} from '../../data/nbfcs';
 
 export default function ({navigation, route}) {
   const dispatch = useDispatch();
   const theme = useTheme();
+  const nbfcsFromRouteParams = route?.params?.nbfcs || nbfcsData;
 
   const [filter, setFilter] = useState('');
-  const [nbfcs, setNbfcs] = useState([]);
+  const [nbfcs, setNbfcs] = useState(nbfcsFromRouteParams);
   const nbfcWisePreApprovedLoanFnRef = useRef(() => {});
   const [loading, setLoading] = useState(false);
   useLayoutBackButtonAction(theme.colors.background);
@@ -53,45 +55,45 @@ export default function ({navigation, route}) {
     {label: 'ROI', value: 'nbfc.roi'},
   ];
 
-  nbfcWisePreApprovedLoanFnRef.current = async () => {
-    try {
-      setLoading(true);
-      const data = await getPreApprovedLoanforPan('ENBPM4556D', '', filter);
+  // nbfcWisePreApprovedLoanFnRef.current = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const data = await getPreApprovedLoanforPan('ENBPM4556D', '', filter);
 
-      const _nbfcs = await Promise.all(
-        data?.map(async nbfc => {
-          const payload = {
-            interest: nbfc?.nbfc?.roi,
-            principal: nbfc?.total_pre_approved_loan_amount,
-            tenures: [
-              {
-                label: `${nbfc?.nbfc?.max_tenure}`,
-                value: `${+nbfc?.nbfc?.max_tenure?.split(' ')[0]}`,
-              },
-            ],
-          };
-          if (payload?.interest && payload?.principal && payload?.tenures) {
-            const indicativeEMIsResponse =
-              await getIndicativeEMIsForLoanTenures(payload);
-            const indicativeEMIAmount =
-              indicativeEMIsResponse?.[0]?.tentative_emi_amount;
-            return {
-              ...nbfc,
-              nbfc: {...nbfc.nbfc, indicative_emi: indicativeEMIAmount},
-            };
-          }
-        }),
-      );
-      setNbfcs(_nbfcs);
-      setLoading(false);
-    } catch (error) {
-      setLoading(false);
-    }
-  };
+  //     const _nbfcs = await Promise.all(
+  //       data?.map(async nbfc => {
+  //         const payload = {
+  //           interest: nbfc?.nbfc?.roi,
+  //           principal: nbfc?.total_pre_approved_loan_amount,
+  //           tenures: [
+  //             {
+  //               label: `${nbfc?.nbfc?.max_tenure}`,
+  //               value: `${+nbfc?.nbfc?.max_tenure?.split(' ')[0]}`,
+  //             },
+  //           ],
+  //         };
+  //         if (payload?.interest && payload?.principal && payload?.tenures) {
+  //           const indicativeEMIsResponse =
+  //             await getIndicativeEMIsForLoanTenures(payload);
+  //           const indicativeEMIAmount =
+  //             indicativeEMIsResponse?.[0]?.tentative_emi_amount;
+  //           return {
+  //             ...nbfc,
+  //             nbfc: {...nbfc.nbfc, indicative_emi: indicativeEMIAmount},
+  //           };
+  //         }
+  //       }),
+  //     );
+  //     setNbfcs(_nbfcs);
+  //     setLoading(false);
+  //   } catch (error) {
+  //     setLoading(false);
+  //   }
+  // };
 
-  useEffect(() => {
-    nbfcWisePreApprovedLoanFnRef.current();
-  }, [filter]);
+  // useEffect(() => {
+  //   nbfcWisePreApprovedLoanFnRef.current();
+  // }, [filter]);
 
   return (
     <ScreenWrapper
@@ -287,7 +289,7 @@ export default function ({navigation, route}) {
                               ...theme.fontSizes.medium,
                               paddingLeft: 16,
                             }}>
-                            {item?.nbfc?.nbfc_name}
+                            {item?.nbfc_code}
                           </Heading>
                         </View>
                         <View style={{paddingTop: 16}}>
@@ -301,7 +303,9 @@ export default function ({navigation, route}) {
                               titleStyle={{
                                 fontWeight: theme.fontWeights.lightBold,
                               }}
-                              value={`₹ ${item.total_pre_approved_loan_amount}`}
+                              value={`₹ ${placeholderDecider(
+                                item?.eligible_max_loan,
+                              )}`}
                               style={{flex: 1 / 2}}
                             />
                             <LabelValue
@@ -322,12 +326,19 @@ export default function ({navigation, route}) {
                               titleStyle={{
                                 fontWeight: theme.fontWeights.lightBold,
                               }}
-                              value={`${item?.nbfc?.roi}%`}
+                              value={`${item?.nbfc_roi}%`}
                               style={{flex: 1 / 2}}
                             />
                             <LabelValue
                               title="Tenure (months)"
-                              value={placeholderDecider(item?.nbfc?.max_tenure)}
+                              value={placeholderDecider(
+                                `${
+                                  JSON.parse(item?.eligible_tenures)[
+                                    JSON.parse(item?.eligible_tenures)?.length -
+                                      1
+                                  ]
+                                }`,
+                              )}
                               style={{flex: 1 / 2}}
                             />
                           </View>
