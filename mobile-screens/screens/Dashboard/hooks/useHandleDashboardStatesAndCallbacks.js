@@ -79,9 +79,9 @@ export const useHandleDashboardStatesAndCallbacks = (
                 setPollsChecking(false);
               } else {
                 // Todo: status: NOT_GENERATED case will be handled here
-                console.log('Generate Portfolio is calling.....');
+                debugLog('Generate Portfolio is calling.....');
                 await handleGeneratePortfolio();
-                console.log('Generate Portfolio is done.....');
+                debugLog('Generate Portfolio is done.....');
                 setPollsChecking(false);
               }
             } else if (
@@ -113,7 +113,7 @@ export const useHandleDashboardStatesAndCallbacks = (
             setPollsChecking(false);
           }
         } catch (error) {
-          console.log('user Stages API error: ', error);
+          debugLog('user Stages API error: ', error);
           if (error?.message?.errorCode === 'INVESTOR_NOT_FOUND') {
             setUserStageCardContent({
               message: "Don't miss out on Investment Insights!",
@@ -345,9 +345,9 @@ const pollTheUserStagesOnProcessing = async () => {
     const poll = setInterval(async () => {
       try {
         const userStageResponse = await getInvestorUserStage();
-        console.log('userStageResponse: ', prettifyJSON(userStageResponse));
+        debugLog('userStageResponse: ', prettifyJSON(userStageResponse));
         if (userStageResponse) {
-          console.log(
+          debugLog(
             'userStageResponse in first if: ',
             prettifyJSON(userStageResponse),
           );
@@ -355,7 +355,7 @@ const pollTheUserStagesOnProcessing = async () => {
           return userStageResponse;
         }
         if (pollCount > maxPolls) {
-          console.log(
+          debugLog(
             'userStageResponse in second if maxPolls: ',
             prettifyJSON(userStageResponse),
           );
