@@ -1,259 +1,32 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState, useMemo, useCallback} from 'react';
+import React from 'react';
 import {View, ScrollView, Platform, Pressable} from 'react-native';
 import ScreenWrapper from '../../../../hocs/screenWrapperWithoutBackButton';
 import {useTheme} from 'theme';
 import _ from 'lodash';
 import {Heading, BaseTextInput, BaseButton} from 'uin';
 import {ApplicantAvatar, BackArrow} from 'assets';
-import {useEffect} from 'react';
-import {debugLog, isNumber, prettifyJSON} from 'utils';
-import useLayoutBackButtonAction from '../../../../reusables/useLayoutBackButtonAction';
 import {SliderWithLabels} from '../components/SliderWithLabels';
 import {SelectTenure} from '../components/SelectTenure';
 import {SelectInstallmentType} from '../components/SelectInstallmentType';
-import useBetaForm from '@reusejs/react-form-hook';
-import {getNBFCs} from 'services';
+import {useLoanAmountSelectionHandler} from '../hooks/useLoanAmountSelectionHandler';
 
-export default function ({route, navigation}) {
+export default function ({navigation, route}) {
   const theme = useTheme();
-  useLayoutBackButtonAction(theme.colors.background);
-
   const {
-    loanAmount: loanAmountFromRouteParams,
-    minLoanAmount: minLoanAmountFromRouteParams,
-    maxLoanAmount: maxLoanAmountFromRouteParams,
-    availableFilterOptions: {tenures, installment_types},
-  } = route?.params;
-
-  const memoizedAllMappedEMITenures = useMemo(
-    () =>
-      tenures?.map(tenure => ({
-        label: tenure,
-        value: tenure?.includes(' Months')
-          ? tenure?.slice(0, tenure?.indexOf(' Months'))
-          : tenure,
-      })),
-    [tenures],
-  );
-  const initialMemoizedEMITenures = useMemo(() => {
-    const _memoizedAllMappedEMITenures = [...memoizedAllMappedEMITenures];
-    console.log(
-      'useMemo->_memoizedAllMappedEMITenures: ',
-      _memoizedAllMappedEMITenures,
-    );
-    if (_memoizedAllMappedEMITenures?.length > 6) {
-      const _6EMITenures = _memoizedAllMappedEMITenures.slice(0, 6);
-      return _6EMITenures;
-    } else {
-      return _memoizedAllMappedEMITenures;
-    }
-  }, [memoizedAllMappedEMITenures]);
-
-  const [allMappedEMITenures, setAllMappedEMITenures] = useState(
-    memoizedAllMappedEMITenures,
-  );
-
-  const memoizedDefaultEMITenure = useMemo(
-    () => memoizedAllMappedEMITenures?.[0],
-    [memoizedAllMappedEMITenures],
-  );
-  const [defaultEMITenure, setDefaultEMITenure] = useState(
-    memoizedDefaultEMITenure,
-  );
-  const defaultInstallmentType =
-    useMemo(
-      () => memoizedAllMappedEMITenures?.[0],
-      [memoizedAllMappedEMITenures],
-    ) || 'emi';
-
-  const minLoanAmount = useMemo(
-    () => minLoanAmountFromRouteParams,
-    [minLoanAmountFromRouteParams],
-  );
-  const maxLoanAmount = useMemo(
-    () => maxLoanAmountFromRouteParams,
-    [maxLoanAmountFromRouteParams],
-  );
-  const [emiTenures, setEMITenures] = useState(initialMemoizedEMITenures);
-
-  const [ballonAndEMIDecider, setBallonAndEMIDecider] = useState({
-    type: 'balloonAndEMI',
-    recommended: 'balloon',
-    data: [
-      {
-        label: '₹2000 - ₹5000',
-        value: '2000-5000',
-      },
-      {
-        label: '₹10,000 - ₹12,000',
-        value: '10,000 - 12,000',
-      },
-    ],
-  });
-
-  const nbfcsFilterForm = useBetaForm({
-    amount: loanAmountFromRouteParams,
-    filters: {
-      tenure: defaultEMITenure,
-      installment_type: defaultInstallmentType,
-    },
-  });
-
-  const handleGetNBFCs = async payload => {
-    try {
-      const getNBFCsResponse = await getNBFCs(payload);
-      debugLog('getNBFCsResponse: ', prettifyJSON(getNBFCsResponse));
-
-      return getNBFCsResponse;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const handleSetFilters = useCallback(async payload => {
-    try {
-      const nbfcs = await handleGetNBFCs(payload);
-      const availableFilterOptions = nbfcs?.available_filter_options;
-      const allEMITenures = availableFilterOptions?.tenures;
-      const mappedAllEMITenures = allEMITenures?.map(tenure => ({
-        label: tenure,
-        value: tenure?.includes(' Months')
-          ? tenure?.slice(0, tenure?.indexOf(' Months'))
-          : tenure,
-      }));
-      const defaultEMITenureOnChangeSlider = mappedAllEMITenures?.[0];
-      console.log(
-        'defaultEMITenureOnChangeSlider: ',
-        defaultEMITenureOnChangeSlider,
-      );
-      setAllMappedEMITenures(mappedAllEMITenures);
-      setDefaultEMITenure(defaultEMITenureOnChangeSlider);
-    } catch (error) {
-      throw error;
-    }
-  }, []);
-
-  const handleChangeLoanAmountOnTextInput = useCallback(
-    async value => {
-      try {
-        const numericValue = value?.startsWith('₹') ? value.slice(1) : value;
-        let finalLoanAmount = isNumber(numericValue)
-          ? numericValue
-          : numericValue;
-        if (finalLoanAmount < minLoanAmount) {
-          finalLoanAmount = minLoanAmount;
-          nbfcsFilterForm?.setField('amount', +finalLoanAmount);
-        } else {
-          finalLoanAmount = minLoanAmount;
-          nbfcsFilterForm?.setField('amount', +finalLoanAmount);
-        }
-        const payload = {
-          amount: +finalLoanAmount,
-        };
-        console.log(
-          'handleChangeLoanAmountOnTextInput->payload for handleGetNBFCs: ',
-          prettifyJSON(payload),
-        );
-        await handleSetFilters(payload);
-      } catch (error) {
-        throw error;
-      }
-    },
-    [handleSetFilters, nbfcsFilterForm?.value],
-  );
-
-  const handleChangeSlider = useCallback(
-    async value => {
-      try {
-        nbfcsFilterForm?.setField('amount', +value);
-        const payload = {
-          amount: +value,
-        };
-        console.log(
-          'handleChangeSlider->payload for handleGetNBFCs: ',
-          prettifyJSON(payload),
-        );
-        await handleSetFilters(payload);
-      } catch (error) {
-        throw error;
-      }
-    },
-    [handleSetFilters, nbfcsFilterForm?.value],
-  );
-
-  const handleOnToggleSeeMore = useCallback(
-    _emiTenures => {
-      console.log('handleOnToggleSeeMore->_emiTenures: ', _emiTenures);
-      const _allMappedEMITenures = [...allMappedEMITenures];
-      console.log(
-        'handleOnToggleSeeMore->_allMappedEMITenures: ',
-        _allMappedEMITenures,
-      );
-      if (_allMappedEMITenures?.length > 6) {
-        if (_emiTenures?.length === allMappedEMITenures?.length) {
-          const _6EMITenures = _allMappedEMITenures.slice(0, 6);
-          setEMITenures(_6EMITenures);
-          nbfcsFilterForm?.setField('filters.tenure', _6EMITenures?.[0]);
-        } else {
-          setEMITenures(_allMappedEMITenures);
-          nbfcsFilterForm?.setField(
-            'filters.tenure',
-            _allMappedEMITenures?.[0],
-          );
-        }
-      }
-    },
-    [allMappedEMITenures, nbfcsFilterForm?.value],
-  );
-
-  const handleSelectTenure = useCallback(
-    tenure => {
-      debugLog('tenure: ', tenure);
-      nbfcsFilterForm?.setField('filters.tenure', tenure);
-    },
-    [nbfcsFilterForm?.value],
-  );
-
-  const handleOnSelectMonthlyPlan = useCallback(
-    installmentType => {
-      debugLog('installmentType: ', installmentType);
-      nbfcsFilterForm?.setField('filters.installment_type', installmentType);
-    },
-    [nbfcsFilterForm?.value],
-  );
-
-  const handleSubmit = async () => {
-    try {
-      const payload = {
-        ...nbfcsFilterForm?.value,
-        filters: {
-          tenure: nbfcsFilterForm?.value?.filters?.tenure?.value,
-          installment_type:
-            nbfcsFilterForm?.value?.filters?.installment_type?.value,
-        },
-      };
-      debugLog('payload on submit', prettifyJSON(payload));
-
-      const handleGetNBFCsResponse = await handleGetNBFCs(payload);
-      debugLog('handleGetNBFCsResponse: ', handleGetNBFCsResponse);
-      let nbfcs = handleGetNBFCsResponse?.nbfcs;
-
-      console.log('nbfcs after adding other--------: ', prettifyJSON(nbfcs));
-      if (nbfcs?.length === 1) {
-        navigation.navigate('LAMFV2', {screen: 'ChooseNBFCSingle'});
-      } else if (nbfcs?.length === 2 || nbfcs?.length === 3) {
-        navigation.navigate('LAMFV2', {
-          screen: 'ChooseNBFCHorizontal',
-          nbfcs: nbfcs,
-        });
-      } else if (nbfcs?.length > 3) {
-        navigation.navigate('LAMFV2', {screen: 'ChooseNBFCVertical'});
-      }
-    } catch (error) {
-      throw error;
-    }
-  };
+    nbfcsFilterForm,
+    minLoanAmount,
+    maxLoanAmount,
+    emiTenures,
+    allMappedEMITenures,
+    installmentTypeDecider,
+    handleChangeLoanAmountOnTextInput,
+    handleChangeSlider,
+    handleSelectTenure,
+    handleOnToggleSeeMore,
+    handleOnSelectMonthlyPlan,
+    handleSubmit,
+  } = useLoanAmountSelectionHandler(navigation, route);
 
   return (
     <>
@@ -406,7 +179,7 @@ export default function ({route, navigation}) {
 
               <SelectInstallmentType
                 style={{paddingTop: 16}}
-                renderUI={ballonAndEMIDecider}
+                renderUI={installmentTypeDecider}
                 onSelectedInstallmentType={handleOnSelectMonthlyPlan}
               />
 
